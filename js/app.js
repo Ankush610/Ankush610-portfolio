@@ -175,6 +175,7 @@ function initCursor() {
 
   const el = document.createElement('div');
   el.id = 'nb-cursor';
+  el.classList.add('nb-cursor-hidden');
   document.body.appendChild(el);
   document.body.classList.add('nb-cursor-active');
 
