@@ -112,7 +112,7 @@
   "projects": [
     {
       "id": "vllmbenchgui",
-      "title": "vLLM-Bench GUI — LLM Benchmarking Platform",
+      "title": "vLLM-Bench-App — LLM Benchmarking Platform",
       "status": "public",
       "description": "A lightweight web GUI for vLLM-Bench that automates Hugging Face model downloads, vLLM server deployment, sequential benchmark execution, optional SLURM-based HPC execution, and interactive visualization of LLM inference performance metrics.",
       "technologies": ["Python", "FastAPI", "SQLite", "vLLM", "vLLM-Bench", "Hugging Face", "Apptainer", "SLURM", "CUDA", "Linux"],
