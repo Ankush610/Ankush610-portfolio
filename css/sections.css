@@ -125,6 +125,24 @@
 .tl-date    { font-size: 10px; color: var(--text-dim); }
 .tl-company { font-size: 11px; color: var(--teal); margin-bottom: 5px; }
 .tl-desc    { font-size: 11px; color: var(--text-dim); line-height: 1.6; margin-bottom: 8px; }
+.tl-list    { list-style: none; margin: 0 0 8px; padding: 0; }
+.tl-list li { font-size: 11px; color: var(--text); line-height: 1.6; padding-left: 14px; position: relative; margin-bottom: 4px; }
+.tl-list li::before { content: '▸'; position: absolute; left: 0; color: var(--teal); }
+
+/* ── Profile CV button ── */
+.cv-btn {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 9px 14px;
+  color: var(--green);
+  border: 1px solid var(--green);
+  background: rgba(57,255,20,0.05);
+  transition: background 0.15s, color 0.15s;
+}
+.cv-btn:hover { background: var(--green); color: #000; text-decoration: none; }
 
 /* ── SKILLS ── */
 .skill-filters {
@@ -172,6 +190,21 @@
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 4px;
 }
+.skill-group-title {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 14px 0 6px;
+}
+.skill-group-title:first-child { margin-top: 0; }
+.skill-group-title small { color: var(--text-dim); margin-left: 6px; }
+.skill-group-title.cat-lang { color: var(--amber); }
+.skill-group-title.cat-ml   { color: var(--green); }
+.skill-group-title.cat-llm  { color: var(--teal); }
+.skill-group-title.cat-dev  { color: var(--pink); }
+.skill-group-title.cat-ops  { color: var(--orange); }
+.skill-group-title.cat-sys  { color: var(--red); }
+.skill-group-title.cat-data { color: var(--purple); }
 
 .skill-chip {
   background: var(--bg-input);
@@ -340,6 +373,10 @@
 .ach-body   { flex: 1; }
 .ach-title  { font-size: 12px; color: var(--amber2); margin-bottom: 3px; }
 .ach-meta   { font-size: 10px; color: var(--text-dim); }
+.talk-card { border-left-color: var(--purple-dim); }
+.talk-card:hover { border-left-color: var(--purple); }
+.talk-card .ach-glyph { color: var(--purple); }
+.talk-card .ach-title { color: var(--text); }
 
 /* ── WORKSHOPS ── */
 .ws-card {
@@ -411,7 +448,7 @@
 .contact-row:hover { border-color: var(--border-hi); background: #0c0c16; }
 
 .contact-icon { width: 28px; font-family: var(--font-vt); font-size: 22px; color: var(--teal); text-align: center; flex-shrink: 0; }
-.contact-label { font-size: 9px; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 2px; }
+.contact-label { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 2px; }
 .contact-val {
   font-size: 12px;
   color: var(--teal2);

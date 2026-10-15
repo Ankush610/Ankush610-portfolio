@@ -290,8 +290,6 @@ function buildShell() {
       <div class="site-name">${p.handle.toUpperCase()}</div>
       <div class="site-tagline">
         &gt; <span class="hl">${esc(p.title)}</span>
-        &nbsp;·&nbsp;
-        <span class="tagline-sub">${esc(p.subtitle)}</span>
       </div>
     </div>
     <div class="header-right">

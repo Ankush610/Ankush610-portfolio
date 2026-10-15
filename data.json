@@ -3,113 +3,159 @@
     "name": "Ankush Sonawane",
     "handle": "portfolio",
     "title": "Project Engineer",
-    "subtitle": "GenAI | DL | ML | DS | HPC",
-    "description": "Engineer specializing in AI, ML, and Deep Learning with hands-on experience in Generative AI, LLM engineering, distributed training, and HPC environments.",
-    "about": "Currently working as a Project Engineer at CDAC Pune, where I focus on optimizing AI/ML models, benchmarking and scaling LLMs, and conducting performance analysis on HPC clusters. Passionate about building scalable AI solutions, experimenting with GenAI, and sharing knowledge through technical sessions and awareness programs.",
+    "subtitle": "AI/ML & HPC | LLM Infrastructure | MLOps",
+    "description": "AI/ML engineer with 2.5 years at C-DAC building AI infrastructure on India's national HPC systems (PARAM Shavak, PARAM Rudra) — model serving platforms, GPU container stacks, and fully local LLM and RAG systems.",
+    "about": "Project Engineer at C-DAC Pune. Shipped a self-service model serving platform, the 14+ GPU container stack for the PARAM Shavak 2.0 product, and fully local LLM and RAG systems. Delivered 10+ workshops and faculty programmes on LLMs, distributed deep learning and HPC across India.",
     "careerStart": "2024-04",
     "focusAreas": [
       {
-        "id": "opt",
+        "id": "llm",
         "glyph": "✧",
-        "title": "AI/ML Optimization",
-        "desc": "Benchmarking, fine-tuning, and scaling LLMs and AI/ML models for real-world performance on HPC infrastructure."
+        "title": "LLM Infrastructure",
+        "desc": "Serving, benchmarking and scaling LLMs with vLLM, SGLang and llama.cpp; fully local RAG and LLM systems for offline clusters."
       },
       {
-        "id": "gen",
+        "id": "ops",
         "glyph": "◈",
-        "title": "Generative AI",
-        "desc": "Experimenting with GenAI pipelines, prompt engineering, and building intelligent solutions using modern foundation models."
+        "title": "MLOps & Containers",
+        "desc": "One-click model deployment with MLflow and Kubernetes, and reproducible Apptainer/Podman GPU containers shared by training and serving."
       },
       {
         "id": "hpc",
         "glyph": "▣",
-        "title": "HPC & Systems",
-        "desc": "Performance analysis and profiling on high-performance computing clusters to push the limits of computational efficiency."
+        "title": "HPC & Distributed DL",
+        "desc": "Multi-node GPU training with DDP/FSDP on Slurm, plus benchmarking and profiling on PARAM supercomputers."
       }
+    ],
+    "stats": [
+      { "number": "14+", "label": "GPU Containers", "tab": "PROJECTS" },
+      { "number": "10+", "label": "Workshops", "tab": "WORKSHOPS" }
     ]
   },
-
   "contact": {
-    "email":    "ankushsonawane60@gmail.com",
+    "email": "ankushsonawane60@gmail.com",
     "location": "Pune, Maharashtra, India",
     "linkedin": "https://www.linkedin.com/in/ankush-sonawane-55b100234/",
-    "github":   "https://github.com/Ankush610",
-    "medium":   "https://medium.com/@ankushsonawane36",
-    "intro":    "I'm always excited to explore opportunities in AI, ML, and HPC. If you're working on challenging projects in these domains, let's connect!"
+    "github": "https://github.com/Ankush610",
+    "medium": "https://medium.com/@ankushsonawane36",
+    "intro": "I'm always excited to explore opportunities in AI, ML, and HPC. If you're working on challenging projects in these domains, let's connect!"
   },
-
   "resume": "./resume/Ankush_Sonawane_Resume.pdf",
-
   "skills": [
-    { "name": "Python",             "cat": "lang" },
-    { "name": "C++",                "cat": "lang" },
-    { "name": "PyTorch",            "cat": "ml" },
-    { "name": "TensorFlow",         "cat": "ml" },
-    { "name": "vLLM",               "cat": "llm" },
-    { "name": "Unsloth",            "cat": "llm" },
-    { "name": "LangChain",          "cat": "llm" },
-    { "name": "OpenAI API",         "cat": "llm" },
-    { "name": "Ollama",             "cat": "llm" },
-    { "name": "Hugging Face",       "cat": "llm" },
-    { "name": "Ml-Flow",            "cat": "ops" },
-    { "name": "DVC",                "cat": "ops" },
-    { "name": "FastAPI",            "cat": "dev" },
-    { "name": "Gradio",             "cat": "dev" },
-    { "name": "Git",                "cat": "dev" },
-    { "name": "Docker",             "cat": "ops" },
-    { "name": "Apptainer",          "cat": "ops" },
-    { "name": "Linux",              "cat": "sys" },
-    { "name": "SLURM",              "cat": "sys" },
-    { "name": "Anaconda",           "cat": "dev" },
-    { "name": "UV",                 "cat": "dev" },
-    { "name": "MySQL",              "cat": "data" },
-    { "name": "ChromaDB",           "cat": "data" },
-    { "name": "Pydantic",           "cat": "dev" },
-    { "name": "Selenium",           "cat": "dev" },
-    { "name": "Machine Learning",   "cat": "ml" },
-    { "name": "Deep Learning",      "cat": "ml" },
-    { "name": "Data Science",       "cat": "data" },
-    { "name": "Computer Vision",    "cat": "ml" }
+    { "name": "Python", "cat": "lang" },
+    { "name": "C++", "cat": "lang" },
+    { "name": "PyTorch", "cat": "ml" },
+    { "name": "TensorFlow", "cat": "ml" },
+    { "name": "vLLM", "cat": "llm" },
+    { "name": "Unsloth", "cat": "llm" },
+    { "name": "LangChain", "cat": "llm" },
+    { "name": "OpenAI API", "cat": "llm" },
+    { "name": "Ollama", "cat": "llm" },
+    { "name": "Hugging Face", "cat": "llm" },
+    { "name": "SGLang", "cat": "llm" },
+    { "name": "llama.cpp", "cat": "llm" },
+    { "name": "LangGraph", "cat": "llm" },
+    { "name": "LiteLLM", "cat": "llm" },
+    { "name": "RAG", "cat": "llm" },
+    { "name": "LoRA / QLoRA", "cat": "llm" },
+    { "name": "scikit-learn", "cat": "ml" },
+    { "name": "RAPIDS", "cat": "ml" },
+    { "name": "YOLO", "cat": "ml" },
+    { "name": "DDP / FSDP", "cat": "ml" },
+    { "name": "Bash", "cat": "lang" },
+    { "name": "Podman", "cat": "ops" },
+    { "name": "Kubernetes", "cat": "ops" },
+    { "name": "OCI Registries", "cat": "ops" },
+    { "name": "Spack", "cat": "sys" },
+    { "name": "CUDA", "cat": "sys" },
+    { "name": "NCCL", "cat": "sys" },
+    { "name": "Lustre", "cat": "sys" },
+    { "name": "Keycloak", "cat": "dev" },
+    { "name": "Open OnDemand", "cat": "dev" },
+    { "name": "PostgreSQL", "cat": "data" },
+    { "name": "MLflow", "cat": "ops" },
+    { "name": "DVC", "cat": "ops" },
+    { "name": "FastAPI", "cat": "dev" },
+    { "name": "Gradio", "cat": "dev" },
+    { "name": "Git", "cat": "dev" },
+    { "name": "Docker", "cat": "ops" },
+    { "name": "Apptainer", "cat": "ops" },
+    { "name": "Linux", "cat": "sys" },
+    { "name": "Slurm", "cat": "sys" },
+    { "name": "Anaconda", "cat": "dev" },
+    { "name": "uv", "cat": "dev" },
+    { "name": "MySQL", "cat": "data" },
+    { "name": "ChromaDB", "cat": "data" },
+    { "name": "Pydantic", "cat": "dev" },
+    { "name": "Selenium", "cat": "dev" },
+    { "name": "Computer Vision", "cat": "ml" }
   ],
-
   "skillCategories": {
-    "lang": { "label": "Languages",    "color": "amber" },
-    "ml":   { "label": "ML / DL",      "color": "green" },
-    "llm":  { "label": "LLM / GenAI",  "color": "cyan" },
-    "dev":  { "label": "Dev Tools",    "color": "pink" },
-    "ops":  { "label": "MLOps",        "color": "orange" },
-    "sys":  { "label": "Systems",      "color": "red" },
-    "data": { "label": "Data",         "color": "purple" }
+    "lang": { "label": "Languages", "color": "amber" },
+    "ml": { "label": "ML / DL", "color": "green" },
+    "llm": { "label": "LLM / GenAI", "color": "cyan" },
+    "dev": { "label": "Dev Tools", "color": "pink" },
+    "ops": { "label": "MLOps", "color": "orange" },
+    "sys": { "label": "Systems", "color": "red" },
+    "data": { "label": "Data", "color": "purple" }
   },
-
   "experience": [
     {
-      "title":       "Project Engineer",
-      "company":     "CDAC, Pune",
-      "period":      "April 2024 – Present",
-      "description": "Contributing to AI/ML model optimization, LLM benchmarking, and HPC performance analysis. Developing tools and prototypes integrating AI/ML with large-scale systems.",
-      "skills":      ["AI/ML", "LLMs", "HPC", "GPU Benchmarking", "Tool Development"]
+      "title": "Project Engineer",
+      "company": "C-DAC, Pune",
+      "period": "Apr 2024 – Present",
+      "description": "Building AI infrastructure on India's national HPC systems (PARAM Shavak, PARAM Rudra).",
+      "highlights": [
+        "AI-Factory Model Hub (2026–now): architected a one-click train → register → deploy platform for ~100 users on the Rudra AI rack; shipped v1 and v2, building v3.",
+        "AI container stack (2025–now): built and maintain 14+ Apptainer GPU containers on CUDA 12.9, shipped with the PARAM Shavak 2.0 product.",
+        "LLM systems (2025–now): built C-Nidan for HPC log analysis, validated on 3 national clusters, plus a fully local vectorless RAG and an LLM benchmarking GUI.",
+        "DL & HPC research (2024–25): YOLO lung-tumour detection, multi-node DDP training on Slurm, and HPC app benchmarking on PARAM systems.",
+        "Teaching (2024–now): authored 100+ hours of DS/ML/DL/LLM course material and mentored UG interns."
+      ],
+      "skills": ["vLLM", "MLflow", "Kubernetes", "Apptainer", "Slurm", "Keycloak", "PyTorch", "CUDA"]
     }
   ],
-
   "education": [
     {
-      "title":       "PG Diploma in Artificial Intelligence",
-      "company":     "CDAC Innovation Park, Pune",
-      "period":      "2023 – 2024",
+      "title": "PG Diploma in Artificial Intelligence",
+      "company": "CDAC Innovation Park, Pune",
+      "period": "2023 – 2024",
       "description": "Advanced coursework in AI, ML, DL, NLP, and distributed computing.",
-      "skills":      ["AI", "Machine Learning", "Deep Learning", "NLP"]
+      "skills": ["AI", "Machine Learning", "Deep Learning", "NLP"]
     },
     {
-      "title":       "B.E. in Computer Engineering",
-      "company":     "Savitribai Phule Pune University",
-      "period":      "2017 – 2021",
+      "title": "B.E. in Computer Engineering",
+      "company": "Savitribai Phule Pune University",
+      "period": "2017 – 2021",
       "description": "Studied computer engineering fundamentals, software engineering, and AI-related courses.",
-      "skills":      ["Algorithms", "Data Structures", "Software Development"]
+      "skills": ["Algorithms", "Data Structures", "Software Development"]
     }
   ],
-
   "projects": [
+    {
+      "id": "modelhub",
+      "title": "AI-Factory Model Hub — Self-Service Model Serving",
+      "status": "private",
+      "description": "One-click platform for cluster users to train, register and deploy ML, DL and LLM models as Slurm-scheduled GPU endpoints. Keycloak SSO over LDAP, HTTPS gateway with hashed per-user API keys, fully offline install for the PARAM Rudra AI rack.",
+      "technologies": ["MLflow", "Kubernetes", "Slurm", "Keycloak", "LDAP", "FastAPI", "Python"],
+      "link": ""
+    },
+    {
+      "id": "cnidan",
+      "title": "C-Nidan — LLM HPC Log Analysis",
+      "status": "private",
+      "description": "LLM-based log-analysis system for HPC clusters with a log ingestion and inference pipeline and a one-click installer (Conda, Apptainer + vLLM via Spack, health checks), validated on 3 national clusters.",
+      "technologies": ["vLLM", "Apptainer", "Spack", "Conda", "Python"],
+      "link": ""
+    },
+    {
+      "id": "containers",
+      "title": "PARAM Shavak 2.0 AI Container Stack",
+      "status": "private",
+      "description": "14+ GPU containers (PyTorch, TensorFlow, RAPIDS, vLLM, SGLang, llama.cpp, MLflow) built from scratch on AlmaLinux with CUDA 12.9, pinned dependencies and automated multi-node test suites.",
+      "technologies": ["Apptainer", "Podman", "CUDA", "uv", "Bash", "AlmaLinux"],
+      "link": ""
+    },
     {
       "id": "vllmbenchgui",
       "title": "vLLM-Bench-App — LLM Benchmarking Platform",
@@ -117,113 +163,118 @@
       "description": "A lightweight web GUI for vLLM-Bench that automates Hugging Face model downloads, vLLM server deployment, sequential benchmark execution, optional SLURM-based HPC execution, and interactive visualization of LLM inference performance metrics.",
       "technologies": ["Python", "FastAPI", "SQLite", "vLLM", "vLLM-Bench", "Hugging Face", "Apptainer", "SLURM", "CUDA", "Linux"],
       "link": "https://github.com/Ankush610/vllmBenchGUI.git"
-    }, 
+    },
     {
-      "id":           "pageindex",
-      "title":        "PageIndexWithVLLM — Local Vectorless RAG",
-      "status":       "public",
-      "description":  "Local document Q&A system that builds a hierarchical section tree from PDFs and answers questions by reasoning over that structure — no embeddings, no vector database, everything runs on your own machine.",
+      "id": "pageindex",
+      "title": "PageIndexWithVLLM — Local Vectorless RAG",
+      "status": "public",
+      "description": "Local document Q&A system that builds a hierarchical section tree from PDFs and answers questions by reasoning over that structure — no embeddings, no vector database, everything runs on your own machine.",
       "technologies": ["FastAPI", "vLLM", "PyMuPDF", "Pydantic", "Python"],
-      "link":         "https://github.com/Ankush610/PageIndexWithVLLM.git"
+      "link": "https://github.com/Ankush610/PageIndexWithVLLM.git"
     },
     {
-      "id":           "hpc-mon",
-      "title":        "HPC Job Monitoring AI",
-      "status":       "private",
-      "description":  "FastAPI backend enabling engineers to debug failed Slurm jobs through a persistent AI chat interface with per-job conversation history, auto-resolution tracking, and dynamic summaries powered by a local LLM.",
+      "id": "hpc-mon",
+      "title": "HPC Job Monitoring AI",
+      "status": "private",
+      "description": "FastAPI backend enabling engineers to debug failed Slurm jobs through a persistent AI chat interface with per-job conversation history, auto-resolution tracking, and dynamic summaries powered by a local LLM.",
       "technologies": ["FastAPI", "MongoDB", "vLLM", "LangChain", "Pydantic"],
-      "link":         ""
+      "link": ""
     },
     {
-      "id":           "ats",
-      "title":        "AI ATS System",
-      "status":       "public",
-      "description":  "AI-driven Applicant Tracking System for resume parsing, candidate scoring, and recruitment insights with vLLM, FastAPI, and Streamlit.",
+      "id": "ats",
+      "title": "AI ATS System",
+      "status": "public",
+      "description": "AI-driven Applicant Tracking System for resume parsing, candidate scoring, and recruitment insights with vLLM, FastAPI, and Streamlit.",
       "technologies": ["LangChain", "vLLM", "MongoDB", "FastAPI", "Pydantic"],
-      "link":         "https://github.com/Ankush610/Resume-ATS-AI"
+      "link": "https://github.com/Ankush610/Resume-ATS-AI"
     },
     {
-      "id":           "retriever",
-      "title":        "RetrieverAI",
-      "status":       "public",
-      "description":  "RAG-based document-aware conversational AI with LangChain, vLLM, and ChromaDB, enabling chat with documents in Streamlit UI.",
+      "id": "retriever",
+      "title": "RetrieverAI",
+      "status": "public",
+      "description": "RAG-based document-aware conversational AI with LangChain, vLLM, and ChromaDB, enabling chat with documents in Streamlit UI.",
       "technologies": ["LangChain", "ChromaDB", "vLLM", "Hugging Face"],
-      "link":         "https://github.com/Ankush610/DocumentQueryAI"
+      "link": "https://github.com/Ankush610/DocumentQueryAI"
     },
     {
-      "id":           "retina",
-      "title":        "Retina-AV-Segmentation",
-      "status":       "public",
-      "description":  "Deep learning pipeline for retinal artery-vein segmentation from fundus images using Multi-Class Attention U-Net.",
+      "id": "retina",
+      "title": "Retina-AV-Segmentation",
+      "status": "public",
+      "description": "Deep learning pipeline for retinal artery-vein segmentation from fundus images using Multi-Class Attention U-Net.",
       "technologies": ["Torch", "Torchvision", "Slurm", "OpenCV", "Accelerate"],
-      "link":         "https://github.com/Ankush610/RetinaArteryVeinSegmentation"
+      "link": "https://github.com/Ankush610/RetinaArteryVeinSegmentation"
     },
     {
-      "id":           "brahma",
-      "title":        "Bramhanetra — Ancient Text OCR",
-      "status":       "private",
-      "description":  "Recognized ancient Bramhi script using InceptionResNetV2, aiding in digitizing and preserving historical Indian inscriptions.",
+      "id": "brahma",
+      "title": "Bramhanetra — Ancient Text OCR",
+      "status": "private",
+      "description": "Recognized ancient Bramhi script using InceptionResNetV2, aiding in digitizing and preserving historical Indian inscriptions.",
       "technologies": ["InceptionResNetV2", "Computer Vision", "Deep Learning"],
-      "link":         ""
+      "link": ""
     },
     {
-      "id":           "agri",
-      "title":        "Agricultural Consulting System",
-      "status":       "private",
-      "description":  "Web-based advisory system integrating ML models for crop & fertilizer recommendation and plant disease prediction using YOLO.",
+      "id": "agri",
+      "title": "Agricultural Consulting System",
+      "status": "private",
+      "description": "Web-based advisory system integrating ML models for crop & fertilizer recommendation and plant disease prediction using YOLO.",
       "technologies": ["ML", "YOLO", "Web Development"],
-      "link":         ""
+      "link": ""
     }
   ],
-
   "publications": [
     {
-      "type":        "blog",
-      "title":       "A Comprehensive Introduction to LLM Fine-Tuning Techniques",
+      "type": "blog",
+      "title": "A Comprehensive Introduction to LLM Fine-Tuning Techniques",
       "description": "Full breakdown of fine-tuning approaches — from full fine-tuning and adapters to LoRA, QLoRA, and quantization — with intuitive explanations and real memory numbers.",
-      "platform":    "Medium",
-      "date":        "Mar 2026",
-      "readTime":    "9 min read",
-      "tags":        ["LLM", "LoRA", "QLoRA", "Fine-Tuning"],
-      "link":        "https://medium.com/@ankushsonawane36/a-comprehensive-introduction-to-llm-fine-tuning-techniques-0c5988dd3fc1"
+      "platform": "Medium",
+      "date": "Mar 2026",
+      "readTime": "9 min read",
+      "tags": ["LLM", "LoRA", "QLoRA", "Fine-Tuning"],
+      "link": "https://medium.com/@ankushsonawane36/a-comprehensive-introduction-to-llm-fine-tuning-techniques-0c5988dd3fc1"
     },
     {
-      "type":        "blog",
-      "title":       "From Words to Understanding: How the Attention Mechanism Powers Modern AI",
+      "type": "blog",
+      "title": "From Words to Understanding: How the Attention Mechanism Powers Modern AI",
       "description": "A deep dive into the attention mechanism — from RNN limitations to transformers, covering Q/K/V, scaled dot-product attention, multi-head attention, and layer norm with worked examples.",
-      "platform":    "Medium",
-      "date":        "Feb 2026",
-      "readTime":    "16 min read",
-      "tags":        ["Transformers", "Attention", "Deep Learning", "LLM"],
-      "link":        "https://medium.com/@ankushsonawane36/from-words-to-understanding-how-the-attention-mechanism-powers-modern-ai-c3e6e49de69e"
+      "platform": "Medium",
+      "date": "Feb 2026",
+      "readTime": "16 min read",
+      "tags": ["Transformers", "Attention", "Deep Learning", "LLM"],
+      "link": "https://medium.com/@ankushsonawane36/from-words-to-understanding-how-the-attention-mechanism-powers-modern-ai-c3e6e49de69e"
     }
   ],
-
   "workshops": [
     {
-      "title":       "Data Science & Deep Learning Learning Guide",
+      "title": "Data Science & Deep Learning Learning Guide",
       "description": "Beginner-to-advanced notebooks covering data science fundamentals, machine learning algorithms, deep learning basics, and mathematical foundations — with hands-on coding exercises throughout.",
-      "topics":      ["Data Science", "Machine Learning", "Deep Learning", "Statistics", "Neural Networks"],
-      "link":        "https://github.com/Ankush610/DataScience"
+      "topics": ["Data Science", "Machine Learning", "Deep Learning", "Statistics", "Neural Networks"],
+      "link": "https://github.com/Ankush610/DataScience"
     },
     {
-      "title":       "Distributed Deep Learning Workshop",
+      "title": "Distributed Deep Learning Workshop",
       "description": "Hands-on workshop content covering distributed deep learning on GPUs: GPU offloading, PyTorch DDP, Accelerate DDP, PyTorch FSDP, and Accelerate FSDP.",
-      "topics":      ["PyTorch DDP", "FSDP", "Accelerate", "Distributed Training", "HPC"],
-      "link":        "https://github.com/Ankush610/Distributed-Training-Lab.git"
+      "topics": ["PyTorch DDP", "FSDP", "Accelerate", "Distributed Training", "HPC"],
+      "link": "https://github.com/Ankush610/Distributed-Training-Lab.git"
     }
   ],
-
+  "talks": [
+    { "title": "One-week Faculty Development Programme", "org": "KL University, Hyderabad", "date": "2026" },
+    { "title": "One-week HPC Workshop with hands-on sessions", "org": "NIT Arunachal Pradesh", "date": "2026" },
+    { "title": "One-week Workshop on Distributed Deep Learning", "org": "NESAC, Shillong", "date": "2026" },
+    { "title": "Workshop on Large Language Models", "org": "CHARUSAT University", "date": "2026" },
+    { "title": "Two-day AI/HPC training with hands-on labs", "org": "Pimpri Chinchwad University", "date": "2026" },
+    { "title": "Live demos of PARAM Shavak & BOSS OS", "org": "Impact AI Summit & C-DAC Conclave", "date": "2026" },
+    { "title": "Technical session on deep learning Apptainer containers", "org": "SCI event", "date": "2026" },
+    { "title": "Session on distributed deep learning training", "org": "IIT (BHU) Varanasi", "date": "" },
+    { "title": "Hands-on ML and AI/ML sessions", "org": "Tanzania cohort & Govt. Polytechnic College", "date": "2025" },
+    { "title": "Lab and exam support, Pune Darshan tour logistics", "org": "AICTE IIT Bombay HPC Workshop", "date": "2024" }
+  ],
   "achievements": [
     {
       "title": "Award for Conducting Workshop on Parallel Programming in AI",
-      "org":   "Pimpri Chinchwad Education Trust (PCET)",
-      "date":  "Sep 2025"
+      "org": "Pimpri Chinchwad Education Trust (PCET)",
+      "date": "Sep 2025"
     },
-    {
-      "title": "Letter of Appreciation — HPCore 2.0 Hands-on Workshop on HPC & LLM",
-      "org":   "CDAC Pune",
-      "date":  "2025"
-    }
+    { "title": "Letter of Appreciation — HPCore 2.0 Hands-on Workshop on HPC & LLM", "org": "CDAC Pune", "date": "2025" }
   ]
 }

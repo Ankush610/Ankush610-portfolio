@@ -266,8 +266,9 @@ html[data-theme="light"] .focus-card:hover {
 }
 html[data-theme="light"] .focus-card:nth-child(2):hover { background: var(--amber-dim); }
 html[data-theme="light"] .focus-card:nth-child(3):hover { background: var(--pink-dim); }
-html[data-theme="light"] .focus-glyph,
-html[data-theme="light"] .focus-title { color: var(--text); }
+/* :nth-child(n) matches the specificity of the per-card dark colours in sections.css */
+html[data-theme="light"] .focus-card:nth-child(n) .focus-glyph,
+html[data-theme="light"] .focus-card:nth-child(n) .focus-title { color: var(--text); }
 html[data-theme="light"] .focus-desc { color: var(--text-dim); }
 
 /* ── Timeline ── */
@@ -281,6 +282,20 @@ html[data-theme="light"] .tl-title   { color: var(--text); font-weight: 700; }
 html[data-theme="light"] .tl-date    { color: var(--text-muted); }
 html[data-theme="light"] .tl-company { color: var(--teal3); font-weight: 600; }
 html[data-theme="light"] .tl-desc    { color: var(--text-dim); }
+html[data-theme="light"] .tl-list li::before { color: var(--teal3); }
+html[data-theme="light"] .cv-btn {
+  font-weight: 700;
+  color: var(--text);
+  background: var(--green-dim);
+  border: 2px solid var(--border);
+  box-shadow: var(--nb-shadow-sm);
+}
+html[data-theme="light"] .cv-btn:hover { background: var(--nb-yellow); transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--border); }
+html[data-theme="light"] .skill-group-title { font-weight: 700; }
+html[data-theme="light"] .skill-group-title.cat-lang { color: var(--amber2); }
+html[data-theme="light"] .skill-group-title.cat-ml   { color: var(--green2); }
+html[data-theme="light"] .skill-group-title.cat-llm  { color: var(--teal3); }
+html[data-theme="light"] .skill-group-title.cat-dev  { color: var(--pink2); }
 
 /* ── Skills ── */
 html[data-theme="light"] .sf-btn {

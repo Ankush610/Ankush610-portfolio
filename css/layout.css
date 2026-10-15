@@ -116,7 +116,6 @@
   align-self: center;
 }
 .site-tagline .hl { color: var(--amber); }
-.tagline-sub { white-space: nowrap; }
 
 .header-right {
   display: flex;
@@ -231,7 +230,10 @@
   :root { --sidebar-w: 100%; }
   .site-name { font-size: 38px; letter-spacing: 4px; }
   #header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .header-right { align-items: flex-start; }
+  .header-right { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
+  /* wrap tabs instead of hiding the last ones off-screen */
+  #nav { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .nav-btn { border-bottom: 1px solid var(--border); }
 }
 
 @media (max-width: 480px) {

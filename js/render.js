@@ -22,9 +22,6 @@ function prompt(cmd, arg = '') {
 
 /* ── Dynamic stats ── */
 function computeStats(DATA) {
-  const projects = DATA.projects.length;
-  const skills   = DATA.skills.length;
-
   let yoe = 0;
   if (DATA.personal.careerStart) {
     const [y, m] = DATA.personal.careerStart.split('-').map(Number);
@@ -34,8 +31,6 @@ function computeStats(DATA) {
   }
 
   return {
-    projects: `${projects}+`,
-    skills:   `${skills}+`,
     yoe:      yoe >= 1 ? `${yoe}+` : '<1',
   };
 }
@@ -82,9 +77,8 @@ function renderHome(DATA, activeSkillFilter) {
 
   const statsData = computeStats(DATA);
   const statItems = [
-    { number: statsData.projects, label: 'Projects', tab: 'PROJECTS', anchor: null },
-    { number: statsData.skills,   label: 'Skills',   tab: 'SKILLS',   anchor: null },
-    { number: statsData.yoe,      label: 'Yrs Exp',  tab: 'HOME',     anchor: 'section-experience' },
+    ...(p.stats || []).map(s => ({ ...s, anchor: null })),
+    { number: statsData.yoe, label: 'Yrs Exp', tab: 'HOME', anchor: 'section-experience' },
   ];
   const stats = statItems.map(s => `
     <div class="stat-box stat-clickable" onclick="switchTab('${s.tab}'${s.anchor ? `,'${s.anchor}'` : ''})" title="View ${s.label}">
@@ -109,6 +103,7 @@ function renderHome(DATA, activeSkillFilter) {
         </div>
         <div class="tl-company">&gt; ${esc(e.company)}</div>
         <div class="tl-desc">${esc(e.description)}</div>
+        ${e.highlights ? `<ul class="tl-list">${e.highlights.map(h => `<li>${esc(h)}</li>`).join('')}</ul>` : ''}
         <div class="tag-row">${tags(e.skills, 'cyan')}</div>
       </div>
     </div>`).join('');
@@ -136,6 +131,7 @@ function renderHome(DATA, activeSkillFilter) {
           <div class="profile-name">${esc(p.name)}<span class="cursor"></span></div>
           <div class="profile-role">&gt;&gt; ${esc(p.title)} &nbsp;·&nbsp; ${esc(p.subtitle)}</div>
           <div class="profile-desc">${esc(p.description)}</div>
+          <a class="cv-btn" href="${esc(DATA.resume)}" target="_blank" rel="noopener">[ ↓ DOWNLOAD CV ]</a>
         </div>
       </div>
     </div>
@@ -175,9 +171,7 @@ function renderSkills(DATA, activeSkillFilter) {
     })
   ].join('');
 
-  const chips = DATA.skills
-    .filter(s => activeSkillFilter === 'all' || s.cat === activeSkillFilter)
-    .map(s => {
+  const chip = s => {
       const flickerN = Math.random() < 0.30 ? Math.ceil(Math.random()*4) : 0;
       const flickerCls = flickerN ? ` flicker-${flickerN}` : '';
       const dur  = (3 + Math.random()*6).toFixed(1) + 's';
@@ -188,14 +182,21 @@ function renderSkills(DATA, activeSkillFilter) {
           <span class="glph">${CAT_GLYPHS[s.cat] || '◆'}</span>
           ${esc(s.name)}
         </div>`;
-    }).join('');
+  };
+  const grid = list => `<div class="skills-grid stagger">${list.map(chip).join('')}</div>`;
+  const body = activeSkillFilter === 'all'
+    ? Object.entries(cats).map(([k, v]) => {
+        const list = DATA.skills.filter(s => s.cat === k);
+        return list.length ? `<div class="skill-group-title cat-${k}">${esc(v.label)} <small>${list.length}</small></div>${grid(list)}` : '';
+      }).join('')
+    : grid(DATA.skills.filter(s => s.cat === activeSkillFilter));
 
   return `
     <div class="panel">
       <div class="pt"><span class="pg">◆</span> SKILLS.DAT <small>— ${DATA.skills.length} modules</small></div>
       ${prompt('ls', '-la ./skills/ --sort=category')}
       <div class="skill-filters" id="skill-filters">${filterBtns}</div>
-      <div class="skills-grid stagger" id="skills-grid">${chips}</div>
+      <div id="skills-grid">${body}</div>
     </div>`;
 }
 
@@ -283,11 +284,24 @@ function renderWorkshops(DATA) {
       </div>
     </div>`).join('');
 
+  const talks = (DATA.talks || []).map(t => `
+    <div class="ach-card talk-card">
+      <span class="ach-glyph">▸</span>
+      <div class="ach-body">
+        <div class="ach-title">${esc(t.title)}</div>
+        <div class="ach-meta">${esc(t.org)}${t.date ? ` &mdash; ${esc(t.date)}` : ''}</div>
+      </div>
+    </div>`).join('');
+
   return `
     <div class="panel">
       <div class="pt"><span class="pg">▣</span> WORKSHOPS.REPO</div>
       ${prompt('git', 'clone --depth=1 workshops/')}
       <div class="stagger" style="display:flex;flex-direction:column;gap:10px">${cards}</div>
+    </div>
+    <div class="panel">
+      <div class="pt"><span class="pg">▸</span> TALKS.LOG <small>— ${(DATA.talks || []).length} sessions</small></div>
+      <div class="stagger" style="display:flex;flex-direction:column;gap:6px">${talks}</div>
     </div>`;
 }
 
@@ -299,6 +313,7 @@ function renderContact(DATA) {
     { icon:'⌖',   label:'LOCATION', val: c.location, href: null },
     { icon:'in',  label:'LINKEDIN', val: c.linkedin.replace('https://www.linkedin.com/in/', 'linkedin/').replace(/\/$/, ''), href: c.linkedin },
     { icon:'{}',  label:'GITHUB',   val: c.github.replace('https://github.com/', 'github/'),  href: c.github },
+    { icon:'↓',   label:'RESUME',   val: 'Download CV (PDF)', href: DATA.resume },
   ].map(r => `
     <div class="contact-row">
       <div class="contact-icon">${r.icon}</div>
@@ -354,8 +369,6 @@ function renderSidebar(DATA) {
       <div class="sb-pub-meta">${esc(pub.date)} · ${esc(pub.readTime)}</div>
     </div>`).join('');
 
-  const stats = computeStats(DATA);
-
   return `
     <div class="panel">
       <div class="sb-title">★ LINKS</div>
@@ -389,8 +402,6 @@ function renderSidebar(DATA) {
       <div class="sb-title">▪ QUICK FACTS</div>
       <div class="sb-status-lines">
         ◆ ${esc(c.location)}<br>
-        ◆ ${esc(stats.projects)} projects completed<br>
-        ◆ ${esc(stats.skills)} skills<br>
         ◆ AI &amp; HPC enthusiast<br>
         ◆ Driven, Focused, Relentless<br>
         ◆ Writes on Medium
