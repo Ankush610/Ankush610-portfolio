@@ -95,22 +95,12 @@ body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow
 .isle:hover .go,.isle:focus-visible .go{background:rgba(240,181,74,.18);box-shadow:0 0 24px rgba(240,181,74,.35);transform:translateX(4px)}
 .note{color:var(--ember);font-size:14px;max-width:34ch}
 
-/* ---- the seam: CV link across the bottom ---- */
-.cv{position:absolute;left:50%;transform:translateX(-50%);z-index:2;white-space:nowrap;transition:left .55s cubic-bezier(.2,.8,.2,1)}
-.split:has(.office:hover) .cv,.split:has(.office:focus-visible) .cv{left:56.52%}  /* seam at 1.3/2.3 */
-.split:has(.isle:hover) .cv,.split:has(.isle:focus-visible) .cv{left:43.48%}
-.cv{bottom:22px;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px;
-  background:linear-gradient(90deg,var(--ink) 50%,var(--cream) 50%);-webkit-background-clip:text;background-clip:text;color:transparent}
-
 @media (max-width:760px){
   .split{flex-direction:column}
   .half{flex:none;padding:48px 20px;gap:20px}
   .half:hover,.half:focus-visible{flex-grow:1}
   .split:hover .half:not(:hover){filter:none}
-  .cv,.split:has(.half:hover) .cv{left:50%}
   .moon{top:22px;right:22px;width:34px;height:34px}
-  .cv{background:none;color:var(--cream)}
-  .isle{padding-bottom:72px}
   .m-side{display:none}.m-grid{grid-template-columns:1fr}
 }
 .half:focus-visible{outline:3px solid var(--yellow);outline-offset:-6px}
@@ -175,7 +165,6 @@ body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow
     </div>
   </a>
 
-  <a class="cv" href="shared/resume/Ankush_Sonawane_Resume.pdf">Just the CV (PDF)</a>
 </main>
 
 <script>
