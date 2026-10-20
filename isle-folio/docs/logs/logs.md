@@ -5,6 +5,30 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Forgewell: bigger carts, the card on the chest lid, stone tunnel portals, more detail, a bigger wizard
+- `js/rooms/projects.js`:
+  - **Bigger carts and track.** Carts and chests are modelled in cart units inside a body group scaled ×1.85, and the track's gauge, sleepers, rails and ballast widened to match.
+  - **The card is on the lid.** The floating plaque is gone: the card lives on the inside of the chest lid, in a gold frame on a plank lining. Shut, it faces down into the chest. When the focused chest's lid swings back (~100°, ease-out-back), the card turns to face the viewer, upright. The coin heap is lower so it doesn't cover the card, the light shaft is fainter, and the sparkles stay low.
+  - **Tunnel portals rebuilt.** Each is a stone block jutting out of the back wall, facing straight down its track leg and deep enough to meet the curved wall. It has a rectangular mine opening sized for the bigger carts (3.0 × 3.3), a timber frame at the mouth and one just inside, a short recessed tunnel with darkness thickening to a black mouth, a ring of wedge stones over the lintel, masonry on the face, and lanterns. The track legs now end at the recessed mouth.
+  - **More detail.** Timber posts with braces under the board's tie beam, four lanterns hanging on chains from the tie beams (with light pools), two torches on the back wall, smithing scrap round the anvil, an ore heap with glowing ore at each portal, and a pickaxe and shovel left leaning by them.
+  - **The wizard** is 1.4× in this room and stands beside the left of the track. The quench barrel moved to the left wall.
+- `js/app.js`, `js/rooms/kit.js`: rooms can set `heroScale` (default `HERO_SCALE.room`) for rooms built at a bigger scale.
+- The tool racks (and the right workbench under one) moved to π ± 1.07 and the wall torches to π ± 0.767, centred in the gaps between the back wall's timber pilasters; at their old angles a pilaster cut through each of them. The ingot pile moved to the front right to make room for the bench.
+- Fixed along the way: the portal depth constant was first named `FD`, which shadowed the display-font constant and shrank every title on the board and cards. It's now `PDP`.
+- Checked: desktop (start, browsing, mid-move, max zoom-out, a close look at a portal), phone (375×812), Runespire unchanged. No page errors.
+
+## 2026-10-20 — Forgewell: treasure chests on the carts
+- `js/rooms/projects.js`: every cart now carries a plain treasure chest instead of coal and an always-up card.
+  - **The chest:** it sits square on its cart. It has a plank body, iron trims and bands, a brass lock plate, and a domed lid hinged at the back with a hasp. A heap of gold coins and a few gems sits inside.
+  - **Side carts:** their chests stay shut, with no preview text.
+  - **The focused cart:** only its chest opens. The lid swings back, a gold glow spreads over the opening, a soft light shaft rises with sparkles drifting up, and the project card floats up clear of the chest so the gold shows beneath it. There is one glow rig, and it moves onto whichever cart is focused.
+  - **Browsing:** the chest you leave closes as its cart rolls on.
+  - **Opening in two phases**, so nothing passes through anything: the lid swings open first (about 100°, with a small ease-out-back bounce), then the plaque rises from just above the rim, at 85% size, high enough that the open lid shows beneath it. Closing runs the phases in reverse.
+  - **The plaque:** the card that rises out of the open chest is built like the chest. It has plank backing in the chest's wood, a gold rim, iron corner brackets with brass rivets, and the card inlaid on the front: dark stained wood with a gold double border, gold corner diamonds and a cream title.
+  - **Framing:** both views moved down a little so the open chest clears the hint bar.
+- Why: open cards on every cart were busy. Plain closed chests keep the side carts quiet, and the open, glowing chest marks the focused project.
+- Checked: desktop (start, browsing, mid-move) and phone (375×812). No page errors.
+
 ## 2026-10-20 — Forgewell: front view, a proper U track, five carts, a wooden hanging board
 - `js/rooms/projects.js`:
   - **Camera:** a near-level front view instead of looking down, on both wide screens and phones.
