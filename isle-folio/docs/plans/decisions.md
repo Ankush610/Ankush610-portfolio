@@ -6,6 +6,10 @@ Format: **date — decision**, followed by why and what would change it.
 
 ---
 
+**2026-10-20 — Forgewell is a closed hall; projects ride mine carts into tunnels in the back wall.**
+Why: the portals hide every cart off the open track, and the carts are spaced round a loop that closes behind the wall, so any number of projects reads the same and browsing past the last one simply loops. The track is a U (a semicircle in front, parallel legs back to the wall), with five carts out at a time. The board hangs high so the carts and the tunnel mouths show beneath it. The hall is closed, with walls all round, a ceiling and `maxDist`, so zooming out never shows the void.
+Revisit if: the room should show a different number of carts. `SP` is `(MOUTH + 1.8)/k` for k carts either side of the front; make sure k·SP stays past `MOUTH + 1.2`, so the next one is inside a tunnel.
+
 **2026-10-20 — No lazy loading or custom culling for rooms; enclosed rooms cap zoom-out instead.**
 Why: rooms are already built on first entry, and Three.js skips off-screen meshes. Runespire measures 74 draw calls and about 18k triangles, so loading parts on demand would add code without a visible gain. The black screen at max zoom-out came from the camera passing through a wall, so the fix is `room.maxDist`.
 Revisit if: a room drops frames on a phone. Then measure `renderer.info` first.

@@ -5,6 +5,32 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Forgewell: front view, a proper U track, five carts, a wooden hanging board
+- `js/rooms/projects.js`:
+  - **Camera:** a near-level front view instead of looking down, on both wide screens and phones.
+  - **Track:** a proper U. A semicircle (radius 5.6) in front of the forge, with parallel legs running straight back into the tunnel portals in the back wall (now at x = ±5.6).
+  - **Carts:** five are out at a time (the focused one, one either side on the curve, one up each leg). The rest wait in the tunnels; spacing is `(MOUTH + 1.8)/3`, or wider for short project lists, so the loop's seam stays hidden.
+  - **Board:** a wooden signboard. Five planks with a heavier top rail, iron bands showing on the wood margins, corner brackets and eye bolts, hung on link chains from the tie beam at z = -5. The painted card on it is dark stained wood with a faint grain. The board's bottom edge is fixed at y 3.75 and it grows upward, so the carts and the tunnel mouths show beneath it.
+  - **Braziers:** they moved inside the U, either side of the furnace.
+- Why: the looking-down view read as a top view, three carts felt sparse, the diagonal straights didn't read as a U, and the board was a flat dark slab.
+- Checked: desktop (start, ←, the wrap from 01 to 11, max zoom-out), phone (375×812). No page errors.
+
+## 2026-10-20 — Forgewell: a closed hall, and projects ride mine carts into tunnels in the back wall
+- `js/rooms/projects.js`, the hall:
+  - It's closed all round. The round back wall now runs the full half circle, straight side walls run forward to a front wall behind the camera, and the walls are taller (12) under a timber ceiling with rafters.
+  - The plinth blocks, timber pilasters, bricks and wall plate continue round all of it, and the tie beams sit over the back half (further forward they would cross the camera's view).
+  - The room sets `maxDist`, so zooming out stops inside the hall instead of showing the void.
+- `js/rooms/projects.js`, the projects: the turntable (disc, glowing rim, rivets, hub gear) is gone. Projects ride mine carts:
+  - The track has a ballast bed, timber sleepers and two-part rails. It curves round in front of the forge, then two straights run back and outward to arched tunnel portals cut into the back wall at |x| ≈ 8, clear of the hanging board.
+  - Each portal is a black arched opening that carts vanish into, with a timber adit frame, a ring of wedge stones and a lantern either side.
+  - Each cart is a tapered iron tub with coal, wheels that roll with the distance travelled, and the status gem on its front.
+  - The carts are spaced round a loop that closes behind the wall, so the train always loops, out of one tunnel and in through the other. Spacing widens for small projects lists, so the loop's seam is always inside a tunnel. Any number of projects works.
+- Props moved clear of the track: the tool racks and the right workbench (wall angle π ± 1.2), the anvil, the coal heap, the barrel, both braziers, the crates and ingots, and the bellows (now a spare by the left wall). The chimney runs up to the ceiling.
+- Camera: wide screens look down a little, so the track, carts and portals read under the board. Phones keep the level view, because tilting pushed the tall board off the top of the screen.
+- `js/app.js`: the zoom-out cap now measures the resting camera distance. It used to measure the current one, which is 1.35× further during the entry fly-in, and that permanently cut the zoom and framed rooms too tight.
+- Why: the turntable read as a flat platter that didn't belong in a forge, and zooming out showed the hall's open front and the void.
+- Checked: desktop (start, ← →, the wrap from 01 to 11, max zoom-out), phone (375×812). Runespire re-checked after the zoom-cap fix. No page errors.
+
 ## 2026-10-20 — Runespire: masonry, voussoir arches, more detail; the wizard faces the camera in rooms
 - `js/rooms/skills.js`: the walls are coursed masonry over a dark mortar backing. Each course is split into the free spans between openings (niche arches, the door, the windows) and filled exactly in running bond, so blocks hug every edge. The niche and door arches are rings of wedge stones (voussoirs) round the keystone. There's a rune sigil in each niche above its stone, in the category colour and brighter on focus. The floor gets a slowly turning rune ring round the dais and a violet runner with gold edges and lozenges from the door to the dais. Crystal clusters sit at the column feet, as on the island outside, and a crystal lantern hangs on a chain under the gallery at every corner. The focused keystone is toned down so it keeps its colour.
 - All of it is laid out per wall or per corner and instanced, so it scales with the number of categories. Measured: 7 categories, 65 draw calls and 27k triangles on a phone. 14 categories (a 15-sided tower), 112 draw calls and 38k triangles. 165 fps.
