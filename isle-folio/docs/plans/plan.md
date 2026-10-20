@@ -9,7 +9,7 @@
 | 1 | Hearthstone (`home`) | intro, focus areas, stats |
 | 2 | Oakreach (`journey`) | experience + education |
 | 3 | Forgewell (`projects`) | project carousel |
-| 4 | Runespire (`skills`) | skill rings |
+| 4 | Runespire (`skills`) | runestone circle |
 | 5 | Lorehall (`writing`) | articles as books |
 | 6 | Lyceum (`teaching`) | workshops, talks, recognition |
 | 7 | Beacon Point (`contact`) | contact links, résumé |

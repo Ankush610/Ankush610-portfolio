@@ -25,8 +25,7 @@ function hud(){
   backBtn.hidden = mode !== 'room';
   if(mode === 'room'){
     backBtn.textContent = '← Leave ' + byId[room.id].name;
-    const ax = room.vertical ? '<kbd>↑</kbd><kbd>↓</kbd>' : '<kbd>←</kbd><kbd>→</kbd>';
-    hint.innerHTML = touch ? 'Swipe to browse · pinch to zoom · tap to open' : `<b>${byId[room.id].name}</b><span class="k">${ax} browse</span><span class="k"><kbd>Scroll</kbd> zoom</span><span class="k"><kbd>Enter</kbd> open</span><span class="k"><kbd>Esc</kbd> back outside</span>`;
+    hint.innerHTML = touch ? 'Swipe to browse · pinch to zoom · tap to open' : `<b>${byId[room.id].name}</b><span class="k"><kbd>←</kbd><kbd>→</kbd> browse</span><span class="k"><kbd>Scroll</kbd> zoom</span><span class="k"><kbd>Enter</kbd> open</span><span class="k"><kbd>Esc</kbd> back outside</span>`;
   } else {
     const isl = byId[current];
     hint.innerHTML = top
@@ -169,7 +168,7 @@ window.addEventListener('keydown', e => {
   if(k === '0'){ zoom = 1; return; }
   if(mode === 'room'){
     if(k === 'Escape' || k === 'Backspace'){ leaveRoom(); e.preventDefault(); return; }
-    const v = room.vertical, d = {ArrowLeft:-1, ArrowRight:1, ArrowUp: v ? 1 : -1, ArrowDown: v ? -1 : 1, a:-1, d:1, w: v ? 1 : -1, s: v ? -1 : 1}[k];
+    const d = {ArrowLeft:-1, ArrowRight:1, ArrowUp:-1, ArrowDown:1, a:-1, d:1, w:-1, s:1}[k];
     if(d){ step(d); e.preventDefault(); return; }
     if(k === 'Enter' || k === ' '){ if(document.activeElement === backBtn) return; activate(); e.preventDefault(); }
     return;
@@ -214,7 +213,7 @@ canvas.addEventListener('pointerup', e => {
   const dx = e.clientX - downAt[0], dy = e.clientY - downAt[1]; downAt = null;
   if(mode === 'room'){
     if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)){ step(dx < 0 ? 1 : -1); return; }
-    if(Math.abs(dy) > 50){ step(room.vertical ? (dy < 0 ? -1 : 1) : (dy < 0 ? 1 : -1)); return; }
+    if(Math.abs(dy) > 50){ step(dy < 0 ? 1 : -1); return; }
     if(Math.hypot(dx, dy) > 8) return;
     const it = pickItem(e); if(!it) return;
     const k = room.items.indexOf(it);
@@ -300,6 +299,7 @@ function frame(){
   desired();
   const f = reduce ? 1 : 1 - Math.exp(-dt*(diving ? 3.6 : mode === 'room' ? 4 : 3.2));
   camTarget.lerp(wantTarget, f); camPos.lerp(wantPos, f);
+  if(mode === 'room' && room.maxDist) zoom = Math.min(zoom, room.maxDist/Math.max(0.01, camPos.distanceTo(camTarget)));   // enclosed rooms: never zoom out through a wall
   zoomCur += (zoom - zoomCur) * (reduce ? 1 : Math.min(1, dt*8));
   camera.position.copy(camPos).sub(camTarget).multiplyScalar(zoomCur).add(camTarget);
   if(!reduce && mode === 'room'){ camera.position.x += mouse.x*0.5; camera.position.y -= mouse.y*0.28; }
@@ -322,7 +322,8 @@ function frame(){
     } else if(t < 0.1){ animated.forEach(a => a.fn(0)); for(let i=0;i<flies.base.length;i++) flies.pos.set(flies.base[i].slice(0,3), i*3); flies.g.attributes.position.needsUpdate = true; }
   } else {
     hero.userData.pose(t, 0, dt);   // idle inside rooms
-    hero.rotation.y += (((0.2 - hero.rotation.y + Math.PI*3) % (Math.PI*2)) - Math.PI)*Math.min(1, dt*3);
+    const face = Math.atan2(camera.position.x - hero.position.x, camera.position.z - hero.position.z);   // look at the viewer (Runespire's camera turns round the room)
+    hero.rotation.y += (((face - hero.rotation.y + Math.PI*3) % (Math.PI*2)) - Math.PI)*Math.min(1, dt*3);
     if(room && room.update) room.update(t, dt);
   }
 
