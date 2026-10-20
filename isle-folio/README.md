@@ -61,7 +61,7 @@ js/
     home.js           Hearthstone · intro, focus areas, stats
     journey.js        Oakreach · experience + education
     projects.js       Forgewell · project carousel
-    skills.js         Runespire · skill rings
+    skills.js         Runespire · runestone circle
     writing.js        Lorehall · articles as books
     teaching.js       Lyceum · workshops, talks, recognition
     contact.js        Beacon Point · contact links
@@ -71,7 +71,7 @@ js/
 
 | | Outside | Inside a room |
 |---|---|---|
-| Move | W A S D / arrow keys (Shift to run) | ← → (↑ ↓ in Runespire) / click / swipe |
+| Move | W A S D / arrow keys (Shift to run) | ← → / click / swipe |
 | Look | drag | — |
 | Go inside / open | walk up to a door, then E / Enter / the Enter button | Enter / click the focused thing |
 | Travel | click an island's floating sign, or keys 1–7 (walks you there over the bridges) | — |

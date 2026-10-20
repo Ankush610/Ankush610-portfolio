@@ -6,6 +6,15 @@ Format: **date — decision**, followed by why and what would change it.
 
 ---
 
+**2026-10-20 — No lazy loading or custom culling for rooms; enclosed rooms cap zoom-out instead.**
+Why: rooms are already built on first entry, and Three.js skips off-screen meshes. Runespire measures 74 draw calls and about 18k triangles, so loading parts on demand would add code without a visible gain. The black screen at max zoom-out came from the camera passing through a wall, so the fix is `room.maxDist`.
+Revisit if: a room drops frames on a phone. Then measure `renderer.info` first.
+
+**2026-10-20 — Runespire is a runestone circle inside the tower, one stone per skill category.**
+Why: skills are a flat list of names grouped by category, so a physical object per category (like Forgewell's pedestals) reads better than a UI grid floating in 3D. On a phone, one stone fills the screen, so there's no layout juggling. The stones stand in niches round the tower's octagon (one wall per stone plus the door's), so the interior matches the building outside.
+It scales with the data: the ring widens as categories are added, a stone grows taller with its skill count, long titles wrap onto two lines, and long skill names wrap.
+Revisit if: skills get per-skill detail (that would need a focus step per skill), or a single category reaches 60+ skills (its stone would get very tall; split the category).
+
 **Initial — No build step; plain ES modules + Three.js r128 via CDN.**
 Why: nothing to install or configure, and any static host can serve it.
 Revisit if: we need a newer Three.js (ESM-only) or npm packages.
