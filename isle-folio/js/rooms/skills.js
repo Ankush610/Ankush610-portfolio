@@ -21,11 +21,12 @@ export default function build(){
   const core = mesh(cyl(0.16, 0.16, 15, 8), glow(0xd8ecff, 2.4).clone(), 0, 7.5, 0); g.add(core);
   const runeBase = new THREE.Color(0x7fd6ff), coreBase = new THREE.Color(0xd8ecff);
 
-  // slate behind the focused grid + legend: hides the pillar and the rings behind it
-  const plateGeo = new THREE.PlaneGeometry(1, 1);
-  const edge = new THREE.Mesh(plateGeo, new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0, depthWrite:false}));
-  const plate = new THREE.Mesh(plateGeo, new THREE.MeshBasicMaterial({color:0x0b1020, transparent:true, opacity:0, depthWrite:false}));
-  g.add(edge, plate);
+  // arcane glass behind the focused grid + legend: hides the pillar and the rings behind it.
+  // A unit pane bent like the tower wall (edges sag back by scale.z); its arched outline, soft edges and frame are drawn per size.
+  const paneGeo = new THREE.PlaneGeometry(1, 1, 24, 1), pp = paneGeo.attributes.position;
+  for(let i = 0; i < pp.count; i++) pp.setZ(i, -((2*pp.getX(i))**2));
+  const pane = glassPane(paneGeo);
+  g.add(pane.fill, pane.frame, pane.sparks);
 
   const legend = new THREE.Group(); g.add(legend);
   // one group per category that has skills, plus "Other" for skills whose cat isn't defined (so none are lost)
@@ -115,8 +116,9 @@ export default function build(){
       const rg = rings[room.focus], c = card(rg, narrow);
       // constant zoom across categories: frame at least a full-width (max columns) card
       const minW = (narrow ? 2 : 4)*SX - (SX - TW) + (narrow ? 0 : LGAP + LW);
-      vc.set((c.l + c.r)/2, rg.y + (c.t + c.b)/2, GZ);
-      vv.w = Math.max(c.r - c.l, minW) + 0.8; vv.h = c.t - c.b + 0.9;
+      const px = padX(narrow), rise = archRise(c.r - c.l + 2*px);
+      vc.set((c.l + c.r)/2, rg.y + (c.t + c.b + rise)/2, GZ);
+      vv.w = Math.max(c.r - c.l, minW) + 2*px + 0.15; vv.h = c.t - c.b + 2*PADY + rise + 0.25;   // the pane's soft edge can meet the screen edge
       return vv;
     },
     onFocus(){ if(hovered){ setPanel(hovered, {hover:false}); hovered = null; } },
@@ -125,11 +127,10 @@ export default function build(){
       const narrow = camera.aspect < 1.05; if(narrow !== narrowNow) relayout(narrow);
       const k = reduce ? 1 : Math.min(1, dt*4), F = rings[room.focus], c = card(F, narrow);
       // rings above/below part so nothing overlaps the focused card
-      const upY = Math.max(0, c.t + 1.1 - 1.75), downY = Math.min(0, c.b - 0.8 + 1.75);
+      const pw = c.r - c.l + 2*padX(narrow), rise = archRise(pw);
+      const upY = Math.max(0, c.t + rise + PADY + 1.0 - 1.75), downY = Math.min(0, c.b - PADY - 0.7 + 1.75);   // clear of the pane, arch included
       const ff = ease(F.amt);
-      plate.position.set((c.l + c.r)/2, F.y + (c.t + c.b)/2, GZ - 0.12); plate.scale.set(c.r - c.l + 0.5, c.t - c.b + 0.5, 1);
-      edge.position.set(plate.position.x, plate.position.y, GZ - 0.13); edge.scale.set(plate.scale.x + 0.05, plate.scale.y + 0.05, 1);
-      plate.material.opacity = 0.96*ff; edge.material.opacity = 0.55*ff; edge.material.color.copy(F.col);
+      pane.place((c.l + c.r)/2, F.y + (c.t + c.b + rise)/2, GZ - 0.12, pw, c.t - c.b + 2*PADY + rise, rise, F.col, ff, t, dt);
       const kl = legendSet ? k : 1; legendSet = true;   // first frame: legend starts in place instead of sliding up from the floor
       legend.position.x += (c.lx - legend.position.x)*kl; legend.position.y += (F.y + c.ly - legend.position.y)*kl; legend.position.z = GZ;
       // the focused title waits for the legend to arrive, so the sliding legend never crosses it
@@ -170,6 +171,68 @@ export default function build(){
       });
     }};
   return room;
+}
+
+/* ---- Arcane glass pane: a curved, arch-topped sheet of dark glass with soft edges, a glowing double frame in the
+   ring's colour, rune diamonds at the corners and a few drifting sparks. Textures are redrawn only when its size changes. */
+const archRise = w => Math.min(0.7, w*0.07), PADY = 0.5, padX = narrow => narrow ? 0.42 : 0.6;   // pane margin round the card (the soft edge and frame eat into it)
+function glassPane(geo){
+  const PX = 96, mk = () => { const c = document.createElement('canvas'), tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter; return {c, tex}; };
+  const F = mk(), R = mk();
+  const fill = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({map:F.tex, transparent:true, opacity:0, depthWrite:false}));
+  const frame = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({map:R.tex, transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending}));
+  // sparks: soft dots drifting up inside the glass
+  const N = 26, seeds = [...Array(N)].map(() => [rnd(), rnd(), 0.4 + rnd()*0.6, rnd()*6]), pos = new Float32Array(N*3);
+  const dc = document.createElement('canvas'); dc.width = dc.height = 32; { const x = dc.getContext('2d'), gr = x.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 32, 32); }
+  const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const sparks = new THREE.Points(sg, new THREE.PointsMaterial({map:new THREE.CanvasTexture(dc), size:0.09, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false}));
+  sparks.raycast = () => {};
+  let key = '';
+  // outline: straight sides and bottom with rounded corners, a shallow segmental arch on top
+  function shape(x, W, H, rise, ins){
+    const r = Math.min(0.32*PX, W/6), l = ins, rt = W - ins, b = H - ins, top = rise + ins;
+    x.beginPath(); x.moveTo(l, top + r*0.4); x.lineTo(l, b - r); x.quadraticCurveTo(l, b, l + r, b); x.lineTo(rt - r, b); x.quadraticCurveTo(rt, b, rt, b - r);
+    x.lineTo(rt, top + r*0.4); x.quadraticCurveTo(rt, top, rt - r*0.6, top - r*0.08);
+    x.quadraticCurveTo(W/2, ins - rise, l + r*0.6, top - r*0.08); x.quadraticCurveTo(l, top, l, top + r*0.4); x.closePath();
+  }
+  function draw(w, h, rise){
+    const k = Math.min(PX, 1024/Math.max(w, h)), W = Math.round(w*k), H = Math.round(h*k), RS = rise*k;
+    [F, R].forEach(L => { L.c.width = W; L.c.height = H; });
+    // glass: dark, a cooler sheen in the middle, specks, then the edges eroded so it fades into the tower
+    let x = F.c.getContext('2d');
+    shape(x, W, H, RS, 2); x.fillStyle = 'rgba(9,13,30,.97)'; x.fill();
+    x.save(); x.clip();
+    const gr = x.createRadialGradient(W/2, H*0.4, 0, W/2, H*0.4, Math.max(W, H)*0.6); gr.addColorStop(0, 'rgba(70,100,170,.22)'); gr.addColorStop(1, 'rgba(70,100,170,0)'); x.fillStyle = gr; x.fillRect(0, 0, W, H);
+    let sr = 7; const r2 = () => (sr = sr*16807 % 2147483647)/2147483647;   // local seed: same specks every redraw, shared rnd() untouched
+    for(let i = 0; i < W*H/2600; i++){ x.fillStyle = `rgba(190,215,255,${0.08 + r2()*0.2})`; x.fillRect(r2()*W, r2()*H, 1.5, 1.5); }
+    x.restore();
+    x.globalCompositeOperation = 'destination-out'; x.strokeStyle = 'rgba(0,0,0,.16)';
+    for(let i = 1; i <= 7; i++){ shape(x, W, H, RS, 2); x.lineWidth = i*5; x.stroke(); }
+    x.globalCompositeOperation = 'source-over';
+    // frame (white, tinted by the material): an outer and inner line with gaps at the corners, rune diamonds in the gaps
+    x = R.c.getContext('2d'); x.strokeStyle = '#fff'; x.shadowColor = '#fff'; x.shadowBlur = 8;
+    shape(x, W, H, RS, 16); x.lineWidth = 2.2; x.stroke();
+    x.shadowBlur = 0; x.globalAlpha = 0.45; shape(x, W, H, RS, 24); x.lineWidth = 1.2; x.stroke(); x.globalAlpha = 1;
+    const corners = [[16, RS + 22], [W - 16, RS + 22], [16, H - 16], [W - 16, H - 16]];
+    x.globalCompositeOperation = 'destination-out'; corners.forEach(([cx, cy]) => { x.beginPath(); x.arc(cx, cy, 20, 0, 7); x.fill(); });
+    x.globalCompositeOperation = 'source-over'; x.fillStyle = '#fff'; x.shadowBlur = 10;
+    const dia = (cx, cy, d) => { x.beginPath(); x.moveTo(cx, cy - d); x.lineTo(cx + d*0.7, cy); x.lineTo(cx, cy + d); x.lineTo(cx - d*0.7, cy); x.closePath(); x.fill(); };
+    corners.forEach(([cx, cy]) => dia(cx, cy, 9)); dia(W/2, 16, 7);   // arch peak (the curve tops out at the inset)
+    F.tex.needsUpdate = R.tex.needsUpdate = true;
+  }
+  return {fill, frame, sparks, place(cx, cy, z, w, h, rise, col, ff, t, dt){
+    const kk = `${w.toFixed(2)}x${h.toFixed(2)}`; if(kk !== key){ key = kk; draw(w, h, rise); }
+    const sag = w*0.04;   // gentle: wide panes bend more in absolute terms, the curve reads the same
+    fill.position.set(cx, cy, z); fill.scale.set(w, h, sag);
+    frame.position.set(cx, cy, z + 0.01); frame.scale.set(w, h, sag);
+    fill.material.opacity = ff; frame.material.color.copy(col); frame.material.opacity = ff*(reduce ? 0.85 : 0.75 + Math.sin(t*1.4)*0.12);
+    sparks.material.color.copy(col); sparks.material.opacity = ff*0.55; sparks.visible = ff > 0.05;
+    for(let i = 0; i < N; i++){
+      const s = seeds[i], u = s[0], v = reduce ? s[1] : (s[1] + t*0.03*s[2]) % 1, X = (u - 0.5)*w*0.9;
+      pos[i*3] = cx + X; pos[i*3 + 1] = cy - h/2 + h*(0.06 + v*0.82); pos[i*3 + 2] = z + 0.02 - sag*(2*X/w)**2 + (reduce ? 0 : Math.sin(t + s[3])*0.01);
+    }
+    sg.attributes.position.needsUpdate = true;
+  }};
 }
 
 /* ---- Tower dressing: rune-carved walls, star charts, arcane floor, cold braziers, lecterns, crystals, motes.
@@ -216,7 +279,7 @@ function decor(root, PH){
   }
   inst(box(1, 0.42, 0.12), white, ash.length, (i, d) => { onWall(ash[i][0], 9.46, ash[i][1]); d.rotation.y = ash[i][0]; d.scale.x = ash[i][2]; }, [0x434a5d, 0x353a49, 0x4b5266, 0x3e4456]);
   // carved rune slits: one per bay, tier alternating (the glow is shared and slowly breathes)
-  const slitMat = glow(0x9ab8ff, 1.1).clone();
+  const slitMat = glow(0x5a86e0, 0.55).clone();   // soft blue: brighter washed out to white under the key light
   inst(box(0.25, 1.6, 0.1), slitMat, 7, (k, d) => { const a = HALF + 0.3 + k*0.42; onWall(a, 9.4, 3 + (k%3)*3.4); d.rotation.y = a; });
   inst(box(0.12, 0.12, 0.06), slitMat, 28, (i, d) => { const k = i >> 2, a = HALF + 0.3 + k*0.42, j = i & 3; onWall(a, 9.38, 3 + (k%3)*3.4 + (j < 2 ? 1.05 + j*0.22 : -1.05 - (j - 2)*0.22)); d.rotation.set(0, a, Math.PI/4); });
 
@@ -328,7 +391,7 @@ function decor(root, PH){
   return function animate(t, dt, focusCol, ff){
     lineMat.emissive.copy(lineCol).lerp(focusCol, 0.5*ff);
     if(reduce) return;
-    slitMat.emissiveIntensity = slitBase + Math.sin(t*0.9)*0.35;
+    slitMat.emissiveIntensity = slitBase + Math.sin(t*0.9)*0.15;
     lineMat.emissiveIntensity = 1.1 + Math.sin(t*1.3 + 1)*0.3;
     for(const c of charts) c.rotation.z += dt*0.03;
     flames.forEach(f => {
