@@ -391,7 +391,11 @@ export default function build(){
   const soft = items.map(it => chalkItems.includes(it) ? frame
     : view(frame.c.clone().lerp(it.view.c, 0.55), 11.5, 5.4, frame.n.clone().lerp(it.view.n, 0.35).normalize()));
   const room = {group:g, items, start:items.indexOf(chalkItems[0]),
-    view:narrow => narrow ? room.items[room.focus].view : soft[room.focus],
+    view:narrow => {
+      // portrait frames one thing at a time: show an easel only while it is focused, so no half-card peeks in at the edge
+      const it = room.items[room.focus]; wings.forEach(w => { if(w) w.grp.visible = !narrow || it.side === w.side; });
+      return narrow ? it.view : soft[room.focus];
+    },
     light:{key:[0, 8, 5, 0xfff0d0, 1.5], fill:[0, 4, -3, 0xffd28a, 0.6]},
     heroSpot:new V3(-(Math.max(1, nSlots)*AS/2 + 4.1), 0.05, AZ + 1.7)};
   if(!reduce) room.update = t => {

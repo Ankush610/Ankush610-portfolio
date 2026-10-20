@@ -5,6 +5,12 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Two phone fixes: Lyceum easel peek, Runespire title overlap
+- `js/rooms/teaching.js`: in portrait, the workshop easels are only shown while one of them is focused, so a half-cut easel no longer peeks in beside the chalkboard and trophies.
+- `js/rooms/skills.js`: the legend starts in place on the first frame instead of sliding up from the floor, and the focused ring's title fades in only once the legend has nearly arrived, so the moving legend never crosses it (it did for about half a second on every ring change).
+- Why: both read as layout bugs on phones.
+- Checked on a phone (390×844, touch): Runespire on entry and through a ring change, frame by frame; Lyceum stepped through trophy, easel, easel, trophy; desktop views of both rooms unchanged; no page errors.
+
 ## 2026-10-20 — Richer room interiors (all seven rooms)
 - One pass per room in `js/rooms/<id>.js`. Each room only gained set dressing and architecture; items, views, heroSpot, light and DATA reads are unchanged.
   - **Hearthstone** (`home.js`): instanced flagstone floor and ashlar walls, timber wainscot and roof beams, an iron candle wheel, swaying banners, sconces, braziers with sparks, corner bookcases, a woven hearth rug.

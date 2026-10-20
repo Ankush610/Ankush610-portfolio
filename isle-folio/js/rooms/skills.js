@@ -88,7 +88,7 @@ export default function build(){
 
   // focused-card extents relative to (x 0, ring y). Written into C, no allocations per frame.
   const C = {l:0, r:0, t:0, b:0, lx:0, ly:0, gh:0, gw:0};
-  let narrowNow = null;
+  let narrowNow = null, legendSet = false;
   const relayout = narrow => { narrowNow = narrow; rings.forEach(rg => { rg.cols = Math.min(rg.n, narrow ? 2 : 4); rg.rows = Math.ceil(rg.n/rg.cols); }); };
   function card(rg, narrow){
     const gw = rg.cols*SX - (SX - TW), gh = rg.rows*SY - (SY - TH), labTop = gh/2 + 0.1 + LABH;
@@ -130,7 +130,10 @@ export default function build(){
       plate.position.set((c.l + c.r)/2, F.y + (c.t + c.b)/2, GZ - 0.12); plate.scale.set(c.r - c.l + 0.5, c.t - c.b + 0.5, 1);
       edge.position.set(plate.position.x, plate.position.y, GZ - 0.13); edge.scale.set(plate.scale.x + 0.05, plate.scale.y + 0.05, 1);
       plate.material.opacity = 0.96*ff; edge.material.opacity = 0.55*ff; edge.material.color.copy(F.col);
-      legend.position.x += (c.lx - legend.position.x)*k; legend.position.y += (F.y + c.ly - legend.position.y)*k; legend.position.z = GZ;
+      const kl = legendSet ? k : 1; legendSet = true;   // first frame: legend starts in place instead of sliding up from the floor
+      legend.position.x += (c.lx - legend.position.x)*kl; legend.position.y += (F.y + c.ly - legend.position.y)*kl; legend.position.z = GZ;
+      // the focused title waits for the legend to arrive, so the sliding legend never crosses it
+      const settled = Math.max(0, 1 - Math.hypot(c.lx - legend.position.x, F.y + c.ly - legend.position.y)/0.35);
       rune.material.emissive.copy(runeBase).lerp(F.col, 0.6*ff); rune.material.emissiveIntensity = 1.1 + (reduce ? 0 : Math.sin(t*1.7)*0.4);
       core.material.emissive.copy(coreBase).lerp(F.col, 0.25*ff);
       deco(t, dt, F.col, ff);
@@ -163,7 +166,7 @@ export default function build(){
         rg.torus.material.opacity = 1 - 0.9*f;
         // label only shows on the focused card (the legend names the rest): top-left of the grid
         if(on) rg.lab.position.set(-c.gw/2 + 1.3, rg.y + c.gh/2 + 0.1 + LABH/2, GZ);
-        rg.lab.material.opacity = f; rg.lab.visible = f > 0.02;
+        const lf = on ? f*settled : f; rg.lab.material.opacity = lf; rg.lab.visible = lf > 0.02;
       });
     }};
   return room;
