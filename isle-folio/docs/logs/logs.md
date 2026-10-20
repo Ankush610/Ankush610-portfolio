@@ -5,6 +5,12 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Runespire: curved arcane-glass pane instead of the flat slab
+- `js/rooms/skills.js`: the dark rectangle behind the focused skills is now `glassPane()`, a pane bent gently like the tower wall (its edges sag back by 4% of its width) with a shallow arched top, soft eroded edges, a glowing double frame tinted with the ring's colour, rune diamonds at the corners and the arch peak, faint specks and drifting sparks. Its canvases are redrawn only when the pane's size changes. The camera view and the parting of the other rings include the arch and margin; phones get a slightly smaller side margin so the skills stay large.
+- The wall rune slits are a soft blue glow instead of washing out to white.
+- Why: the flat, square-cornered slab read as an app panel inside a round tower.
+- Checked: desktop and phone, two rings each, no page errors.
+
 ## 2026-10-20 — Two phone fixes: Lyceum easel peek, Runespire title overlap
 - `js/rooms/teaching.js`: in portrait, the workshop easels are only shown while one of them is focused, so a half-cut easel no longer peeks in beside the chalkboard and trophies.
 - `js/rooms/skills.js`: the legend starts in place on the first frame instead of sliding up from the floor, and the focused ring's title fades in only once the legend has nearly arrived, so the moving legend never crosses it (it did for about half a second on every ring change).
