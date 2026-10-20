@@ -43,16 +43,33 @@ function hud(){
 }
 const KEYS = Math.min(9, ISLANDS.length);
 
-/* touch: one card per island. Swiping centres a card and the camera circles that island; tapping the centred card goes in. */
+/* touch: one card per island, styled like the floating island signs, with a snapshot of the island.
+   Swiping centres a card and the camera circles that island; tapping the centred card goes in. */
 const cards = {};
 ISLANDS.forEach((i, n) => {
   const b = document.createElement('button');
   b.type = 'button'; b.className = 'card'; b.style.setProperty('--c', '#' + i.top.toString(16).padStart(6, '0'));
-  b.innerHTML = `<small>${String(n + 1).padStart(2, '0')}</small><b>${i.sub}</b><span>${i.name}</span><i>Enter →</i>`;
+  b.innerHTML = `<span class="pic"></span><span class="txt"><small>${String(n + 1).padStart(2, '0')} · ${i.sub}</small><b>${i.name}</b><i>▸ tap to go inside</i></span>`;
   b.setAttribute('aria-label', `${i.sub}: ${i.name}`);
   b.addEventListener('click', () => tour === i.id ? goInside(i.id) : show(i.id));
   strip.appendChild(cards[i.id] = b);
 });
+function snapIslands(){   // render each island once into its card's picture
+  const pr = renderer.getPixelRatio(), S = 128, v = S/pr, cam = new THREE.PerspectiveCamera(34, 1, 0.1, 400);
+  const hidden = [hero, doorRing, ...labelSprites].filter(o => o.visible); hidden.forEach(o => o.visible = false);
+  const fog = [scene.fog.near, scene.fog.far]; scene.fog.near = 400; scene.fog.far = 900;
+  renderer.setScissorTest(true);
+  ISLANDS.forEach(i => {
+    const d = (i.R + 2)*2.3, fx = Math.sin(i.face), fz = Math.cos(i.face);
+    cam.position.set(i.x + fx*d, i.h + d*0.62, i.z + fz*d); cam.lookAt(i.x, i.h + 1.2, i.z);
+    renderer.setViewport(0, 0, v, v); renderer.setScissor(0, 0, v, v); renderer.render(scene, cam);
+    const c = document.createElement('canvas'); c.width = c.height = S;
+    c.getContext('2d').drawImage(canvas, 0, canvas.height - S, S, S, 0, 0, S, S);   // GL draws from the bottom-left
+    cards[i.id].querySelector('.pic').appendChild(c);
+  });
+  renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight);
+  hidden.forEach(o => o.visible = true); [scene.fog.near, scene.fog.far] = fog;
+}
 function pickTour(id){   // circle this island, with the wizard waiting at its door
   if(tour === id || busy) return;
   const i = byId[id]; tourA = Math.atan2(camPos.x - i.x, camPos.z - i.z); tour = id;
@@ -274,7 +291,7 @@ function whereAmI(){
 
 { const [x, z] = home.rot(0, home.obs + 3.2); player.place(new V3(home.x + x, home.topY(x, z), home.z + z), home.face); }   // on the cleared path in front of the door
 setLabels(); hud();
-if(touch) show('home', true);
+if(touch){ snapIslands(); show('home', true); }
 desired(); camTarget.copy(wantTarget); camPos.copy(wantPos).add(new V3(0, 30, 30));
 
 const tmp = new V3(), clock = new THREE.Clock();

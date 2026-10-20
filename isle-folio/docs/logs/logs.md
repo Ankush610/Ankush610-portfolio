@@ -5,6 +5,13 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Navigation UI styled like the island signs
+- `js/app.js`: island cards now show a snapshot of their island, rendered once at load (`snapIslands()`: each island framed from its door side into a 128px scissored viewport, copied to a canvas; hero, labels and door ring hidden, fog pushed back). Card text matches the floating signs: mono uppercase `03 · PROJECTS`, serif island name, and `▸ TAP TO GO INSIDE` in ember on the centred card.
+- `css/style.css`: cards, the Gateway/Leave buttons and the hint bar use the sign panel (`--sign`, 2px border, 14px radius, serif button text); the centred card gets the ember border and glow the 3D focus uses.
+- `js/world/build.js`: the touch prompt on a sign reads "tap the card to go inside".
+- Why: the plain pills and cards didn't look like the world they sit on.
+- Checked on a phone (390×844, touch): swipe, tap, enter, leave all work; the snapshots render; desktop walk view unchanged.
+
 ## 2026-10-20 — Touch screens: island card strip instead of walking
 - `js/app.js`: on `(pointer: coarse)` the world starts and stays in top view (no mode button, no hint bar, no Enter pill). A `#isles` strip of cards, one per island (section, island name, colour), sits at the bottom. Scrolling it centres a card and the camera circles that island with the wizard placed at its door; tapping the centred card, or the island itself, goes inside. Leaving a room re-centres that island's card. The touch tour aims a little low so the island sits above the cards.
 - `js/world/player.js`, `index.html`, `css/style.css`: removed the joystick; added the card strip styles.

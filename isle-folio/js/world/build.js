@@ -121,7 +121,7 @@ const debris = islets.map(it => { it.mesh.userData.p = it.p; return it.mesh; });
 const labelSprites = [];
 ISLANDS.forEach(isl => {
   const isHome = isl.id === 'home', w = isHome ? 7.4 : 4.6, h = isHome ? 1.9 : 1.45;
-  const enterTxt = touch ? '▸ tap enter to go inside' : '▸ press E to go inside';
+  const enterTxt = touch ? '▸ tap the card to go inside' : '▸ press E to go inside';
   const p = canvasTex(w, h, (ctx, W, H, st) => {
     card(ctx, W, H, {focus:st.near}, {r:14, bg:'rgba(12,18,34,.88)', border: st.active ? 'rgba(240,181,74,.55)' : undefined});
     ctx.textAlign = 'center';
