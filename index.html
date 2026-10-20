@@ -65,8 +65,12 @@ body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow
 .office .go{font:10px 'Press Start 2P',monospace;background:var(--paper);border:2px solid #000;box-shadow:3px 3px 0 #000;padding:10px 14px}
 .office:hover .go,.office:focus-visible .go{background:var(--coral);transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
 
-/* ---- Isle half: Isle Folio's night sky ---- */
-.isle{background:linear-gradient(#070b19 0%,#0f1838 45%,#2a2a52 78%,#5a3f4f 100%);color:var(--cream)}
+/* ---- Isle half: a low-poly scene from Isle Folio's night world ---- */
+.isle{background:linear-gradient(#060918 0%,#0d1636 40%,#25264d 72%,#4f3a52 100%);color:var(--cream)}
+.isle::before{content:"";position:absolute;inset:-10% -25% auto;height:60%;pointer-events:none;filter:blur(24px);
+  background:radial-gradient(38% 50% at 28% 45%,rgba(88,220,170,.2),transparent 70%),radial-gradient(40% 55% at 72% 35%,rgba(150,110,255,.2),transparent 70%);
+  animation:aurora 14s ease-in-out infinite alternate}
+@keyframes aurora{to{transform:translateX(8%) skewX(-8deg);opacity:.6}}
 .stars{position:absolute;inset:0;background-image:
   radial-gradient(1.2px 1.2px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 28% 42%,#cdd6ff,transparent),
   radial-gradient(1.4px 1.4px at 45% 9%,#fff,transparent),radial-gradient(1px 1px at 63% 30%,#fff,transparent),
@@ -75,42 +79,52 @@ body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow
   radial-gradient(1px 1px at 35% 74%,#dfe5ff,transparent),radial-gradient(1px 1px at 70% 82%,#fff,transparent),
   radial-gradient(1.3px 1.3px at 20% 88%,#fff,transparent),radial-gradient(1px 1px at 55% 55%,#cdd6ff,transparent);
   animation:twinkle 4s ease-in-out infinite alternate}
-.moon{position:absolute;top:13%;right:12%;width:46px;height:46px;border-radius:50%;background:var(--cream);box-shadow:0 0 40px rgba(244,234,210,.45)}
-.cloud{position:absolute;height:16px;border-radius:999px;background:rgba(220,226,255,.12);filter:blur(2px)}
-.c1{width:140px;top:62%;left:-150px;animation:drift 30s linear infinite}
-.c2{width:90px;top:28%;left:-100px;animation:drift 38s linear -16s infinite}
-.isle svg{position:relative;width:min(100%,440px);overflow:visible}
-.isle .main{animation:bob 5s ease-in-out infinite}
-.isle .far{animation:bob 6s ease-in-out -2s infinite}
-.glow{opacity:.45;transition:opacity .4s}
-.isle:hover .glow,.isle:focus-visible .glow{opacity:1}
-.isle:hover .main,.isle:focus-visible .main{animation-duration:2.6s}
-@keyframes bob{50%{transform:translateY(-8px)}}
-@keyframes drift{to{transform:translateX(calc(60vw + 300px))}}
+.moon{position:absolute;top:11%;right:11%;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 38% 35%,#fffaf0,var(--cream) 60%,#e0d2b0);box-shadow:0 0 50px 8px rgba(244,234,210,.25)}
+.isle svg{position:relative;width:min(100%,580px);overflow:visible}
+.isle .bob1{animation:bob 6s ease-in-out infinite}
+.isle .bob2{animation:bob 7s ease-in-out -2s infinite}
+.isle .bob3{animation:bob 6.5s ease-in-out -4s infinite}
+.beam{transform-origin:70px 86px;animation:sweep 5s ease-in-out infinite alternate}
+@keyframes sweep{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+.crystal{animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45}}
+.ff circle{animation:fly 5s ease-in-out infinite}
+.ff circle:nth-child(2n){animation-duration:6.5s;animation-delay:-2s}
+.ff circle:nth-child(3n){animation-duration:4.2s;animation-delay:-1s}
+@keyframes fly{0%,100%{transform:translate(0,0);opacity:.2}50%{transform:translate(4px,-7px);opacity:1}}
+.smoke circle{animation:smoke 4s ease-out infinite;opacity:0}
+.smoke circle+circle{animation-delay:-2s}
+@keyframes smoke{0%{transform:translate(0,0) scale(.6);opacity:.5}100%{transform:translate(6px,-22px) scale(1.6);opacity:0}}
+.wiz{transition:transform 1.4s cubic-bezier(.4,0,.2,1)}
+.isle:hover .wiz,.isle:focus-visible .wiz{transform:translateX(-24px)}
+.door-glow{opacity:.5;transition:opacity .6s}
+.isle:hover .door-glow,.isle:focus-visible .door-glow{opacity:1}
+@keyframes bob{50%{transform:translateY(-7px)}}
 @keyframes twinkle{to{opacity:.55}}
 .isle .label{position:relative}
-.isle h2{font:400 clamp(30px,3.6vw,42px)/1 'Young Serif',serif;color:var(--ember);text-shadow:0 0 24px rgba(240,181,74,.35)}
+.isle h2{display:flex;align-items:center;gap:14px;font:400 clamp(30px,3.6vw,42px)/1 'Young Serif',serif;color:var(--ember);text-shadow:0 0 28px rgba(240,181,74,.4)}
+.isle h2::before,.isle h2::after{content:"";width:34px;height:1px;background:linear-gradient(90deg,transparent,var(--ember))}
+.isle h2::after{transform:scaleX(-1)}
 .isle p{font-size:15px;color:var(--haze)}
-.isle .go{font-weight:600;font-size:15px;color:var(--cream);border:1px solid rgba(240,181,74,.5);border-radius:999px;padding:9px 20px;background:rgba(240,181,74,.08);transition:transform .2s,box-shadow .3s,background .3s}
-.isle:hover .go,.isle:focus-visible .go{background:rgba(240,181,74,.18);box-shadow:0 0 24px rgba(240,181,74,.35);transform:translateX(4px)}
+.isle .go{display:inline-flex;align-items:center;gap:12px;padding:7px 20px 7px 7px;border-radius:14px;font:600 15px Figtree,sans-serif;color:var(--cream);
+  background:linear-gradient(#2c2552,#17142f);border:1px solid rgba(240,181,74,.55);
+  box-shadow:0 0 0 4px rgba(240,181,74,.07),0 10px 28px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.1);
+  transition:box-shadow .3s,transform .2s}
+.isle .go kbd{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;font:700 15px Figtree,sans-serif;color:#231d45;
+  background:linear-gradient(#fff7df,#e8d6a6);box-shadow:0 3px 0 #a88c52,0 0 16px rgba(240,181,74,.45);transition:transform .15s,box-shadow .15s}
+.isle .go small{font-weight:400;font-size:13px;color:var(--haze);margin-left:2px}
+.isle:hover .go,.isle:focus-visible .go{transform:translateY(-2px);box-shadow:0 0 0 4px rgba(240,181,74,.16),0 0 34px rgba(240,181,74,.35),0 12px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12)}
+.isle:hover .go kbd,.isle:focus-visible .go kbd{transform:translateY(2px);box-shadow:0 1px 0 #a88c52,0 0 22px rgba(240,181,74,.7)}
+@media (hover:none){.isle .go small{display:none}}
 .note{color:var(--ember);font-size:14px;max-width:34ch}
-
-/* ---- the seam: CV link across the bottom ---- */
-.cv{position:absolute;left:50%;transform:translateX(-50%);z-index:2;white-space:nowrap;transition:left .55s cubic-bezier(.2,.8,.2,1)}
-.split:has(.office:hover) .cv,.split:has(.office:focus-visible) .cv{left:56.52%}  /* seam at 1.3/2.3 */
-.split:has(.isle:hover) .cv,.split:has(.isle:focus-visible) .cv{left:43.48%}
-.cv{bottom:22px;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px;
-  background:linear-gradient(90deg,var(--ink) 50%,var(--cream) 50%);-webkit-background-clip:text;background-clip:text;color:transparent}
 
 @media (max-width:760px){
   .split{flex-direction:column}
   .half{flex:none;padding:48px 20px;gap:20px}
   .half:hover,.half:focus-visible{flex-grow:1}
   .split:hover .half:not(:hover){filter:none}
-  .cv,.split:has(.half:hover) .cv{left:50%}
   .moon{top:22px;right:22px;width:34px;height:34px}
-  .cv{background:none;color:var(--cream)}
-  .isle{padding-bottom:72px}
+  .isle h2::before,.isle h2::after{width:20px}
   .m-side{display:none}.m-grid{grid-template-columns:1fr}
 }
 .half:focus-visible{outline:3px solid var(--yellow);outline-offset:-6px}
@@ -138,50 +152,102 @@ body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow
 
   <a class="half isle" href="isle-folio/" aria-label="Enter Isle Folio, the walkable 3D portfolio">
     <div class="stars" aria-hidden="true"></div><div class="moon" aria-hidden="true"></div>
-    <div class="cloud c1" aria-hidden="true"></div><div class="cloud c2" aria-hidden="true"></div>
-    <svg viewBox="0 0 300 200" aria-hidden="true">
+    <svg viewBox="0 0 400 260" aria-hidden="true">
       <defs>
-        <radialGradient id="dg"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
-        <linearGradient id="rk" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4a3f5e"/><stop offset="1" stop-color="#1c1830"/></linearGradient>
+        <radialGradient id="warm"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+        <radialGradient id="cool"><stop offset="0" stop-color="#bfe9ff"/><stop offset="1" stop-color="#bfe9ff" stop-opacity="0"/></radialGradient>
+        <linearGradient id="beamg" x1="1" x2="0"><stop offset="0" stop-color="#fff2c0" stop-opacity=".35"/><stop offset="1" stop-color="#fff2c0" stop-opacity="0"/></linearGradient>
+        <g id="pine"><path d="M0-22 L-7-8 L0-9Z" fill="#4aa65c"/><path d="M0-22 L7-8 L0-9Z" fill="#2f7a46"/><path d="M0-14 L-9 0 L0-1Z" fill="#4aa65c"/><path d="M0-14 L9 0 L0-1Z" fill="#2f7a46"/><rect x="-1" y="0" width="2" height="3" fill="#5a3d2a"/></g>
       </defs>
-      <g class="far" opacity=".7">
-        <path d="M18 92 L72 92 L54 120 L40 132 L30 112 Z" fill="url(#rk)"/>
-        <ellipse cx="45" cy="92" rx="28" ry="6" fill="#3d6b45"/>
-        <path d="M228 70 L282 70 L266 96 L254 108 L240 90 Z" fill="url(#rk)"/>
-        <ellipse cx="255" cy="70" rx="28" ry="6" fill="#3d6b45"/>
-        <rect x="248" y="56" width="12" height="12" fill="#c9b893"/><path d="M246 57 L254 49 L262 57 Z" fill="#7a5a8a"/>
-        <path d="M72 95 Q100 104 108 100" stroke="#8a6a4a" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>
-        <path d="M192 96 Q214 86 228 74" stroke="#8a6a4a" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>
+
+      <!-- bridges -->
+      <g fill="none" stroke-linecap="round">
+        <path d="M102 124 Q116 146 128 152" stroke="#7a5638" stroke-width="3.2" stroke-dasharray="2.2 1.4"/>
+        <path d="M102 120 Q116 141 128 148" stroke="#d8c9a8" stroke-width=".6"/>
+        <path d="M272 152 Q290 128 302 114" stroke="#7a5638" stroke-width="3.2" stroke-dasharray="2.2 1.4"/>
+        <path d="M272 148 Q289 124 302 110" stroke="#d8c9a8" stroke-width=".6"/>
       </g>
-      <g class="main">
-        <path d="M88 100 L212 100 L196 128 L176 150 L162 182 L150 160 L132 152 L110 128 Z" fill="url(#rk)"/>
-        <path d="M150 160 L162 182 L170 156 Z" fill="#14111f"/>
-        <ellipse cx="150" cy="100" rx="64" ry="13" fill="#4f8a4a"/>
-        <ellipse cx="150" cy="97" rx="58" ry="9" fill="#62a15a"/>
-        <circle class="glow" cx="146" cy="86" r="26" fill="url(#dg)"/>
-        <rect x="128" y="64" width="36" height="32" fill="#d9c7a3"/>
-        <path d="M123 66 L146 44 L169 66 Z" fill="#8a3b3b"/>
-        <rect x="141" y="78" width="10" height="18" rx="5" fill="#ffc560"/>
-        <rect x="132" y="72" width="6" height="6" fill="#ffc560" opacity=".8"/>
-        <rect x="182" y="80" width="3" height="14" fill="#5a3d2a"/><circle cx="183" cy="76" r="9" fill="#3f7a44"/>
-        <circle cx="110" cy="92" r="5" fill="#3f7a44"/>
+
+      <!-- left isle: Beacon Point lighthouse -->
+      <g class="bob2">
+        <polygon class="beam" points="70,86 0,74 0,98" fill="url(#beamg)"/>
+        <path d="M38 122 L102 122 L92 140 L76 150 L70 168 L62 148 L48 138 Z" fill="#3d3456"/>
+        <path d="M70 122 L102 122 L92 140 L76 150 L70 168 Z" fill="#29233f"/>
+        <ellipse cx="70" cy="122" rx="33" ry="7" fill="#e3dcc6"/><ellipse cx="70" cy="120" rx="30" ry="5.5" fill="#6aa9c4"/>
+        <path d="M63 119 L65 90 L75 90 L77 119Z" fill="#f2ede0"/>
+        <path d="M63.6 111 L76.4 111 L76.9 117 L63.2 117Z M64.3 101 L75.7 101 L76.1 106 L63.9 106Z M64.8 92 L75.2 92 L75.5 96 L64.5 96Z" fill="#c8413c"/>
+        <rect x="64" y="82" width="12" height="8" fill="#fff0b8"/><circle cx="70" cy="86" r="12" fill="url(#warm)"/>
+        <path d="M62 82 L70 74 L78 82Z" fill="#c8413c"/>
+        <use href="#pine" x="50" y="121" transform="scale(1)"/><use href="#pine" x="89" y="121"/>
+      </g>
+
+      <!-- right isle: Runespire tower -->
+      <g class="bob3">
+        <path d="M290 112 L366 112 L356 130 L338 142 L330 160 L320 140 L302 130 Z" fill="#3d3456"/>
+        <path d="M328 112 L366 112 L356 130 L338 142 L330 160 Z" fill="#29233f"/>
+        <ellipse cx="328" cy="112" rx="38" ry="7.5" fill="#e3dcc6"/><ellipse cx="328" cy="110" rx="35" ry="6" fill="#7d8fc9"/>
+        <rect x="320" y="78" width="16" height="31" fill="#a9b6d8"/><rect x="328" y="78" width="8" height="31" fill="#8796c0"/>
+        <rect x="325" y="88" width="5" height="7" rx="2.5" fill="#bfe9ff"/>
+        <path d="M316 80 L328 54 L340 80Z" fill="#4a5fd0"/><path d="M328 54 L340 80 L328 80Z" fill="#33449e"/>
+        <g class="crystal"><circle cx="328" cy="48" r="12" fill="url(#cool)"/><path d="M328 41 L332 48 L328 55 L324 48Z" fill="#dff6ff"/></g>
+        <use href="#pine" x="301" y="111"/><use href="#pine" x="352" y="110"/>
+      </g>
+
+      <!-- centre isle: Hearthstone -->
+      <g class="bob1">
+        <path d="M112 152 L288 152 L272 178 L240 196 L214 236 L198 206 L164 196 L130 176 Z" fill="#433a5e"/>
+        <path d="M200 152 L288 152 L272 178 L240 196 L214 236 L206 200 Z" fill="#2b2541"/>
+        <path d="M150 188 L164 196 L160 212 Z M246 192 L240 196 L250 214 Z" fill="#1f1a33"/>
+        <ellipse cx="200" cy="152" rx="90" ry="17" fill="#e8e1cc"/>
+        <ellipse cx="200" cy="149" rx="84" ry="14" fill="#55a052"/>
+        <ellipse cx="192" cy="147" rx="52" ry="8" fill="#68b563"/>
+        <path d="M200 146 L194 162 L210 162 L204 146Z" fill="#c9a77a" opacity=".8"/>
+        <use href="#pine" x="128" y="150"/><use href="#pine" x="146" y="143"/><use href="#pine" x="160" y="153"/>
+        <use href="#pine" x="262" y="146"/><use href="#pine" x="276" y="152"/><use href="#pine" x="250" y="154"/>
+        <!-- cabin -->
+        <rect x="182" y="122" width="38" height="25" fill="#dccaa5"/><path d="M220 122 L232 118 L232 141 L220 147Z" fill="#b5a282"/>
+        <path d="M176 124 L201 102 L226 124Z" fill="#a8403a"/><path d="M201 102 L226 124 L238 119 L214 98Z" fill="#7d2e2a"/>
+        <rect x="215" y="98" width="5" height="10" fill="#5e4e44"/><rect x="214.4" y="97" width="6.2" height="2" fill="#4a3d36"/>
+        <g class="smoke" fill="#c9c4d8"><circle cx="217.5" cy="94" r="2.6"/><circle cx="217.5" cy="94" r="2.6"/></g>
+        <circle class="door-glow" cx="201" cy="140" r="22" fill="url(#warm)"/>
+        <rect x="196" y="131" width="10" height="16" rx="5" fill="#ffc560"/>
+        <rect x="186" y="128" width="6" height="6" fill="#ffd27a"/><rect x="210" y="128" width="6" height="6" fill="#ffd27a"/>
+        <!-- lanterns -->
+        <rect x="171" y="137" width="1.6" height="14" fill="#3b3346"/><rect x="169.5" y="134" width="4.6" height="4" fill="#ffe08a"/><circle cx="171.8" cy="136" r="8" fill="url(#warm)"/>
+        <rect x="240" y="138" width="1.6" height="14" fill="#3b3346"/><rect x="238.5" y="135" width="4.6" height="4" fill="#ffe08a"/><circle cx="240.8" cy="137" r="8" fill="url(#warm)"/>
+        <!-- wizard -->
+        <g class="wiz">
+          <path d="M224 160 L238 160 L231 141Z" fill="#2c3e9a"/><path d="M231 141 L238 160 L231 160Z" fill="#223180"/>
+          <circle cx="228" cy="153" r=".7" fill="#fff"/><circle cx="233" cy="149" r=".6" fill="#fff"/>
+          <circle cx="231" cy="139" r="2.6" fill="#f1d3b0"/><path d="M228.6 140 L233.4 140 L231 146Z" fill="#eee"/>
+          <ellipse cx="231" cy="137" rx="5.5" ry="1.4" fill="#33449e"/><path d="M227 137 L235 137 L232 125Z" fill="#3a4fc0"/>
+          <rect x="238.4" y="137" width="1.2" height="23" fill="#8a6a4a"/><circle cx="239" cy="136" r="1.8" fill="#dff6ff"/><circle cx="239" cy="136" r="6" fill="url(#cool)"/>
+        </g>
+      </g>
+
+      <!-- fireflies -->
+      <g class="ff" fill="#ffe9a0">
+        <circle cx="150" cy="128" r="1.1"/><circle cx="252" cy="122" r="1"/><circle cx="178" cy="112" r=".9"/><circle cx="270" cy="136" r="1.1"/>
+        <circle cx="120" cy="140" r=".9"/><circle cx="226" cy="108" r="1"/><circle cx="88" cy="104" r=".9"/><circle cx="312" cy="96" r="1"/>
       </g>
     </svg>
     <div class="label">
       <h2>Isle Folio</h2>
       <p>Walk a 3D world of seven islands · best on desktop</p>
-      <span class="go">Enter →</span>
+      <span class="go"><kbd>E</kbd>Enter the isles<small>or press E</small></span>
       <p class="note" id="nogl" hidden>Your browser can't run 3D, so this opens as plain text. Office is the better pick here.</p>
     </div>
   </a>
 
-  <a class="cv" href="shared/resume/Ankush_Sonawane_Resume.pdf">Just the CV (PDF)</a>
 </main>
 
 <script>
 // No WebGL means Isle Folio falls back to text, so say so on its half.
 try { var c = document.createElement('canvas'); if(!(c.getContext('webgl') || c.getContext('experimental-webgl'))) throw 0; }
 catch(e){ document.getElementById('nogl').hidden = false; }
+
+// E goes inside, like at a door in Isle Folio.
+addEventListener('keydown', e => { if((e.key === 'e' || e.key === 'E') && !e.ctrlKey && !e.metaKey && !e.altKey) location.href = 'isle-folio/'; });
 </script>
 </body>
 </html>
