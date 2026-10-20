@@ -2,7 +2,7 @@
 import { THREE, V3, ZN, reduce, touch, mat, mesh, glow, box, cyl, rnd } from '../engine.js';
 import { keyL } from '../engine.js';
 import { DATA } from '../data.js';
-import { FD, panel, canvasTex, rr, para, wrap, clip, fitFont, eyebrow, shortUrl, openLink } from '../panels.js';
+import { FD, FP, INK, RED, SEP, panel, canvasTex, rr, para, wrap, clip, fitFont, eyebrow, shortUrl, openLink, paper, rules, fleuron, caps } from '../panels.js';
 import { view, item } from './kit.js';
 
 // book geometry (world units; 1 unit = 100 canvas px on the pages)
@@ -17,34 +17,9 @@ function glowTex(){
   x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
   return new THREE.CanvasTexture(c);
 }
-// book pages: an old-style face for the text, warm ink, a red for drop caps, a faded brown for running heads and rules
-const FP = '"EB Garamond", Georgia, serif', INK = '#2b2119', RED = '#8a2a1e', SEP = '#8c7556';
 // the top page's height over the board, u = 0 at the gutter to 1 at the fore-edge: dips into the spine, swells, flattens, droops a little at the edge
 const LIFT = 0.2, GAP = 0.012, surf = u => 0.015 + LIFT*(1 - Math.pow(1 - u, 2.6)) - 0.045*Math.pow(u, 5);
 
-/* printed-page helpers (canvas px; pages are PW x PH units = 230 x 310 px) */
-function paper(ctx, W, H, k){   // aged stock, darker to the edges, a few foxing spots fixed per page so redraws don't shimmer
-  ctx.fillStyle = '#efe4c8'; ctx.fillRect(0, 0, W, H);
-  const e = ctx.createRadialGradient(W/2, H/2, Math.min(W, H)*0.35, W/2, H/2, Math.max(W, H)*0.75);
-  e.addColorStop(0, 'rgba(120,90,50,0)'); e.addColorStop(1, 'rgba(120,90,50,.3)'); ctx.fillStyle = e; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = 'rgba(140,100,50,.13)';
-  for(let i=0;i<14;i++){ const h = n => Math.abs(Math.sin((i + 1)*(k + 3)*n)*43758.5453 % 1); ctx.beginPath(); ctx.arc(h(12.99)*W, h(78.23)*H, 1 + h(39.4)*3, 0, 7); ctx.fill(); }
-}
-function rules(ctx, W, H, on){   // printed double frame; gilt when the book has focus
-  ctx.strokeStyle = on ? '#b07a22' : 'rgba(110,80,50,.42)';
-  ctx.lineWidth = on ? 2.5 : 1; ctx.strokeRect(12, 12, W - 24, H - 24);
-  ctx.lineWidth = on ? 1.2 : 0.6; ctx.strokeRect(16.5, 16.5, W - 33, H - 33);
-}
-function fleuron(ctx, cx, y, w, color){   // rule — lozenge — rule, with a dot at each end
-  ctx.strokeStyle = ctx.fillStyle = color; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(cx - w/2, y); ctx.lineTo(cx - 8, y); ctx.moveTo(cx + 8, y); ctx.lineTo(cx + w/2, y); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx, y - 4); ctx.lineTo(cx + 5, y); ctx.lineTo(cx, y + 4); ctx.lineTo(cx - 5, y); ctx.closePath(); ctx.fill();
-  [-1, 1].forEach(s => { ctx.beginPath(); ctx.arc(cx + s*(w/2 + 3), y, 1.5, 0, 7); ctx.fill(); });
-}
-function caps(ctx, text, x, y, size, color, maxW){   // letterspaced small capitals
-  ctx.font = `600 ${size}px ${FP}`; ctx.fillStyle = color; ctx.letterSpacing = '1.5px';
-  ctx.fillText(maxW ? clip(ctx, text.toUpperCase(), maxW) : text.toUpperCase(), x, y); ctx.letterSpacing = '0px';
-}
 // body text with a three-line red drop cap; the biggest size (17 → 12px) that fits above maxY, truncated with … at the smallest
 function dropCap(ctx, text, x, y, mw, maxY){
   text = String(text).trim(); if(!text) return;
@@ -334,7 +309,7 @@ export default function build(){
   })();
   const creaseG = box(0.05, PH, 0.012), crease = mat(0x3a2a1a);
   const ribbon = new THREE.Mesh(ribbonG, new THREE.MeshStandardMaterial({color:0x8e1c22, roughness:0.45, side:THREE.DoubleSide}));
-  const covers = [0x6b2a24, 0x2e4a6b, 0x3d5c3a, 0x5a3a6b, 0x6b4a2a], pages = [];
+  const covers = [0x6b2a24, 0x2e4a6b, 0x3d5c3a, 0x5a3a6b, 0x6b4a2a];
   pubs.forEach((b, k) => {
     const x = bx(k), plat = b.platform || 'the web', LZ = BZ - 0.25;
     // lectern: four scrolled feet, a turned column with a brass collar, a bracket under the desk
@@ -388,14 +363,12 @@ export default function build(){
       caps(ctx, cta, W/2, H - 44, 11, st.focus ? RED : SEP, mw);
       ctx.textAlign = 'left'; dropCap(ctx, b.description || '', x0, 38, mw, kwY - (kw.length ? 20 : 4));
     });
-    [left, right].forEach((p, s) => { p.geometry.dispose(); p.geometry = pageG[s]; p.material.vertexColors = true; p.material.transparent = false; p.position.x = (s ? 1 : -1)*(PW/2 + GAP); bk.add(p); pages.push(p); });
+    [left, right].forEach((p, s) => { p.geometry.dispose(); p.geometry = pageG[s]; p.material.vertexColors = true; p.material.transparent = false; p.position.x = (s ? 1 : -1)*(PW/2 + GAP); bk.add(p); });
     items.push(item({obj:bk, panels:[left, right], bx:x,
       view:view(new V3(x, BY, BZ + 0.1), BW + 0.6, BH + 0.7, new V3(0, Math.sin(TILT), Math.cos(TILT))),
       label:`Book ${k + 1} of ${N}: ${b.title}. ${[plat, b.date, b.readTime].filter(Boolean).join(', ')}. ${b.description || ''} Press Enter to read it on ${plat}.`,
       activate:() => openLink(b.link)}));
   });
-  // the page face is a webfont the page doesn't otherwise use, so it may not be loaded yet: repaint the pages once it is
-  document.fonts && Promise.all(['400 16px "EB Garamond"', 'italic 400 16px "EB Garamond"', '600 16px "EB Garamond"'].map(f => document.fonts.load(f))).then(() => pages.forEach(p => p.userData.panel.redraw()), () => {});
 
   /* brass plaque, framed and hung from the picture rail above the centre bookcase */
   const med = DATA.contact && DATA.contact.medium;

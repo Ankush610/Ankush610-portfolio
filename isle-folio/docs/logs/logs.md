@@ -5,6 +5,15 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Hearthstone: closed hall, zoom-out stays inside; displays carved, written and cast to fit the room
+- `js/rooms/home.js`:
+  - **Closed hall.** The chamber was an open-fronted square shaft, so zooming out showed its open front, the floor's edge and the void above. Walls, floor, ceiling, wainscot, ashlar, purlins and tie beams now run forward to a front wall at z = 28 (deep enough for the phone's portrait camera), and `maxDist` (26) keeps zoom-out inside, like Forgewell, Runespire and Lorehall. A red runner leads down the hall to the rug, more niches line the side walls, and the light shaft falls through an iron-ringed oculus in the new ceiling.
+  - On phones the stat portals are now framed straight on; at their old angle, zooming out swung the camera through the side wall.
+  - **Displays.** The hero board is a slate tablet set into the heart-stone: chiselled bevel, an incised gilt border with corner lozenges (it kindles when focused), letters cut with a shadow, the name in gold leaf, the rest in EB Garamond. The focus-area lecterns hold parchment leaves on a wooden reading board with a ledge (red mark, title, fleuron, ink text, gilt frame when focused). The stat portals show ember light welling out of the dark doorway, with a rivetted brass name-plate naming where they lead (`⏎` only on desktop, auto-fitted). No more rounded web cards.
+- `js/panels.js`: the Lorehall's printed-page helpers (`paper`, `rules`, `fleuron`, `caps`, the `FP`/`INK`/`RED`/`SEP` constants) moved here from `js/rooms/writing.js` so both rooms share them, and the EB Garamond load-then-repaint now covers every panel.
+- Why: user feedback.
+- Checked: desktop (start, max zoom-out, focused portal), phone (375×812) resting and zoomed-out at a portal, Lorehall unchanged. No page errors.
+
 ## 2026-10-20 — Lorehall: a proper bookmark ribbon, a dark gutter, no running head on the right page
 - `js/rooms/writing.js`: the bookmark was three stiff boxes that read as a red pole. It is now one thin satin strip along a curve: lying in the gutter, out of the foot of the book, rolling over the ledge's lip and hanging a little to one side, with a swallowtail end. A dark crease fills the gap where the pages meet (the red leather spine showed through as a line). The right page no longer repeats the title at the top; the description starts higher.
 - Why: user feedback.

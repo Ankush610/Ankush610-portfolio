@@ -25,8 +25,9 @@ export function panel(w, h, draw){
   return m;
 }
 export const setPanel = (m, patch) => m.userData.panel.redraw(Object.assign({}, m.userData.panel.state, patch));
-// webfonts that arrive late: repaint everything once
+// webfonts that arrive late: repaint everything once. EB Garamond is only used on canvases, so it's asked for explicitly
 document.fonts && document.fonts.ready.then(() => allPanels.forEach(p => p.redraw()));
+document.fonts && Promise.all(['400 16px "EB Garamond"', 'italic 400 16px "EB Garamond"', '600 16px "EB Garamond"'].map(f => document.fonts.load(f))).then(() => allPanels.forEach(p => p.redraw()), () => {});
 
 export function rr(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x+r, y); ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r); ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath(); }
 export function wrap(ctx, text, maxW){
@@ -61,3 +62,29 @@ export function card(ctx, W, H, st, o={}){
 export function eyebrow(ctx, text, x, y, color=COL.ember, size=13){ ctx.font = `700 ${size}px ${FM}`; ctx.fillStyle = color; ctx.fillText(String(text).toUpperCase(), x, y); }
 export const shortUrl = u => u.replace(/^https?:\/\/(www\.)?/, '').replace(/\.git$/, '').replace(/\/$/, '');
 export function openLink(u){ window.open(u, '_blank', 'noopener'); }
+
+// book pages: an old-style face for the text, warm ink, a red for drop caps, a faded brown for running heads and rules
+export const FP = '"EB Garamond", Georgia, serif', INK = '#2b2119', RED = '#8a2a1e', SEP = '#8c7556';
+/* printed-page helpers (canvas px): the Lorehall's book pages and the Hearthstone's lectern leaves */
+export function paper(ctx, W, H, k){   // aged stock, darker to the edges, a few foxing spots fixed per page so redraws don't shimmer
+  ctx.fillStyle = '#efe4c8'; ctx.fillRect(0, 0, W, H);
+  const e = ctx.createRadialGradient(W/2, H/2, Math.min(W, H)*0.35, W/2, H/2, Math.max(W, H)*0.75);
+  e.addColorStop(0, 'rgba(120,90,50,0)'); e.addColorStop(1, 'rgba(120,90,50,.3)'); ctx.fillStyle = e; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(140,100,50,.13)';
+  for(let i=0;i<14;i++){ const h = n => Math.abs(Math.sin((i + 1)*(k + 3)*n)*43758.5453 % 1); ctx.beginPath(); ctx.arc(h(12.99)*W, h(78.23)*H, 1 + h(39.4)*3, 0, 7); ctx.fill(); }
+}
+export function rules(ctx, W, H, on){   // printed double frame; gilt when the book has focus
+  ctx.strokeStyle = on ? '#b07a22' : 'rgba(110,80,50,.42)';
+  ctx.lineWidth = on ? 2.5 : 1; ctx.strokeRect(12, 12, W - 24, H - 24);
+  ctx.lineWidth = on ? 1.2 : 0.6; ctx.strokeRect(16.5, 16.5, W - 33, H - 33);
+}
+export function fleuron(ctx, cx, y, w, color){   // rule — lozenge — rule, with a dot at each end
+  ctx.strokeStyle = ctx.fillStyle = color; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx - w/2, y); ctx.lineTo(cx - 8, y); ctx.moveTo(cx + 8, y); ctx.lineTo(cx + w/2, y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, y - 4); ctx.lineTo(cx + 5, y); ctx.lineTo(cx, y + 4); ctx.lineTo(cx - 5, y); ctx.closePath(); ctx.fill();
+  [-1, 1].forEach(s => { ctx.beginPath(); ctx.arc(cx + s*(w/2 + 3), y, 1.5, 0, 7); ctx.fill(); });
+}
+export function caps(ctx, text, x, y, size, color, maxW){   // letterspaced small capitals
+  ctx.font = `600 ${size}px ${FP}`; ctx.fillStyle = color; ctx.letterSpacing = '1.5px';
+  ctx.fillText(maxW ? clip(ctx, text.toUpperCase(), maxW) : text.toUpperCase(), x, y); ctx.letterSpacing = '0px';
+}
