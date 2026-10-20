@@ -1,4 +1,4 @@
-/* Small reusable meshes: trees, rocks, lanterns, gates, anvils, star fields. */
+/* Small reusable meshes: trees, rocks, lanterns, gates, anvils, star fields, plus an instancing helper. */
 import { THREE, V3, ZN, reduce, touch, mat, mesh, glow, box, cyl, rnd } from '../engine.js';
 
 export function tree(s=1){
@@ -43,4 +43,16 @@ export function starField(n, rMin, rMax, yOff, size){
   for(let i=0;i<n;i++){ const u = rnd()*2-1, a = rnd()*Math.PI*2, r = rMin + rnd()*(rMax-rMin), s = Math.sqrt(1-u*u); pos.set([Math.cos(a)*s*r, Math.abs(u)*r*0.8 + yOff, Math.sin(a)*s*r], i*3); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   return new THREE.Points(g, new THREE.PointsMaterial({color:0xc9d4ff, size, sizeAttenuation:true, fog:false}));
+}
+/* many copies, one draw call: rows of [x, y, z, sx, sy, sz, ry, color?, rx?, rz?] on a unit geometry */
+const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), EU = new THREE.Euler(), P3 = new V3(), S3 = new V3(), C3 = new THREE.Color();
+export function instanced(geo, material, rows, shadow = true){
+  const im = new THREE.InstancedMesh(geo, material, rows.length);
+  rows.forEach((a, i) => {
+    Q.setFromEuler(EU.set(a[8] || 0, a[6] || 0, a[9] || 0));
+    im.setMatrixAt(i, M4.compose(P3.set(a[0], a[1], a[2]), Q, S3.set(a[3], a[4], a[5])));
+    if(a[7] != null) im.setColorAt(i, C3.setHex(a[7]));
+  });
+  im.castShadow = shadow; im.receiveShadow = true;
+  return im;
 }

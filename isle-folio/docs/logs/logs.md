@@ -5,6 +5,48 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Runespire: the slim spire outside becomes the rune tower it holds
+- `js/world/isles/skills.js`: the tower now matches its interior (coursed masonry, round columns in every corner, triple rune slits below and paired slits under a rune diamond above, a planked door under a voussoir arch with a violet keystone, a gallery on two-tier corbels with gold posts and rail, crystal lanterns, cold-fire sconces, a ribbed blue cone roof):
+  - **Shaft.** Three octagonal tiers over a battered footing, each faced in coursed blocks laid round the openings (one instanced mesh), with a round column (base and capital) in every corner. The lower tier has triple rune slits in stone frames on every face but the door's. A string course sets off the upper tier, whose faces have paired tall slits under a glowing rune diamond.
+  - **Gallery.** Two-tier corbels under a projecting ledge, gold posts and a gold rail on every face, and a crystal lantern hanging under each corner.
+  - **Top.** An upper chamber with paired slits, the eave, then a steep blue roof with gold ribs on its edges, four small dormers with glowing slits, a gold boss and spike, and the floating crystal finial.
+  - **Door.** A gabled stone portal with a planked door (seams, iron straps, a gold ring pull) under a voussoir arch with the violet keystone, a threshold, a rune diamond over the portal, and cold-fire sconces (blue additive flames, as inside) either side.
+  - The plinth is stepped with a glowing rune inlay, and crystal clusters grow at its corners. The arcane bands and orbiting crystals stay, resized to the new tower.
+  - The rune-stone ring, arcane circle and crystal clusters on the island moved out to clear the wider footprint.
+- `js/world/islands.js`: Runespire `obs` 1.5 → 2.1 (wider plinth), `lh` 7.6 → 10.4 (label clears the finial).
+- Why: user feedback (richer architecture, closer to the interior, as done for the other islands).
+- Checked: desktop front, side and zoomed-out views, entering the tower and leaving. No console errors.
+
+## 2026-10-20 — Lorehall: the little temple outside becomes the library it holds
+- `js/world/isles/writing.js`: the building now matches its interior (a tall hall of bookcases, a gilt picture rail, an upper storey of leaded arched windows between pilasters, a cornice):
+  - **Hall.** A rusticated base laid in two courses of tinted blocks, a string course, then pilasters with bases and capitals and tall arched windows on the sides and back. The windows are lit warm, leaded (mullion and transoms), with moulded architraves, a keystone, a hood and a bracketed sill.
+  - **Top.** An entablature over hall and portico: architrave, a frieze with gilt rosettes, dentils all round, the cornice. A balustrade runs round the roof with lamp-urns burning on the corner posts.
+  - **Front.** A deeper portico of four columns (plinth, torus base, shaft, echinus, abacus). The pediment has a raking cornice, a recessed tympanum with a glowing open book and gilt rays, and acroteria. The great door has panelled plank leaves with ring pulls and a leaded glowing fanlight under a moulded arch with a gilt keystone, set in a small pedimented frame. Purple banners hang in the outer bays, and bronze lanterns on pedestals flank the steps.
+  - **Rotunda.** A pedestal, a drum with lit windows ringed by twelve columns, a taller ribbed dome with gilt ribs, and a glowing lantern with a finial. The orbiting books and swirling pages stay, retuned to the new dome.
+- `js/world/islands.js`: Lorehall `obs` 2.2 → 2.9 (bigger plinth), `lh` 5.8 → 7.0 (label clears the lantern).
+- Why: user feedback (richer architecture, closer to the interior, as done for Hearthstone and Forgewell).
+- Checked: desktop front and side views, entering the library and leaving. No console errors.
+
+## 2026-10-20 — Forgewell: the smithy outside becomes the foundry hall it holds
+- `js/world/isles/projects.js`: the small half-timbered smithy is now a brick foundry hall in the style of its interior (a hall with a curved back wall, stone plinth blocks, timber pilasters, protruding bricks, a wall-plate, a banded furnace chimney, and mine tunnels the carts run into):
+  - **Shell.** A brick nave with a half-round apse behind, on a stone footing laid in two courses all round, timber pilasters, a sill rail and wall-plate, and scattered protruding bricks. The roof is a gable over the nave and a half cone over the apse at the same pitch, both with tile courses, a ridge and barge boards, and a glowing louvred vent with a weather vane on the ridge.
+  - **Front.** A plastered, timber-framed gable with an iron plate of crossed gold hammers and a small glowing vent. Below it is a stone arch (quoins, voussoirs, a keystone) with an iron-ribbed glowing fanlight. One plank door is shut and the other swung open onto the forge glow, with wall torches on the pilasters either side.
+  - **Sides and back.** An arched, barred window glows on each side, and slit windows on the apse. The furnace chimney rises from the back of the apse (where the hall's furnace stands inside): a stone-footed breast with a glowing ash door, a tall stack with three iron bands, a corbelled cap and a glowing flue, giving off embers and smoke.
+  - **Right:** a mine tunnel through the wall (stone block, timber frame, wedge stones, a lantern), with rails and a cart carrying a treasure chest whose lid glows, like the carts inside. **Left:** a squat brick smelter with a glowing mouth, a pumping bellows, and a molten runnel into ingot moulds. The anvil, quench barrel, ingot crate, coal pile and firewood stay around it.
+- `js/world/props.js`: the `instanced()` helper (one draw call for many tinted boxes) moved here from `isles/home.js` so both islands share it.
+- `js/world/islands.js`: Forgewell `obs` 2.7 → 3.1 (bigger hall), `lh` 5.4 → 7.0 (label clears the chimney).
+- Why: user feedback (richer architecture, closer to the interior, as done for Hearthstone).
+- Checked: desktop front, left and right views, top view, entering the foundry. No console errors.
+
+## 2026-10-20 — Hearthstone: the monolith outside becomes an octagonal keep that matches its hall; signpost removed
+- `js/world/isles/home.js`:
+  - **The building.** The tapered monolith is now an octagonal keep, dressed like the hall inside it: ashlar courses (one instanced mesh, holes left for openings) over a battered dark footing, stepped buttresses on every corner with a glowing seam and a pulse of light running up each, and a rune band of gilt glyphs between pale string courses. A gabled portal holds an arched door of iron-strapped planks with firelight leaking through the gap, quoined jambs, voussoirs and an ember keystone, with iron sconces either side. Lancet windows and arrow slits glow round the sides and back, a rose window sits over the door, and red banners with a glowing sigil hang on the faces flanking it. The top is a machicolated gallery with a crenellated parapet and glowing pinnacles, then an open lantern of eight pillars and arches over a fire bowl (the light the hall's oculus lets in), a gold crown, and the floating heart-gem with its orbiting motes. The stepped dais is octagonal with a gold inlay, the corner obelisks stay.
+  - **Signpost removed** (and its `signArm` helper and imports).
+  - Braziers, benches and the standing-stone ring moved out a little to clear the wider footprint.
+- `js/world/islands.js`: home `obs` 2.0 → 2.4 (wider keep), `lh` 7.0 → 8.6 (label clears the gem).
+- Why: user feedback (richer centre-island architecture, closer to the interior, no signboard).
+- Checked: desktop walk view, zoomed-out view, top view. No console errors.
+
 ## 2026-10-20 — Hearthstone: closed hall, zoom-out stays inside; displays carved, written and cast to fit the room
 - `js/rooms/home.js`:
   - **Closed hall.** The chamber was an open-fronted square shaft, so zooming out showed its open front, the floor's edge and the void above. Walls, floor, ceiling, wainscot, ashlar, purlins and tie beams now run forward to a front wall at z = 28 (deep enough for the phone's portrait camera), and `maxDist` (26) keeps zoom-out inside, like Forgewell, Runespire and Lorehall. A red runner leads down the hall to the rug, more niches line the side walls, and the light shaft falls through an iron-ringed oculus in the new ceiling.
