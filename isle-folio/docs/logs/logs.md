@@ -1,0 +1,70 @@
+# Change log
+
+Every change to the project, newest first. One entry per change set.
+
+Format:
+
+```
+## YYYY-MM-DD — short title
+- what changed (files)
+- why
+- issue # closed, if any
+```
+
+---
+
+## 2026-10-20 — everything moved into isle-folio/
+- Moved `CLAUDE.md` and `docs/` from `timepass/` into `isle-folio/`, so the app folder is now the project root. Updated the paths in `CLAUDE.md`, `plan.md` and `issues.md`.
+- Kept one `.claude/launch.json` (port 8123) and deleted the second one.
+- Deleted the stale `Isle Folio.html` (it's in the system trash).
+- Why: one self-contained folder, with no duplicate or stale files.
+- Closes #5, #6.
+
+## 2026-10-20 — Buildings face the centre island
+- Every building used to face +z, so you often arrived at a building's side or back. Each door now faces Hearthstone (0,0); Hearthstone keeps +z.
+- Core:
+  - `js/world/islands.js` adds `isl.face` (yaw) and `isl.rot(x, z)`, which converts the building frame (door at +z) to the island-local frame.
+  - `build.js` turns the landmark and the door position.
+  - `terrain.js` turns the door path.
+  - `player.js` makes the auto-walk end at the turned door.
+  - `app.js` turns the dive camera, the leave-room facing, the start spawn, `?room=` and `?at=`.
+- Per-island scenery, done by three subagents in parallel:
+  - `isles/journey.js`: the oak, garden, well, mailbox and milestone searches now shift by `face`.
+  - `isles/skills.js`: the floating shards' skipped front arc follows the door.
+  - `isles/contact.js`: the mailbox turned with the door path, and a stale bench comment was fixed.
+  - `projects.js`, `writing.js` and `teaching.js` needed no change; their props already avoid paths or face the centre.
+- Result: the bridge from Hearthstone now lands on the front door of Oakreach, Lorehall, Beacon Point and Lyceum. Forgewell and Runespire have no bridge to the centre, but their doors still face it.
+- Checked: the top-view map; `?at=<id>` for all six islands shows the front door; auto-walk Hearthstone → Runespire (two bridges) reaches the turned door; no console errors.
+
+## 2026-10-20 — Top view: entering needs a second press
+- `isle-folio/js/app.js`: the wizard no longer walks in by himself when he reaches the door. The camera keeps circling the island until you choose to go in: E / Enter, the "Enter <island>" button (now shown in top view once he's at the toured island's door), or picking the same island again.
+  - Picking the island he's already standing at starts the tour instead of entering.
+  - In top view, E only enters the island being toured.
+  - The hint bar shows `E go inside` once he has arrived.
+- Why: the user asked for it. Choosing an island should show it off first, and entering should be a separate choice.
+- Checked in the browser: clicked Lorehall, waited 10s (circling, not entered, button shown), E → room. Left, clicked Lorehall again → circling, clicked again → room.
+
+## 2026-10-20 — Two camera modes: walk and top view
+- `isle-folio/js/app.js`: the old map (`overview`) is now **top view** mode (`top`), toggled with M / Esc or a new top-right button.
+  - The map camera is closer, (0,50,48) instead of (0,66,58), centred a little south so all seven islands fit. In top view the camera can zoom in but never out past this framing (zoom range 0.5–1).
+  - Click or tap anywhere on an island (its terrain group, not just the sign or building). The camera flies to that island and circles it (`tour`, `tourA`) while the wizard auto-walks there. When he reaches the door he goes inside.
+  - Leaving a room while in top view returns to the whole map.
+  - Fog scales with the portrait pull-back in top view, so phones don't get the dim, fogged-out map.
+- `isle-folio/index.html`: added `#modeBtn` and updated the canvas aria-label. `css/style.css`: `.back.mode` puts the button on the right.
+- `isle-folio/README.md`: updated the controls table.
+- Why: the map zoomed out too far into the fog, touch users couldn't open it at all, and picking an island should show it off and take you inside.
+- Checked in the browser: desktop map framing, tour → walk → auto-enter (Forgewell), leave → map, zoom-out cap, M back to walk mode, and on a phone (375×812) the map plus a tour of Lyceum.
+
+## 2026-10-20 — Wizard (hero) clipping fixes
+- `isle-folio/js/world/hero.js`:
+  - Beard: flattened and tilted out along the robe's slope so it lies over the collar and chest. Before, only a stub showed above the collar.
+  - Cape: the walk swing sign was inverted and pushed the cape forward into the robe. It now swings back. The cape is wider than the belt and its edges sit further back, so the swinging arms pass in front of it.
+  - Arms: shoulders moved out and splayed (left 0.5, right 0.58 rad), so sleeves and cuffs no longer sink into the robe.
+  - Staff: held upright on the outside of the hand and tapered toward the foot, so it clears the robe hem. The hat brim is 0.6 → 0.55 so the staff no longer pierces it.
+  - Robe stars: placed on the robe surface computed from the shared `ROBE_PROFILE`. Before, they used hand-typed coordinates and some were buried.
+- Why: the model clipped into itself when idle and walking.
+- Checked: turntable renders at 0/90/180°, top-down, low angle, and walk/run poses, plus a look in-game.
+
+## 2026-10-20 — Project docs set up
+- Added `docs/plans/plan.md`, `docs/plans/issues.md`, `docs/plans/decisions.md`, `docs/logs/logs.md`, and `CLAUDE.md` at the repo root.
+- Why: to track the plan, known issues and every change from here on.

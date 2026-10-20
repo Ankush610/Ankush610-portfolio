@@ -1,0 +1,146 @@
+/* Assembles the outside world: terrain islands, bridges, buildings, props, decorative islets, labels. */
+import { THREE, V3, reduce, touch, mat, mesh, glow, rnd } from '../engine.js';
+import { scene } from '../engine.js';
+import { DATA } from '../data.js';
+import { FD, FB, COL, canvasTex, fitFont, card, eyebrow } from '../panels.js';
+import { ISLANDS, byId, home } from './islands.js';
+import { tree, rock, lantern, starField } from './props.js';
+import { landmark, decorate } from './landmarks.js';
+import { makeHero } from './hero.js';
+import { planBridges, bridges, bridgeMeshes, bridgePoint, shapeIsland, islandMesh, obstacles, surfaceY, smooth } from './terrain.js';
+
+export function buildWorld(){
+planBridges();
+home.plaza = true;
+
+/* ---------- islands: terrain, building, door, props ---------- */
+const tufts = [], flowers = [];
+ISLANDS.forEach(isl => {
+  const grp = new THREE.Group(); grp.position.set(isl.x, 0, isl.z); scene.add(grp); isl.group = grp;
+  grp.add(islandMesh(isl));
+  const lm = landmark(isl.id); lm.position.set(0, isl.h, 0); lm.rotation.y = isl.face; grp.add(lm);
+  isl.lmGroup = lm; isl.lmWorld = new V3(isl.x, isl.h, isl.z);
+  obstacles.push({x:isl.x, z:isl.z, r:isl.obs});
+  const [dx, dz] = isl.rot(0, isl.obs + 1.6);
+  isl.door = new V3(isl.x + dx, isl.topY(dx, dz), isl.z + dz);
+  decorate(isl, grp);   // hand-placed island scenery first; the random scatter below steers around it
+
+  // trees and rocks on open ground, away from the plateau, paths and anything already placed
+  const placed = [], taken = (x, z, gap) => obstacles.some(o => Math.hypot(o.x - isl.x - x, o.z - isl.z - z) < (o.clear ?? o.r) + gap);   // o.clear: decorations can reserve more room than they collide with (e.g. a wide canopy)
+  const spot = (minR, maxF, pathGap, gap) => {
+    for(let tries = 0; tries < 60; tries++){
+      const a = rnd()*Math.PI*2, f = rnd(), e = isl.edgeR(a), r = minR + (e*maxF - minR)*Math.sqrt(f);
+      const x = Math.cos(a)*r, z = Math.sin(a)*r;
+      if(r < minR || isl.pathDist(x, z) < pathGap || placed.some(p => Math.hypot(p[0] - x, p[1] - z) < gap) || taken(x, z, 0.9)) continue;
+      placed.push([x, z]); return [x, z];
+    }
+    return null;
+  };
+  const nTrees = Math.round(isl.R*1.3);
+  for(let k = 0; k < nTrees; k++){
+    const p = spot(isl.obs + 2.8, 0.8, 1.7, 1.7); if(!p) continue;
+    const s = 0.75 + rnd()*0.55, t = tree(s); t.position.set(p[0], isl.topY(p[0], p[1]) - 0.05, p[1]); grp.add(t);
+    obstacles.push({x:isl.x + p[0], z:isl.z + p[1], r:0.32*s});
+  }
+  for(let k = 0; k < 7; k++){
+    const p = spot(isl.obs + 2.2, 0.88, 1.3, 1.1); if(!p) continue;
+    const s = 0.5 + rnd()*1.1, r = rock(s); r.position.set(p[0], isl.topY(p[0], p[1]) - 0.1, p[1]); grp.add(r);
+    if(s > 1) obstacles.push({x:isl.x + p[0], z:isl.z + p[1], r:0.4*s});
+  }
+  for(let k = 0; k < Math.round(isl.R*9); k++){
+    const a = rnd()*Math.PI*2, r = (isl.obs + 1) + rnd()*(isl.edgeR(a)*0.82 - isl.obs - 1), x = Math.cos(a)*r, z = Math.sin(a)*r;
+    if(isl.pathDist(x, z) < 0.8) continue;
+    if(taken(x, z, 0.1)) continue;
+    (rnd() < 0.82 ? tufts : flowers).push([isl.x + x, isl.topY(x, z), isl.z + z, isl]);
+  }
+});
+
+/* ---------- grass tufts and flowers: two instanced meshes for the whole world ---------- */
+const dummy = new THREE.Object3D(), col = new THREE.Color();
+function scatterIM(list, geo, colorOf, scale){
+  const im = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({flatShading:true, roughness:0.9}), list.length);
+  list.forEach(([x, y, z, isl], i) => {
+    dummy.position.set(x, y, z); dummy.rotation.set((rnd() - 0.5)*0.3, rnd()*6, (rnd() - 0.5)*0.3); dummy.scale.setScalar(scale*(0.7 + rnd()*0.6)); dummy.updateMatrix();
+    im.setMatrixAt(i, dummy.matrix); im.setColorAt(i, colorOf(isl, col));
+  });
+  im.receiveShadow = true; scene.add(im); return im;
+}
+const tuftGeo = new THREE.ConeGeometry(0.09, 0.42, 3); tuftGeo.translate(0, 0.18, 0);
+scatterIM(tufts, tuftGeo, (isl, c) => c.setHex(isl.top).multiplyScalar(1.05 + rnd()*0.35), 1);
+const flowerGeo = new THREE.OctahedronGeometry(0.09, 0); flowerGeo.translate(0, 0.14, 0);
+const PETALS = [0xf2c14e, 0xe891bd, 0xb296f0, 0xf6efe0, 0x6fd3e6];
+scatterIM(flowers, flowerGeo, (isl, c) => c.setHex(PETALS[Math.floor(rnd()*PETALS.length)]), 1);
+
+/* ---------- bridges + a lantern at each end ---------- */
+scene.add(bridgeMeshes());
+const side = new V3();
+bridges.forEach(br => {
+  side.set(-br.dir.z, 0, br.dir.x);
+  [[br.p0, 1], [br.p1, -1]].forEach(([p, inward]) => {
+    const x = p.x + side.x*1.5 - br.dir.x*inward*0.4, z = p.z + side.z*1.5 - br.dir.z*inward*0.4, y = surfaceY(x, z);
+    if(y === null || obstacles.some(o => Math.hypot(o.x - x, o.z - z) < o.r + 0.6)) return;
+    const ln = lantern(); ln.position.set(x, y, z); scene.add(ln);
+    obstacles.push({x, z, r:0.35});
+  });
+});
+
+/* ---------- decorative floating islets in the gaps (not walkable) ---------- */
+const islets = [];
+for(let tries = 0; tries < 200 && islets.length < 10; tries++){
+  const a = rnd()*Math.PI*2, r = 14 + rnd()*34, x = Math.cos(a)*r, z = Math.sin(a)*r;
+  if(ISLANDS.some(i => Math.hypot(i.x - x, i.z - z) < i.R + 5)) continue;
+  if(bridges.some(br => { const dx = x - br.p0.x, dz = z - br.p0.z, t = (dx*br.dir.x + dz*br.dir.z)/br.len; return t > -0.1 && t < 1.1 && Math.abs(dx*-br.dir.z + dz*br.dir.x) < 4.5; })) continue;
+  if(islets.some(o => Math.hypot(o.x - x, o.z - z) < 7)) continue;
+  const it = {x, z, h:-3 + rnd()*6, R:1.8 + rnd()*2, obs:0, hill:1.2, top:[0x4b7445, 0x5d8746, 0x58636e, 0x6b5a7a][Math.floor(rnd()*4)], seed:40 + islets.length};
+  shapeIsland(it);
+  const m = islandMesh(it, 8, 24); m.position.set(x, 0, z); scene.add(m);
+  if(it.R > 2.8){ const t = tree(0.7); t.position.set(x + 0.3, it.topY(0.3, 0.2), z + 0.2); scene.add(t); }
+  it.mesh = m; it.p = rnd()*6; islets.push(it);
+}
+
+const hero = makeHero(); scene.add(hero);
+
+/* glowing ring at the nearest building's door: shows where to stand to enter */
+const doorRing = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.15, 40), new THREE.MeshBasicMaterial({color:0xf0b54a, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false}));
+doorRing.rotation.x = -Math.PI/2; doorRing.renderOrder = 2; scene.add(doorRing);
+
+scene.add(starField(1800, 160, 220, -30, 0.9));
+
+const flies = (function(){
+  const n = 110, pos = new Float32Array(n*3), base = [];
+  for(let i=0;i<n;i++){ const isl = ISLANDS[i % ISLANDS.length]; const a = rnd()*6.28, r = isl.obs + 1 + rnd()*(isl.R*0.75 - isl.obs); base.push([isl.x + Math.cos(a)*r, isl.topY(Math.cos(a)*r, Math.sin(a)*r) + 0.6 + rnd()*2.5, isl.z + Math.sin(a)*r, rnd()*6]); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({color:0xffe08a, size:0.22, transparent:true, opacity:0.9, blending:THREE.AdditiveBlending, depthWrite:false})));
+  return {g, base, pos};
+})();
+
+// islets bob gently; reuse the old "debris" slot so app.js animates them
+const debris = islets.map(it => { it.mesh.userData.p = it.p; return it.mesh; });
+
+/* ---------- 3D island labels: highlight the island you're on, prompt when you're at the door ---------- */
+const labelSprites = [];
+ISLANDS.forEach(isl => {
+  const isHome = isl.id === 'home', w = isHome ? 7.4 : 4.6, h = isHome ? 1.9 : 1.45;
+  const enterTxt = touch ? '▸ tap enter to go inside' : '▸ press E to go inside';
+  const p = canvasTex(w, h, (ctx, W, H, st) => {
+    card(ctx, W, H, {focus:st.near}, {r:14, bg:'rgba(12,18,34,.88)', border: st.active ? 'rgba(240,181,74,.55)' : undefined});
+    ctx.textAlign = 'center';
+    const tag = st.near ? enterTxt : st.active ? '▸ walk to the door' : null;
+    if(isHome){
+      ctx.font = `400 50px ${FD}`; ctx.fillStyle = COL.ink; ctx.fillText(DATA.personal.name, W/2, 24);
+      fitFont(ctx, DATA.personal.subtitle, W - 50, 19, 600, FB); ctx.fillStyle = COL.muted; ctx.fillText(DATA.personal.subtitle, W/2, 92);
+      eyebrow(ctx, tag || 'Hearthstone · start here', W/2, 134, tag ? COL.ember : COL.muted, 14);
+    } else {
+      ctx.font = `400 40px ${FD}`; ctx.fillStyle = COL.ink; ctx.fillText(isl.name, W/2, 18);
+      eyebrow(ctx, tag || isl.sub, W/2, 76, tag ? COL.ember : COL.muted, 15);
+    }
+  });
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:p.tex, depthTest:false, transparent:true, fog:false}));
+  sp.center.set(0.5, 0); sp.scale.set(w, h, 1); sp.renderOrder = 10;
+  sp.position.set(isl.x, isl.h + isl.lh, isl.z);
+  sp.userData.id = isl.id; scene.add(sp); labelSprites.push(sp);
+  isl.labelP = p;
+});
+
+return {hero, flies, debris, labelSprites, doorRing};
+}
