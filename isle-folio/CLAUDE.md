@@ -4,17 +4,19 @@
 
 ## Run
 
+Serve the **repo root** (not this folder), because content comes from `../shared/`:
+
 ```bash
-python3 -m http.server 8123
+python3 -m http.server 8080   # from the repo root
 ```
 
-Open http://localhost:8123. It has to be served over HTTP because `data.json` is loaded with `fetch`. Use `?room=<id>` to open a room directly and `?data=draft.json` to preview a draft.
+Open http://localhost:8080/isle-folio/. It has to be served over HTTP because `../shared/data.json` is loaded with `fetch`. Use `?room=<id>` to open a room directly and `?data=draft.json` to preview a draft.
 
 ## Stack
 
 - Plain ES modules, no build step, no npm.
 - Three.js **r128**, loaded globally from the cdnjs CDN as `window.THREE`. Use the r128 API.
-- All content is in `data.json`. Don't hardcode content in JS.
+- All content is in `../shared/data.json` (shared with `static-portfolio/`). Don't hardcode content in JS.
 - Island buildings are modelled with the door at +z and turned by `isl.face` so the door faces the centre island. In `decorate()`, place front-relative props with `isl.rot(x, z)`.
 
 ## Docs, keep these current

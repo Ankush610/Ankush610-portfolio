@@ -5,6 +5,13 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Shared-content cleanup after the gateway
+- Run from the repo root now (`python3 -m http.server 8080`, open `/isle-folio/`); README, CLAUDE.md and the load-error message say so. One root `.claude/launch.json` replaces the per-folder ones, which served the subfolder and broke `../shared/`.
+- `js/content.js`: plain-text mirror skips empty contact links (closes #3).
+- `js/app.js`, `index.html`: travel-key range derived from `ISLANDS.length` (closes #4).
+- Closed #1 (résumé in `shared/resume/`) and #2 (now in git).
+- Why: the move to `shared/` left the run instructions and docs pointing at old paths.
+
 ## YYYY-MM-DD — short title
 - what changed (files)
 - why

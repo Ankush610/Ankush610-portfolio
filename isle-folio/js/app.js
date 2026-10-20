@@ -30,8 +30,8 @@ function hud(){
     const isl = byId[current];
     hint.innerHTML = top
       ? tour ? `<b>Visiting ${byId[tour].name}</b>` + (touch ? ' · tap another island to change' : (near === tour ? `<span class="k"><kbd>E</kbd> go inside</span>` : '') + `<span class="k">click another island to change</span><span class="k"><kbd>M</kbd> walk mode</span>`)
-      : (touch ? '<b>Top view</b> · tap an island to visit it' : `<b>Top view</b><span class="k">click an island to visit</span><span class="k"><kbd>1–7</kbd> visit</span><span class="k"><kbd>M</kbd> walk mode</span>`)
-      : touch ? `<b>${isl.name}</b> · drag to look · tap a sign to travel` : `<b>${isl.name}</b><span class="k"><kbd>W A S D</kbd> walk</span><span class="k"><kbd>Drag</kbd> look</span><span class="k"><kbd>E</kbd> enter</span><span class="k"><kbd>1–7</kbd> travel</span><span class="k"><kbd>M</kbd> top view</span>`;
+      : (touch ? '<b>Top view</b> · tap an island to visit it' : `<b>Top view</b><span class="k">click an island to visit</span><span class="k"><kbd>1–${KEYS}</kbd> visit</span><span class="k"><kbd>M</kbd> walk mode</span>`)
+      : touch ? `<b>${isl.name}</b> · drag to look · tap a sign to travel` : `<b>${isl.name}</b><span class="k"><kbd>W A S D</kbd> walk</span><span class="k"><kbd>Drag</kbd> look</span><span class="k"><kbd>E</kbd> enter</span><span class="k"><kbd>1–${KEYS}</kbd> travel</span><span class="k"><kbd>M</kbd> top view</span>`;
   }
   modeBtn.hidden = mode !== 'world';
   modeBtn.textContent = top ? '✥ Walk mode' : '◎ Top view';
@@ -39,6 +39,7 @@ function hud(){
   if(near) enterBtn.textContent = `Enter ${byId[near].name}` + (touch ? '' : '  ·  E');
   if(stickEl) stickEl.hidden = !(touch && mode === 'world' && !top);
 }
+const KEYS = Math.min(9, ISLANDS.length);
 function setLabels(){ ISLANDS.forEach(i => i.labelP.redraw({active: i.id === current, near: i.id === near})); }
 function travel(id){
   if(top){

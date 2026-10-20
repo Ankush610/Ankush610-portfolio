@@ -15,7 +15,7 @@ async function boot(){
   let data;
   // ?data=draft.json previews another content file without touching data.json
   try { data = await loadData(new URLSearchParams(location.search).get('data') || '../shared/data.json'); }
-  catch(e){ console.error(e); showFail('Could not load ../shared/data.json. Serve the parent folder (timepass/) over HTTP (see README) instead of opening the file directly.'); return; }
+  catch(e){ console.error(e); showFail('Could not load ../shared/data.json. Serve the repo root over HTTP (see README) instead of opening the file directly.'); return; }
   renderContent(data);
   document.title = `Isle Folio — ${data.personal.name}`;
 
