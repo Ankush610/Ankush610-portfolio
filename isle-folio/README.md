@@ -33,7 +33,7 @@ Items are data; a whole new *kind* of section needs a little code:
 1. Add the content to `data.json` (e.g. `"openSource": [...]`).
 2. Create `js/rooms/<id>.js` exporting a default `build()` that returns a room (copy the smallest existing room as a template; the contract is documented at the top of `rooms/kit.js`).
 3. Register it in `js/rooms/index.js`.
-4. Add an island to `ISLANDS` in `js/world/islands.js` (pick an open `x, z`, size `R`, building footprint `obs`) and connect it with an entry in `BRIDGES`; optionally add its outside building in `js/world/landmarks.js`. Terrain, paths, bridges, walking and auto-travel all pick it up automatically. Keys 1–9 travel to the first nine islands; the hint bar shows the range.
+4. Add an island to `ISLANDS` in `js/world/islands.js` (pick an open `x, z`, size `R`, building footprint `obs`). `BRIDGES` links every island to the centre one automatically; optionally add its outside building in `js/world/landmarks.js`. Terrain, paths, bridges, walking and auto-travel all pick it up automatically. Keys 1–9 travel to the first nine islands; the hint bar shows the range.
 
 ## Layout
 
@@ -48,8 +48,8 @@ js/
   panels.js           canvas-drawn text panels (every readable thing in 3D)
   app.js              state, input (keys, pointer, wheel, pinch), camera, transitions, render loop
   world/
-    islands.js        island names, positions, sizes, colours, and which islands bridges connect
-    terrain.js        island shapes (noise coastline, hills, paths, underside), bridges, walkable-ground checks
+    islands.js        island names, positions, sizes, colours; bridges run from the centre island to each of the others
+    terrain.js        island shapes (noise coastline, hills, paths, underside), the stone arch bridges, walkable-ground checks
     player.js         walking, follow camera, auto-travel over bridges
     props.js          trees, rocks, lanterns, gates, anvils, star fields
     landmarks.js      each island's building, seen from outside

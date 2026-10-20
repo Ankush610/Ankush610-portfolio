@@ -88,3 +88,10 @@ export function caps(ctx, text, x, y, size, color, maxW){   // letterspaced smal
   ctx.font = `600 ${size}px ${FP}`; ctx.fillStyle = color; ctx.letterSpacing = '1.5px';
   ctx.fillText(maxW ? clip(ctx, text.toUpperCase(), maxW) : text.toUpperCase(), x, y); ctx.letterSpacing = '0px';
 }
+// gold leaf: a vertical gradient for gilded letters between y0 and y1
+export const gilt = (ctx, y0, y1) => { const g = ctx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, '#f6dc96'); g.addColorStop(0.55, '#d4a548'); g.addColorStop(1, '#9c7128'); return g; };
+// wood grain for carved boards (Beacon Point, Oakreach)
+export function grain(ctx, W, H, base){
+  ctx.fillStyle = base; ctx.fillRect(0, 0, W, H); ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.lineWidth = 1;
+  for(let i = 0; i*3 < H; i++){ ctx.beginPath(); for(let x = 0; x <= W; x += 16) ctx.lineTo(x, i*3 + Math.sin(x*0.03 + i*0.9)*1.1); ctx.stroke(); }
+}

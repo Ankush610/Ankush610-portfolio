@@ -106,9 +106,13 @@ function setTop(on){
 modeBtn.addEventListener('click', () => { if(!busy && mode === 'world') setTop(!top); });
 function setLights(r){
   if(r){
-    hemi.intensity = 0.35; moon.intensity = 0.22;
+    [hemi.intensity, moon.intensity] = r.light.ambient || [0.35, 0.22];   // a room may dim the sky light (e.g. candlelit halls)
+    hemi.color.setHex(0x8fa3d8); hemi.groundColor.setHex(0x1d2a1a); moon.color.setHex(0xcdd8ff);   // rooms keep the original cool night sky
     [[keyL, r.light.key], [fillL, r.light.fill]].forEach(([L, [x, y, z, c, i]]) => { L.position.set(x, y, z).add(r.group.position); L.color.setHex(c); L.intensity = i; });
-  } else { hemi.intensity = 0.55; moon.intensity = 1.05; keyL.intensity = 0; fillL.intensity = 0; }
+  } else {   // outdoors: the original night brightness, only a little less blue so it doesn't wash the islands' colours out
+    hemi.intensity = 0.55; moon.intensity = 1.05; keyL.intensity = 0; fillL.intensity = 0;
+    hemi.color.setHex(0x9cabdc); hemi.groundColor.setHex(0x22301d); moon.color.setHex(0xd8e0ff);
+  }
 }
 function setFocus(i){
   const n = room.items.length; i = ((i % n) + n) % n;
@@ -289,7 +293,7 @@ function whereAmI(){
 }
 
 { const [x, z] = home.rot(0, home.obs + 3.2); player.place(new V3(home.x + x, home.topY(x, z), home.z + z), home.face); }   // on the cleared path in front of the door
-setLabels(); hud();
+setLabels(); hud(); setLights(null);   // start under the outdoor light
 if(touch){ snapIslands(); show('home', true); }
 desired(); camTarget.copy(wantTarget); camPos.copy(wantPos).add(new V3(0, 30, 30));
 

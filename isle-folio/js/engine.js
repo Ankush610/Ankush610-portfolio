@@ -44,6 +44,10 @@ export function glow(color, intensity=1.6){ return mat(color, {emissive:color, e
 export const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
 export const cyl = (a, b, h, n=8) => new THREE.CylinderGeometry(a, b, h, n);
 
+/* push a colour's saturation up (outdoor terrain and trees only; shared mat() materials stay as they are) */
+const _hsl = {};
+export function vivid(c, k = 1.4){ c.getHSL(_hsl); return c.setHSL(_hsl.h, Math.min(1, _hsl.s*k), _hsl.l); }
+
 /* seeded random so the world looks the same every visit */
 let seed = 7;
 export function rnd(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }

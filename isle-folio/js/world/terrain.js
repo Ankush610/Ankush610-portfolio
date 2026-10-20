@@ -2,7 +2,7 @@
    Every island is a polar mesh: noisy coastline, hills, a flat plateau for its building, dirt paths
    to each bridge, a beach rim and a rocky underside. The same height function drives the mesh and walking,
    so what you see is exactly what you stand on. No physics engine needed. */
-import { THREE, V3, mesh, mat, glow, box, cyl } from '../engine.js';
+import { THREE, V3, mesh, mat, glow, box, cyl, vivid } from '../engine.js';
 import { ISLANDS, BRIDGES, byId } from './islands.js';
 
 /* ---------- seeded value noise ---------- */
@@ -40,19 +40,25 @@ export function shapeIsland(isl){
 
 const C = new THREE.Color(), C2 = new THREE.Color();
 const SAND = new THREE.Color(0xcdb98a), DIRT = new THREE.Color(0x8a6a48), ROCK = new THREE.Color(0x7d7a72), PLAZA = new THREE.Color(0x8b8676);
-const UNDER_TOP = new THREE.Color(0x5a4c3e), UNDER_BOT = new THREE.Color(0x2a231d);
-const UNDER = [[0.99, -0.9], [0.93, -2.0], [0.8, -3.4], [0.62, -5.0], [0.4, -6.8], [0.18, -8.4], [0, -9.4]];
+const UNDER_TOP = new THREE.Color(0x7a6a58), UNDER_BOT = new THREE.Color(0x2e2620), ROOT = new THREE.Color(0x4a3a2a), EARTH = new THREE.Color(0x6a5640);
+// below the rim, as [radius fraction of the coast, drop × depth]: a grassy lip that overhangs a little, an earth band,
+// a cliff of rock strata stepping in, then the rugged mass tapering to the keel
+const CLIFF = [[1.015, -0.12], [1.02, -0.34], [1.0, -0.62], [0.985, -0.98], [0.97, -1.32], [0.95, -1.7]];
+const DEEP = [[0.9, -2.3], [0.8, -3.1], [0.68, -4.1], [0.54, -5.3], [0.38, -6.7], [0.22, -8.1], [0.08, -9.2], [0, -9.8]];
+const STRATA = [0x9a8a74, 0xb2a690, 0x8a7a66, 0xa49884].map(c => new THREE.Color(c));   // bright enough to read in moonlight
+// the underside's drop (× depth) at radius fraction f, read off DEEP (for hanging spires)
+const deepY = f => { for(let k = 1; k < DEEP.length; k++){ const [f0, y0] = DEEP[k - 1], [f1, y1] = DEEP[k]; if(f >= f1) return y0 + (y1 - y0)*(f0 - f)/(f0 - f1); } return DEEP[DEEP.length - 1][1]; };
 
 export function islandMesh(isl, rings = 22, segs = 72){
   const grass = new THREE.Color(isl.top), dark = grass.clone().multiplyScalar(0.72), depth = isl.R/8.5;
   const P = [], Col = [];
-  const push = (x, y, z, c) => { P.push(x, y, z); Col.push(c.r, c.g, c.b); };
+  const push = (x, y, z, c) => { vivid(C2.copy(c)); P.push(x, y, z); Col.push(C2.r, C2.g, C2.b); };   // every terrain colour a little more saturated
   const topColor = (x, y, z, d, r) => {
     const v = 0.94 + hash(Math.round(x*7), Math.round(z*7), isl.seed)*0.12;
     C.copy(grass).lerp(dark, smooth(0.2, 1.2, y - isl.h)*0.6).lerp(ROCK, smooth(1.3, 2.6, y - isl.h));
     if(r < isl.obs + 0.9 && isl.plaza) C.lerp(PLAZA, 0.85);
     C.lerp(DIRT, (1 - smooth(0.45, 0.85, isl.pathDist(x, z)))*(r > isl.obs*0.7 ? 0.9 : 0));
-    C.lerp(SAND, smooth(0.83, 0.92, d));
+    C.lerp(isl.beach ? SAND : EARTH, smooth(0.86, 0.97, d)*(isl.beach ? 1 : 0.55));   // a beach only on coastal islands; elsewhere the grass browns toward the edge
     return C.multiplyScalar(v);
   };
   // vertex grid: ring 0 = centre point, rings 1..rings = top surface, then underside rings to the tip
@@ -66,12 +72,27 @@ export function islandMesh(isl, rings = 22, segs = 72){
     }
     grid.push(row);
   }
-  UNDER.forEach(([f, dy], k) => {
-    const row = [], c = UNDER_TOP.clone().lerp(UNDER_BOT, k/(UNDER.length - 1));
+  // the cliff: rings hung off the rim's own height, jittered with coherent noise so strata read as ledges, not fuzz
+  const tint = new THREE.Color(isl.top), rimY = th => { const e = isl.edgeR(th); return isl.topY(Math.cos(th)*e, Math.sin(th)*e); };
+  CLIFF.forEach(([f, dy], k) => {
+    const row = [];
     for(let j = 0; j < segs; j++){
-      const th = j/segs*Math.PI*2, jit = f > 0 ? 1 + (hash(j, k, isl.seed) - 0.5)*0.16 : 0;
+      const th = j/segs*Math.PI*2, cx = Math.cos(th), sz = Math.sin(th);
+      const e = isl.edgeR(th)*f*(1 + (noise(cx*3 + k*0.7, sz*3, isl.seed + 31) - 0.5)*(k < 2 ? 0.02 : 0.07));
+      const y = rimY(th) + dy*depth + (noise(cx*2.5, sz*2.5 + k, isl.seed + 37) - 0.5)*0.25*depth;
+      const c = k < 1 ? grass.clone().multiplyScalar(0.62) : k < 2 ? C2.setHex(0x5a4630).clone() : STRATA[k % 4].clone().lerp(tint, 0.14);
+      row.push([cx*e, y, sz*e, c.multiplyScalar(0.9 + hash(j, k + 41, isl.seed)*0.2)]);
+    }
+    grid.push(row);
+  });
+  // the underside: a rugged mass, lumpier the deeper it goes, tapering to the keel
+  DEEP.forEach(([f, dy], k) => {
+    const row = [], c = UNDER_TOP.clone().lerp(UNDER_BOT, k/(DEEP.length - 1));
+    for(let j = 0; j < segs; j++){
+      const th = j/segs*Math.PI*2, cx = Math.cos(th), sz = Math.sin(th);
+      const jit = f > 0 ? 1 + (noise(cx*2.2 + k, sz*2.2, isl.seed + 43) - 0.5)*0.45 + (hash(j, k, isl.seed) - 0.5)*0.1 : 0;
       const e = isl.edgeR(th)*f*jit;
-      row.push([Math.cos(th)*e, isl.h + dy*depth + (hash(j, k + 9, isl.seed) - 0.5)*0.6*depth, Math.sin(th)*e, c.clone().multiplyScalar(0.9 + hash(j, k + 3, isl.seed)*0.2)]);
+      row.push([cx*e, isl.h + dy*depth + (hash(j, k + 9, isl.seed) - 0.5)*0.7*depth, sz*e, c.clone().multiplyScalar(0.88 + hash(j, k + 3, isl.seed)*0.24)]);
     }
     grid.push(row);
   });
@@ -83,6 +104,30 @@ export function islandMesh(isl, rings = 22, segs = 72){
       tri(a, b, c); tri(b, d, c);
     }
   }
+  // rock spires hanging under the island, besides the keel (a cone each, its base buried in the underside)
+  const cone = (x, y, z, rb, h, sides, cTop, cTip, rot) => {
+    const tip = [x, y - h, z, cTip];
+    for(let i = 0; i < sides; i++){
+      const a0 = rot + i/sides*Math.PI*2, a1 = rot + (i + 1)/sides*Math.PI*2;
+      tri([x + Math.cos(a0)*rb, y, z + Math.sin(a0)*rb, cTop], [x + Math.cos(a1)*rb, y, z + Math.sin(a1)*rb, cTop], tip);
+    }
+  };
+  const nSp = Math.max(1, Math.round(isl.R*0.6));
+  for(let i = 0; i < nSp; i++){
+    const th = hash(i, 51, isl.seed)*Math.PI*2, f = 0.28 + hash(i, 52, isl.seed)*0.4, e = isl.edgeR(th)*f;
+    const y = isl.h + (deepY(f) + 0.5)*depth, h = (1.4 + hash(i, 53, isl.seed)*2.6)*depth, rb = (0.4 + hash(i, 54, isl.seed)*0.45)*depth*1.3;
+    cone(Math.cos(th)*e, y, Math.sin(th)*e, rb, h, 6, UNDER_TOP.clone().lerp(UNDER_BOT, 0.4), UNDER_BOT.clone().multiplyScalar(0.8), hash(i, 55, isl.seed)*3);
+  }
+  // roots trailing over the cliff edge: thin three-sided strands from under the lip, curling down and out
+  const nRt = Math.round(isl.R*1.6);
+  for(let i = 0; i < nRt; i++){
+    const th = hash(i, 61, isl.seed)*Math.PI*2, e = isl.edgeR(th), y0 = rimY(th) - 0.3*depth, len = (0.6 + hash(i, 62, isl.seed)*1.4)*depth, w = Math.max(0.025, 0.05*depth);
+    const x0 = Math.cos(th)*e*1.0, z0 = Math.sin(th)*e*1.0, x1 = Math.cos(th)*e*1.05, z1 = Math.sin(th)*e*1.05, rc = ROOT.clone().multiplyScalar(0.85 + hash(i, 63, isl.seed)*0.3);
+    for(let q = 0; q < 3; q++){
+      const a0 = q/3*Math.PI*2, a1 = (q + 1)/3*Math.PI*2, p = (a, x, y, z) => [x + Math.cos(a)*w, y, z + Math.sin(a)*w, rc];
+      tri(p(a0, x0, y0, z0), p(a1, x0, y0, z0), [x1, y0 - len, z1, rc]);
+    }
+  }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
   geo.setAttribute('color', new THREE.Float32BufferAttribute(Col, 3));
@@ -92,7 +137,7 @@ export function islandMesh(isl, rings = 22, segs = 72){
   return m;
 }
 
-/* ---------- bridges: endpoints on each coast, sagging plank walkway, rope rails ---------- */
+/* ---------- bridges: endpoints on each coast, a stone arch rising between them ---------- */
 export const bridges = [];
 export function planBridges(){
   ISLANDS.forEach(shapeIsland);
@@ -111,42 +156,96 @@ export function planBridges(){
     br.p1 = new V3(B.x + br.lb.x, B.topY(br.lb.x, br.lb.z) + 0.06, B.z + br.lb.z);
     br.len = Math.hypot(br.p1.x - br.p0.x, br.p1.z - br.p0.z);
     br.dir = new V3(br.p1.x - br.p0.x, 0, br.p1.z - br.p0.z).normalize();
-    br.sag = Math.min(0.7, br.len*0.035);
+    br.rise = Math.min(1.0, br.len*0.06);   // a single-span stone arch: the deck rises toward the middle
   });
 }
-const bridgeY = (br, t) => br.p0.y + (br.p1.y - br.p0.y)*t - br.sag*Math.sin(Math.PI*t);
+const bridgeY = (br, t) => br.p0.y + (br.p1.y - br.p0.y)*t + br.rise*Math.sin(Math.PI*t);
 export const bridgePoint = (br, t, out = new V3()) => out.set(br.p0.x + (br.p1.x - br.p0.x)*t, bridgeY(br, t), br.p0.z + (br.p1.z - br.p0.z)*t);
 
+/* An old stone arch bridge: a deck of uneven, sunken and mossy flagstones on a rubble body that deepens toward the ends
+   (so each end sinks into its island), a ragged ring of arch stones under both faces, broken rock hanging beneath,
+   parapets laid stone by stone (gaps where stones have fallen, coping missing or askew), moss and trailing ivy, and a
+   rough leaning pillar at each corner carrying a lantern. Every stone is sized, tilted and toned by hash(), so nothing
+   repeats and the world still looks the same on every visit. Nothing crosses overhead (no camera clipping at the doors).
+   The walkable strip (BRIDGE_WALK) keeps the wizard's body inside the parapets. */
+const BRIDGE_W = 1.15, BRIDGE_WALK = 0.6;   // deck half width (to the parapets' outer face), walkable half width
 export function bridgeMeshes(){
-  const g = new THREE.Group(), dummy = new THREE.Object3D(), side = new V3(), a = new V3(), b = new V3();
-  const planks = [], posts = [];
-  bridges.forEach(br => {
+  const g = new THREE.Group(), D = new THREE.Object3D(), side = new V3(), a = new V3(), b = new V3(), col = new THREE.Color();
+  const STONE = [0x7a7468, 0x6f6a5f, 0x857e71, 0x726c62, 0x655f56, 0x8a8275], PAVE = [0x8d877b, 0x80796d, 0x958e81, 0x77716a, 0x6c675d],
+        MOSSY = [0x66704f, 0x5a6646, 0x707a55], RING = [0x948c7e, 0x8a8274, 0x9d9587];
+  const stones = [], moss = [], ivy = [], rocks = [], newels = [];
+  const thick = t => 0.42 + (1 - Math.sin(Math.PI*t))*1.0;   // depth of stone under the deck: thin at the crown, deep at the springing
+  bridges.forEach((br, bi) => {
     side.set(-br.dir.z, 0, br.dir.x);
-    const n = Math.ceil(br.len/0.36);
-    for(let i = 0; i <= n; i++) planks.push([br, i/n]);
-    const m = Math.max(2, Math.round(br.len/2.4));
-    for(let i = 0; i <= m; i++) [-1, 1].forEach(sd => posts.push([br, i/m, sd]));
-    [-1, 1].forEach(sd => {
-      const pts = []; for(let i = 0; i <= 24; i++){ const t = i/24; bridgePoint(br, t, a).addScaledVector(side, sd*0.95); a.y += 0.95 - Math.sin(Math.PI*t)*0.12; pts.push(a.clone()); }
-      const rope = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 32, 0.035, 4), mat(0xb8a27a));
-      g.add(rope);
+    const h = (i, k) => hash(bi*977 + i, k, 31), pick = (L, i, k) => L[Math.floor(h(i, k)*L.length)];
+    const point = t => { bridgePoint(br, t, a); return bridgePoint(br, Math.min(1, t + 0.005), new V3()).sub(bridgePoint(br, Math.max(0, t - 0.005), b)); };   // a at t; returns the deck's direction there
+    // rows: [x, y, z, sx, sy, sz, color, dir, yaw, roll]
+    const put = (L, t, off, dy, sx, sy, sz, c, yaw = 0, roll = 0) => { const d = point(t); L.push([a.x + side.x*off, a.y + dy, a.z + side.z*off, sx, sy, sz, c, d, yaw, roll]); };
+    // the body: rubble blocks, ragged in width and depth
+    const n = Math.max(8, Math.round(br.len/0.42)), sl = br.len/n;
+    for(let i = 0; i < n; i++){
+      const t = (i + 0.5)/n, th = thick(t)*(0.9 + h(i, 1)*0.2);
+      put(stones, t, (h(i, 2) - 0.5)*0.06, -0.08 - th/2, 2*BRIDGE_W - 0.06 + (h(i, 3) - 0.5)*0.12, th, sl + 0.03, pick(STONE, i, 4), (h(i, 5) - 0.5)*0.04);
+      // arch ring under both faces: voussoirs of uneven depth, some proud of the face
+      [-1, 1].forEach((sd, k) => { const vh = 0.24 + h(i, 6 + k)*0.16; put(stones, t, sd*(BRIDGE_W - 0.02 + h(i, 8 + k)*0.04), -0.08 - th + vh/2, 0.08 + h(i, 10 + k)*0.05, vh, sl - 0.04, pick(RING, i, 12 + k), 0, (h(i, 14 + k) - 0.5)*0.12); });
+    }
+    // the deck: rows of flagstones split at random across the width, sunk and tilted a little, some mossy
+    for(let u = 0.0, r = 0; u < br.len - 0.05; r++){
+      const L = 0.32 + h(r, 20)*0.3, t = Math.min(1, (u + L/2)/br.len);
+      for(let x = -BRIDGE_W + 0.24, c = 0; x < BRIDGE_W - 0.24 - 0.05; c++){
+        const w = Math.min(0.32 + h(r*7 + c, 21)*0.42, BRIDGE_W - 0.24 - x), cx = x + w/2, mossy = h(r*7 + c, 22) < 0.12;
+        put(stones, t, cx, -0.035 - h(r*7 + c, 23)*0.03, w - 0.035, 0.06, L - 0.035, mossy ? pick(MOSSY, r*7 + c, 24) : pick(PAVE, r*7 + c, 25), (h(r*7 + c, 26) - 0.5)*0.08, (h(r*7 + c, 27) - 0.5)*0.05);
+        x += w;
+      }
+      u += L;
+    }
+    // parapets laid stone by stone: varied length and height, gaps where stones fell, coping missing or askew
+    [-1, 1].forEach((sd, k) => {
+      for(let u = 0.25, j = 0; u < br.len - 0.25; j++){
+        const L = 0.3 + h(j, 30 + k)*0.32, t = (u + L/2)/br.len, end = t < 0.08 || t > 0.92;
+        u += L;
+        if(!end && h(j, 32 + k) < 0.07) continue;                                   // a fallen stone
+        const ht = 0.36 + h(j, 34 + k)*0.2, off = sd*(BRIDGE_W - 0.12 + (h(j, 36 + k) - 0.5)*0.04);
+        put(stones, t, off, ht/2 - 0.02, 0.2 + h(j, 38 + k)*0.06, ht, L - 0.03, pick(STONE, j, 40 + k), (h(j, 42 + k) - 0.5)*0.08, (h(j, 44 + k) - 0.5)*0.06);
+        if(h(j, 46 + k) < 0.78) put(stones, t, off + sd*(h(j, 48 + k) - 0.5)*0.05, ht + 0.02, 0.28, 0.07, L + 0.02 - h(j, 50 + k)*0.08, pick(RING, j, 52 + k), (h(j, 54 + k) - 0.5)*0.12, (h(j, 56 + k) - 0.5)*0.1);
+        if(h(j, 58 + k) < 0.22) put(moss, t, off, ht + 0.08, 0.22 + h(j, 60 + k)*0.15, 0.06, 0.2 + h(j, 62 + k)*0.2, pick(MOSSY, j, 64 + k), h(j, 66 + k)*3);
+        if(h(j, 68 + k) < 0.12) put(ivy, t, off + sd*0.13, -0.1 - h(j, 70 + k)*0.35, 0.04, 0.5 + h(j, 72 + k)*0.6, 0.14, pick(MOSSY, j, 74 + k));   // ivy trailing over the outer face
+      }
     });
+    // broken rock hanging under the arch
+    for(let k = 0; k < Math.round(br.len/2.2); k++){
+      const t = 0.12 + h(k, 80)*0.76, s = 0.35 + h(k, 81)*0.45; point(t);
+      rocks.push([a.x + side.x*(h(k, 82) - 0.5)*1.2, a.y - thick(t) - s*0.3, a.z + side.z*(h(k, 82) - 0.5)*1.2, s, s*(1.1 + h(k, 83)*0.9), s, pick(STONE, k, 84), null, h(k, 85)*6, (h(k, 86) - 0.5)*0.5]);
+    }
+    // rough corner pillars at both ends, a little out of true
+    [0.015, 0.985].forEach((t, e) => { point(t); [-1, 1].forEach(sd => {
+      const x = a.x + side.x*sd*(BRIDGE_W - 0.12), z = a.z + side.z*sd*(BRIDGE_W - 0.12), q = e*2 + (sd > 0 ? 1 : 0);
+      newels.push([x, a.y, z, 0.85 + h(q, 90)*0.25, (h(q, 91) - 0.5)*0.08, h(q, 92)*0.6, q]); obstacles.push({x, z, r:0.22});
+    }); });
   });
-  const plankIM = new THREE.InstancedMesh(box(1.9, 0.08, 0.3), new THREE.MeshStandardMaterial({flatShading:true, roughness:0.9}), planks.length);
-  const col = new THREE.Color();
-  planks.forEach(([br, t], i) => {
-    bridgePoint(br, t, dummy.position); bridgePoint(br, t < 1 ? t + 0.01 : t - 0.01, b);   // planks are symmetric, so facing back at the end is fine
-    dummy.lookAt(b); dummy.rotateZ((hash(i, 1, 9) - 0.5)*0.06); dummy.updateMatrix();
-    plankIM.setMatrixAt(i, dummy.matrix); plankIM.setColorAt(i, col.setHex(0x6b4a30).multiplyScalar(0.8 + hash(i, 2, 9)*0.4));
-  });
-  plankIM.castShadow = plankIM.receiveShadow = true; g.add(plankIM);
-  const postIM = new THREE.InstancedMesh(cyl(0.06, 0.08, 1.1, 5), mat(0x5a3d28), posts.length);
-  posts.forEach(([br, t, sd], i) => {
-    side.set(-br.dir.z, 0, br.dir.x);
-    bridgePoint(br, t, dummy.position).addScaledVector(side, sd*0.95); dummy.position.y += 0.45; dummy.rotation.set(0, 0, 0); dummy.updateMatrix();
-    postIM.setMatrixAt(i, dummy.matrix);
-  });
-  postIM.castShadow = true; g.add(postIM);
+  const inst = (geo, m, rows, shadow = true) => {
+    const im = new THREE.InstancedMesh(geo, m, rows.length);
+    rows.forEach(([x, y, z, sx, sy, sz, c, d, yaw = 0, roll = 0], i) => {
+      D.position.set(x, y, z); D.rotation.set(0, 0, 0);
+      if(d) D.lookAt(x + d.x, y + d.y, z + d.z);                                  // length (z) along the deck, pitched with it
+      D.rotateY(yaw); D.rotateZ(roll); D.scale.set(sx, sy, sz); D.updateMatrix();
+      im.setMatrixAt(i, D.matrix); if(c != null) im.setColorAt(i, col.setHex(c));
+    });
+    im.castShadow = shadow; im.receiveShadow = true; g.add(im); return im;
+  };
+  const rough = new THREE.MeshStandardMaterial({flatShading:true, roughness:1});
+  inst(box(1, 1, 1), rough, stones);
+  inst(new THREE.DodecahedronGeometry(0.5, 0), rough, moss, false);
+  inst(box(1, 1, 1), rough, ivy, false);
+  inst(new THREE.DodecahedronGeometry(0.5, 0), rough, rocks);
+  // the pillars: a big lower block, a smaller one set on it off-centre, a worn cap, then an iron post and a lantern
+  const pr = (fn) => newels.map(([x, y, z, hh, lean, ry, q]) => fn(x, y, z, hh, lean, ry, q));
+  inst(box(1, 1, 1), rough, pr((x, y, z, hh, lean, ry, q) => [x, y + hh*0.3, z, 0.42, hh*0.6, 0.4, STONE[q % 6], null, ry, lean]));
+  inst(box(1, 1, 1), rough, pr((x, y, z, hh, lean, ry, q) => [x + lean*0.5, y + hh*0.8, z, 0.34, hh*0.42, 0.33, STONE[(q + 2) % 6], null, ry + 0.2, lean*1.5]));
+  inst(box(1, 1, 1), rough, pr((x, y, z, hh, lean, ry, q) => [x + lean, y + hh + 0.05, z, 0.4, 0.09, 0.38, RING[q % 3], null, ry - 0.15, lean*2]));
+  inst(cyl(0.025, 0.035, 0.28, 5), mat(0x2a2522), pr((x, y, z, hh, lean) => [x + lean, y + hh + 0.22, z, 1, 1, 1]));
+  inst(box(0.17, 0.22, 0.17), glow(0xffc870, 2.0), pr((x, y, z, hh, lean) => [x + lean, y + hh + 0.45, z, 1, 1, 1]), false);
+  inst(new THREE.ConeGeometry(0.15, 0.12, 4).rotateY(Math.PI/4), mat(0x2a2522), pr((x, y, z, hh, lean) => [x + lean, y + hh + 0.62, z, 1, 1, 1]));
   return g;
 }
 
@@ -164,7 +263,7 @@ export function groundY(x, z, rad = 0.45, ignoreObstacles = false){
   for(const br of bridges){
     const dx = x - br.p0.x, dz = z - br.p0.z, t = (dx*br.dir.x + dz*br.dir.z)/br.len;
     if(t < 0 || t > 1) continue;
-    if(Math.abs(dx*-br.dir.z + dz*br.dir.x) < 0.8){ y = Math.max(y ?? -1e9, bridgeY(br, t) + 0.04); }
+    if(Math.abs(dx*-br.dir.z + dz*br.dir.x) < BRIDGE_WALK){ y = Math.max(y ?? -1e9, bridgeY(br, t) + 0.04); }
   }
   for(const i of ISLANDS){
     const lx = x - i.x, lz = z - i.z, r = Math.hypot(lx, lz);
