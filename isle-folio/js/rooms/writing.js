@@ -2,11 +2,12 @@
 import { THREE, V3, ZN, reduce, touch, mat, mesh, glow, box, cyl, rnd } from '../engine.js';
 import { keyL } from '../engine.js';
 import { DATA } from '../data.js';
-import { FD, FB, FM, COL, panel, rr, para, wrap, clip, fitFont, pills, eyebrow, shortUrl, openLink } from '../panels.js';
+import { FD, panel, canvasTex, rr, para, wrap, clip, fitFont, eyebrow, shortUrl, openLink } from '../panels.js';
 import { view, item } from './kit.js';
 
 // book geometry (world units; 1 unit = 100 canvas px on the pages)
 const PW = 2.3, PH = 3.1, BW = PW*2 + 0.16, BH = PH + 0.12, TILT = 0.4, BY = 2.7, BZ = 0.3, S = 5.7;
+const FZ = 21, RH = 14.5;   // front wall z, room height (closed all round, so zoom-out never shows the void; deep enough for the portrait view)
 
 // soft radial sprite used for candle halos and the warm light pools on the floor
 function glowTex(){
@@ -16,16 +17,64 @@ function glowTex(){
   x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
   return new THREE.CanvasTexture(c);
 }
-// how many rows pills() will need, so the description can leave room for them
-function pillRows(ctx, tags, maxW, size){
-  ctx.font = `600 ${size}px ${FM}`; let cx = 0, rows = 1;
-  tags.forEach(t => { const tw = ctx.measureText(t).width + 16; if(cx + tw > maxW && cx > 0){ cx = 0; rows++; } cx += tw + 6; });
-  return tags.length ? rows : 0;
+// book pages: an old-style face for the text, warm ink, a red for drop caps, a faded brown for running heads and rules
+const FP = '"EB Garamond", Georgia, serif', INK = '#2b2119', RED = '#8a2a1e', SEP = '#8c7556';
+// the top page's height over the board, u = 0 at the gutter to 1 at the fore-edge: dips into the spine, swells, flattens, droops a little at the edge
+const LIFT = 0.2, GAP = 0.012, surf = u => 0.015 + LIFT*(1 - Math.pow(1 - u, 2.6)) - 0.045*Math.pow(u, 5);
+
+/* printed-page helpers (canvas px; pages are PW x PH units = 230 x 310 px) */
+function paper(ctx, W, H, k){   // aged stock, darker to the edges, a few foxing spots fixed per page so redraws don't shimmer
+  ctx.fillStyle = '#efe4c8'; ctx.fillRect(0, 0, W, H);
+  const e = ctx.createRadialGradient(W/2, H/2, Math.min(W, H)*0.35, W/2, H/2, Math.max(W, H)*0.75);
+  e.addColorStop(0, 'rgba(120,90,50,0)'); e.addColorStop(1, 'rgba(120,90,50,.3)'); ctx.fillStyle = e; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(140,100,50,.13)';
+  for(let i=0;i<14;i++){ const h = n => Math.abs(Math.sin((i + 1)*(k + 3)*n)*43758.5453 % 1); ctx.beginPath(); ctx.arc(h(12.99)*W, h(78.23)*H, 1 + h(39.4)*3, 0, 7); ctx.fill(); }
+}
+function rules(ctx, W, H, on){   // printed double frame; gilt when the book has focus
+  ctx.strokeStyle = on ? '#b07a22' : 'rgba(110,80,50,.42)';
+  ctx.lineWidth = on ? 2.5 : 1; ctx.strokeRect(12, 12, W - 24, H - 24);
+  ctx.lineWidth = on ? 1.2 : 0.6; ctx.strokeRect(16.5, 16.5, W - 33, H - 33);
+}
+function fleuron(ctx, cx, y, w, color){   // rule — lozenge — rule, with a dot at each end
+  ctx.strokeStyle = ctx.fillStyle = color; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx - w/2, y); ctx.lineTo(cx - 8, y); ctx.moveTo(cx + 8, y); ctx.lineTo(cx + w/2, y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, y - 4); ctx.lineTo(cx + 5, y); ctx.lineTo(cx, y + 4); ctx.lineTo(cx - 5, y); ctx.closePath(); ctx.fill();
+  [-1, 1].forEach(s => { ctx.beginPath(); ctx.arc(cx + s*(w/2 + 3), y, 1.5, 0, 7); ctx.fill(); });
+}
+function caps(ctx, text, x, y, size, color, maxW){   // letterspaced small capitals
+  ctx.font = `600 ${size}px ${FP}`; ctx.fillStyle = color; ctx.letterSpacing = '1.5px';
+  ctx.fillText(maxW ? clip(ctx, text.toUpperCase(), maxW) : text.toUpperCase(), x, y); ctx.letterSpacing = '0px';
+}
+// body text with a three-line red drop cap; the biggest size (17 → 12px) that fits above maxY, truncated with … at the smallest
+function dropCap(ctx, text, x, y, mw, maxY){
+  text = String(text).trim(); if(!text) return;
+  const cap = text[0], rest = text.slice(1), DL = 3;
+  for(let fs = 17; fs >= 12; fs--){
+    const lh = Math.round(fs*1.3), cs = Math.round(((DL - 1)*lh + fs*0.68)/0.7);
+    ctx.font = `400 ${cs}px ${FD}`; const cw = ctx.measureText(cap).width + 5;
+    ctx.font = `400 ${fs}px ${FP}`;
+    let lines = [], line = '';
+    for(const w of rest.split(/\s+/)){ if(!w) continue; const t = line ? line + ' ' + w : w; if(line && ctx.measureText(t).width > (lines.length < DL ? mw - cw : mw)){ lines.push(line); line = w; } else line = t; }
+    if(line) lines.push(line);
+    const max = Math.floor((maxY - y)/lh);
+    if(lines.length > max && fs > 12) continue;
+    if(lines.length > max){ lines = lines.slice(0, max); lines[max - 1] = lines[max - 1].replace(/\s*\S*$/, '') + '…'; }
+    ctx.font = `400 ${cs}px ${FD}`; ctx.fillStyle = RED; ctx.fillText(cap, x, y - cs*0.16);
+    ctx.font = `400 ${fs}px ${FP}`; ctx.fillStyle = INK;
+    lines.forEach((l, i) => ctx.fillText(l, i < DL ? x + cw : x, y + i*lh));
+    return;
+  }
+}
+// stripes for the page block's edges (the leaves seen side-on); along v for the head/tail caps, along u for the fore-edge
+function leafTex(alongU){
+  const c = document.createElement('canvas'); c.width = alongU ? 64 : 4; c.height = alongU ? 4 : 64; const x = c.getContext('2d');
+  for(let i=0;i<64;i++){ const v = 222 - ((i*37) % 7)*4 - (i % 3 ? 0 : 20); x.fillStyle = `rgb(${v},${v - 12},${v - 38})`; alongU ? x.fillRect(i, 0, 1, 4) : x.fillRect(0, i, 4, 1); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(alongU ? 2 : 1, alongU ? 1 : 2); return t;
 }
 
 export default function build(){
   const g = new THREE.Group(), items = [], pubs = DATA.publications || [], N = pubs.length;
-  const W = Math.max(18, N*S + 6), bx = k => (k - (N - 1)/2)*S;
+  const W = Math.max(18, N*S + 6), WS = W + 1.6, bx = k => (k - (N - 1)/2)*S;
   const add = (o, shadow = true) => { if(!shadow) o.castShadow = false; g.add(o); return o; };
 
   const gt = glowTex(), unitBox = box(1, 1, 1), gilt = mat(0x9a7a3e, {metalness:0.5, roughness:0.4});
@@ -39,18 +88,45 @@ export default function build(){
     im.castShadow = true; im.receiveShadow = true; return im;
   }
 
-  /* shell: floor with planks, back wall, picture rail */
-  add(mesh(box(W, 0.3, 11), mat(0x2e2218), 0, -0.15, 0.5));
+  /* shell: floor with planks, back, side and front walls, picture rail */
+  add(mesh(box(WS, 0.3, FZ + 5), mat(0x2e2218), 0, -0.15, (FZ - 5)/2));
   { const rows = [], tones = [0x4a382d, 0x52402f, 0x45342a, 0x4e3a2c];
-    for(let z = -4.35, r = 0; z < 6; z += 0.62, r++){ let x = -W/2 + (r % 3)*0.9 - 0.9; while(x < W/2){ const l = 2.4 + rnd()*1.6, x1 = Math.min(x + l, W/2); if(x1 > -W/2) { const x0 = Math.max(x, -W/2); rows.push([(x0 + x1)/2 - 0.015, 0, z, x1 - x0 - 0.03, 0.03, 0.59, 0, tones[Math.floor(rnd()*4)]]); } x += l; } }
+    for(let z = -4.35, r = 0; z < FZ; z += 0.62, r++){ let x = -WS/2 + (r % 3)*0.9 - 0.9; while(x < WS/2){ const l = 2.4 + rnd()*1.6, x1 = Math.min(x + l, WS/2); if(x1 > -WS/2) { const x0 = Math.max(x, -WS/2); rows.push([(x0 + x1)/2 - 0.015, 0, z, x1 - x0 - 0.03, 0.03, 0.59, 0, tones[Math.floor(rnd()*4)]]); } x += l; } }
     const pl = boxes(rows, new THREE.MeshStandardMaterial({flatShading:true, roughness:0.85}), true); pl.castShadow = false; g.add(pl); }
-  add(mesh(box(W, 14.5, 0.4), mat(0x2e2420), 0, 7.25, -4.6));
-  add(mesh(box(W, 0.12, 0.08), gilt, 0, 8.35, -4.36));
-  // rug: gilt border, red field, darker medallion
-  const rug = add(mesh(cyl(4.2, 4.2, 0.03, 32), mat(0x6b2f2a), 0, 0.02, 0.9)); rug.scale.set(Math.max(1, N*S/8.4), 1, 0.6);
-  const rugB = add(mesh(cyl(4.45, 4.45, 0.02, 32), mat(0x8a6a3a), 0, 0.012, 0.9)); rugB.scale.copy(rug.scale);
-  const rugM = add(mesh(cyl(2.3, 2.3, 0.03, 24), mat(0x4e2220), 0, 0.03, 0.9)); rugM.scale.copy(rug.scale);
-  [rug, rugB, rugM].forEach(r => r.castShadow = false);
+  const wallM = mat(0x2e2420);
+  add(mesh(box(WS, RH, 0.4), wallM, 0, RH/2, -4.6));
+  [-1, 1].forEach(s => add(mesh(box(0.4, RH, FZ + 5), wallM, s*(WS/2 + 0.2), RH/2, (FZ - 5)/2)));
+  add(mesh(box(WS + 0.8, RH, 0.4), wallM, 0, RH/2, FZ + 0.2));
+  [-1, 1].forEach(s => add(mesh(box(0.08, 0.12, FZ + 4.4), gilt, s*(WS/2 - 0.04), 8.35, (FZ - 4.4)/2)));   // picture rail runs on round the side walls
+  add(mesh(box(WS, 0.12, 0.08), gilt, 0, 8.35, -4.36));
+  // rug: a woven runner under the lecterns (navy guard bands, a gilt-and-diamond border, a lozenge lattice on red, a medallion under each book) with fringed ends
+  const RW = N*S + 1.4, RD = 5.4;
+  const rugTex = canvasTex(RW, RD, (ctx, W, H) => {
+    ctx.fillStyle = '#2a2640'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#b0894a'; ctx.fillRect(18, 18, W - 36, H - 36);
+    ctx.fillStyle = '#3a2440'; ctx.fillRect(22, 22, W - 44, H - 44);
+    ctx.fillStyle = '#9a7840';   // diamond chain in the border
+    const dia = (x, y, r) => { ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y); ctx.closePath(); ctx.fill(); };
+    for(let x = 36; x < W - 30; x += 22){ dia(x, 35, 7); dia(x, H - 35, 7); }
+    for(let y = 58; y < H - 50; y += 22){ dia(35, y, 7); dia(W - 35, y, 7); }
+    ctx.fillStyle = '#b0894a'; ctx.fillRect(48, 48, W - 96, H - 96);
+    ctx.fillStyle = '#6b2a24'; ctx.fillRect(52, 52, W - 104, H - 104);
+    ctx.save(); ctx.beginPath(); ctx.rect(52, 52, W - 104, H - 104); ctx.clip();
+    ctx.strokeStyle = 'rgba(30,10,8,.28)'; ctx.lineWidth = 2;   // lattice
+    for(let x = -H; x < W + H; x += 46){ ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + H, H); ctx.moveTo(x, H); ctx.lineTo(x + H, 0); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(210,160,90,.22)';
+    for(let x = 0; x < W; x += 46) for(let y = (H/2) % 46; y < H; y += 46){ ctx.beginPath(); ctx.arc(x + 23, y, 3, 0, 7); ctx.fill(); }
+    for(let k=0;k<N;k++){   // medallion: layered lozenges with a star
+      const cx = (bx(k) + RW/2)*100, cy = H/2;
+      [[150, '#b0894a'], [144, '#2a2640'], [118, '#8a3a2a'], [96, '#b0894a'], [92, '#4e2220'], [52, '#2a2640']].forEach(([r, c]) => { ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(cx, cy - r*0.95); ctx.lineTo(cx + r*1.35, cy); ctx.lineTo(cx, cy + r*0.95); ctx.lineTo(cx - r*1.35, cy); ctx.closePath(); ctx.fill(); });
+      ctx.fillStyle = '#d0a860'; ctx.beginPath(); for(let j=0;j<16;j++){ const a = j*Math.PI/8, r = j % 2 ? 12 : 30; ctx.lineTo(cx + Math.cos(a)*r, cy + Math.sin(a)*r); } ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }).tex;
+  const rug = add(new THREE.Mesh(new THREE.PlaneGeometry(RW, RD), new THREE.MeshStandardMaterial({map:rugTex, roughness:1})), false);
+  rug.rotation.x = -Math.PI/2; rug.position.set(0, 0.025, 0.9); rug.receiveShadow = true;
+  { const fr = []; [-1, 1].forEach(s => { for(let z = -RD/2 + 0.06; z < RD/2; z += 0.11) fr.push([s*(RW/2 + 0.11), 0.03, 0.9 + z, 0.22, 0.02, 0.035, (rnd() - 0.5)*0.3]); });
+    const f = boxes(fr, mat(0xd8c8a0)); f.castShadow = false; g.add(f); }
 
   /* upper hall above the picture rail: pilasters, moonlit arched windows, cornice and a beamed ceiling */
   const UW = 2.1, UY = 9.1, UH = 2.0, UZ = -4.38, nw = Math.max(3, Math.round(W/6));
@@ -70,27 +146,39 @@ export default function build(){
     const s = new THREE.Sprite(winM); s.position.set(x, UY + UH*0.8, UZ + 0.3); s.scale.set(UW*2.2, UH*2.6, 1); g.add(s); winGlow.push(s);
     if(k) prows.push([x - W/nw/2, 0]);
   }
-  prows.push([-W/2 + 0.3, 0], [W/2 - 0.3, 0]);
+  prows.push([-WS/2 + 0.3, 0], [WS/2 - 0.3, 0]);
   prows.forEach(([x]) => wrows.push([x, 10.5, UZ + 0.06, 0.5, 4.2, 0.22], [x, 12.65, UZ + 0.1, 0.7, 0.3, 0.32], [x, 8.6, UZ + 0.1, 0.66, 0.3, 0.3]));   // pilaster, capital, base
-  wrows.push([0, 13.0, UZ + 0.14, W, 0.35, 0.45], [0, 13.3, UZ + 0.24, W, 0.2, 0.6]);   // cornice
+  wrows.push([0, 13.0, UZ + 0.14, WS, 0.35, 0.45], [0, 13.3, UZ + 0.24, WS, 0.2, 0.6]);   // cornice
   g.add(boxes(wrows, dark));
-  add(mesh(box(W, 0.4, 11), mat(0x251c18), 0, 14.7, 0.5));   // ceiling
-  { const br = []; for(let x = -W/2 + 1.5; x < W/2; x += 3) br.push([x, 14.3, 0.5, 0.35, 0.45, 11]); br.push([0, 14.25, -1.5, W, 0.35, 0.3], [0, 14.25, 2.5, W, 0.35, 0.3]); g.add(boxes(br, wood)); }
+  add(mesh(box(WS, 0.4, FZ + 5), mat(0x251c18), 0, 14.7, (FZ - 5)/2));   // ceiling
+  { const br = []; for(let x = -WS/2 + 1.5; x < WS/2; x += 3) br.push([x, 14.3, (FZ - 5)/2, 0.35, 0.45, FZ + 5]); for(let z = -1.5; z < FZ; z += 4) br.push([0, 14.25, z, WS, 0.35, 0.3]); g.add(boxes(br, wood)); }
 
   /* bookcases (one InstancedMesh of spines per case) */
   const pal = [0x7a2e2a, 0x2e4a6b, 0x3d5c3a, 0x6b4a2a, 0x5a3a6b, 0x8a6a3a, 0x2a5a5a, 0x9a4a2a, 0x4a4a52];
+  // a shelf curio standing among the books: a stoppered glass jar, a brass hourglass or a small iron-banded box
+  const glass = mat(0x3f6a5e, {roughness:0.25, metalness:0.1}), cork = mat(0x8a6a44);
+  function curio(c, x, y, kind){
+    if(kind === 0){ c.add(mesh(cyl(0.1, 0.12, 0.26, 8), glass, x, y + 0.13, 0.05), mesh(cyl(0.05, 0.05, 0.07, 6), cork, x, y + 0.3, 0.05)); return; }
+    if(kind === 1){ [0.07, 0.4].forEach(dy => c.add(mesh(cyl(0.13, 0.13, 0.04, 8), brass, x, y + dy - 0.05, 0.05)));
+      const top = mesh(new THREE.ConeGeometry(0.1, 0.16, 8), glass, x, y + 0.27, 0.05); top.rotation.x = Math.PI;   // the two bulbs meet at their tips
+      c.add(top, mesh(new THREE.ConeGeometry(0.1, 0.16, 8), glass, x, y + 0.11, 0.05)); return; }
+    c.add(mesh(box(0.34, 0.2, 0.26), wood, x, y + 0.1, 0.05), mesh(box(0.36, 0.035, 0.28), iron, x, y + 0.17, 0.05), mesh(box(0.06, 0.08, 0.02), brass, x, y + 0.12, 0.19));
+  }
+  const PL = 0.3;
   function bookcase(w, h, shelves){
     const c = new THREE.Group();
     c.add(mesh(box(w, h, 0.12), dark, 0, h/2, -0.3));
     c.add(mesh(box(0.14, h, 0.7), wood, -w/2, h/2, 0)); c.add(mesh(box(0.14, h, 0.7), wood, w/2, h/2, 0));
-    c.add(mesh(box(w + 0.3, 0.2, 0.85), dark, 0, h + 0.1, 0.03)); // crown moulding
-    const sh = h/shelves; for(let k=0;k<=shelves;k++) c.add(mesh(box(w, 0.1, 0.7), wood, 0, k*sh + 0.05, 0));
+    c.add(mesh(box(w + 0.3, 0.2, 0.85), dark, 0, h + 0.1, 0.03), mesh(box(w + 0.5, 0.12, 0.97), wood, 0, h + 0.26, 0.05));   // stepped cornice
+    c.add(mesh(box(w + 0.22, PL, 0.8), dark, 0, PL/2, 0.04));   // plinth under the bottom shelf
+    const sh = (h - PL)/shelves; for(let k=0;k<=shelves;k++) c.add(mesh(box(w, 0.1, 0.7), wood, 0, PL + k*sh + 0.05, 0));
     // [x, y, z, width, height, depth, roll]: upright runs, the odd leaning volume and flat stacks in the gaps
     const list = [];
     for(let k=0;k<shelves;k++){
-      const base = k*sh + 0.1; let x = -w/2 + 0.12;
+      const base = PL + k*sh + 0.1; let x = -w/2 + 0.12;
       while(x < w/2 - 0.3){
         const bw = 0.08 + rnd()*0.14, bh = sh*(0.5 + rnd()*0.38), r = rnd();
+        if(r > 0.975 && x < w/2 - 0.6){ curio(c, x + 0.22, base, Math.floor(rnd()*3)); x += 0.48; continue; }
         if(r < 0.06){   // a flat stack of 2-4 books
           let y = base; const n = 2 + Math.floor(rnd()*3);
           for(let j=0;j<n;j++){ const t = 0.06 + rnd()*0.04, l = 0.42 + rnd()*0.14; list.push([x + 0.3 + (rnd() - 0.5)*0.05, y + t/2, 0.02, l, t, 0.4 + rnd()*0.08, 0]); y += t; }
@@ -116,11 +204,13 @@ export default function build(){
   for(let k=0;k<nb;k++){
     const x = (k - (nb - 1)/2)*5.4, c = bookcase(5, 6.4, 6); c.position.set(x, 0, -4.0); g.add(c);
     if(Math.abs(x) > 2){   // carved pediment with a brass boss (not on the centre case: the plaque hangs there)
-      const p = mesh(pedGeo, dark, 0, 6.68, -0.05); p.rotation.x = -Math.PI/2; p.scale.set(1, 1, 0.55); c.add(p);
-      c.add(mesh(new THREE.SphereGeometry(0.11, 8, 6), brass, 0, 6.95, 0.06));
+      const p = mesh(pedGeo, dark, 0, 6.82, -0.05); p.rotation.x = -Math.PI/2; p.scale.set(1, 1, 0.55); c.add(p);
+      c.add(mesh(new THREE.SphereGeometry(0.11, 8, 6), brass, 0, 7.1, 0.06));
     }
   }
   [-1, 1].forEach(s => { const c = bookcase(4.4, 6.4, 6); c.position.set(s*(W/2 - 0.6), 0, -0.8); c.rotation.y = -s*1.05; g.add(c); });
+  // more cases along the side walls, seen when zoomed out
+  [-1, 1].forEach(s => [4.2, 9.6].forEach(z => { const c = bookcase(5, 6.4, 6); c.position.set(s*(WS/2 - 0.42), 0, z); c.rotation.y = -s*Math.PI/2; g.add(c); }));
 
   /* rolling ladder on a brass rail along the back shelves */
   add(mesh(cyl(0.035, 0.035, nb*5.4, 8), brass, 0, 5.9, -3.45)).rotation.z = Math.PI/2;
@@ -211,63 +301,101 @@ export default function build(){
       for(let j=0;j<n;j++){ const t = 0.1 + rnd()*0.06; rows.push([x + (rnd() - 0.5)*0.08, y + t/2, z, 0.6 - j*0.03, t, 0.45 - j*0.02, (rnd() - 0.5)*0.6, pal[Math.floor(rnd()*pal.length)]]); y += t; } });
     g.add(boxes(rows, new THREE.MeshStandardMaterial({flatShading:true, roughness:0.85}), true)); }
 
-  /* the books */
-  const paper = (ctx, W, H, st, right) => {
-    const gr = ctx.createLinearGradient(right ? 0 : W, 0, right ? 36 : W - 36, 0);
-    gr.addColorStop(0, '#d6c8a6'); gr.addColorStop(1, '#f3ebd4');
-    rr(ctx, 2, 2, W - 4, H - 4, 4); ctx.fillStyle = gr; ctx.fill();
-    if(st.focus){ ctx.lineWidth = 4; ctx.strokeStyle = COL.ember; ctx.stroke(); }
+  /* the books: a leather-bound volume lying open on a turned lectern. The pages curve up out of the gutter over a page
+     block whose edges show the leaves; the text is set like a printed page (running head, fleurons, drop cap, folio). */
+  const pageGeo = s => {   // s = -1 left page, +1 right; the curve, plus a gutter shadow in vertex colours (pages are unlit)
+    const geo = new THREE.PlaneGeometry(PW, PH, 28, 1), p = geo.attributes.position, col = [];
+    for(let i=0;i<p.count;i++){ const u = s > 0 ? p.getX(i)/PW + 0.5 : 0.5 - p.getX(i)/PW, c = 0.5 + 0.5*Math.min(1, Math.pow(u*3, 0.6)) - 0.06*Math.pow(u, 6); p.setZ(i, surf(u) + 0.004); col.push(c, c*0.98, c*0.94); }   // dark in the gutter, a touch darker at the drooping edge
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); return geo;
   };
-  const covers = [0x6b2a24, 0x2e4a6b, 0x3d5c3a, 0x5a3a6b, 0x6b4a2a];
+  const blockGeo = s => {   // the stack of leaves under each page: the page curve on top, flat on the board, PH tall
+    const sh = new THREE.Shape(); sh.moveTo(s*GAP, 0);
+    for(let k=0;k<=24;k++) sh.lineTo(s*(GAP + k/24*PW), surf(k/24));
+    sh.lineTo(s*(GAP + PW), 0); sh.closePath();
+    const geo = new THREE.ExtrudeGeometry(sh, {depth:PH, bevelEnabled:false, curveSegments:1});
+    geo.rotateX(Math.PI/2); geo.translate(0, PH/2, 0); return geo;
+  };
+  const pageG = [pageGeo(-1), pageGeo(1)], blockG = [blockGeo(-1), blockGeo(1)];
+  const leafM = [new THREE.MeshStandardMaterial({map:leafTex(false), roughness:0.9}), new THREE.MeshStandardMaterial({map:leafTex(true), roughness:0.9})];   // head/tail, fore-edge
+  const boardG = box(PW + 0.16, PH + 0.2, 0.06), spineG = new THREE.CylinderGeometry(0.13, 0.13, PH + 0.2, 10, 1, false, Math.PI/2, Math.PI);
+  const cornerG = new THREE.ExtrudeGeometry(new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(-0.26, 0), new THREE.Vector2(0, -0.26)]), {depth:0.075, bevelEnabled:false});
+  cornerG.translate(0, 0, -0.068);
+  const turnedG = new THREE.LatheGeometry([[0, 0], [0.3, 0], [0.3, 0.1], [0.2, 0.16], [0.17, 0.4], [0.25, 0.62], [0.27, 0.78], [0.19, 0.98], [0.12, 1.3], [0.13, 1.55], [0.2, 1.7], [0.13, 1.82], [0.13, 1.9], [0.32, 1.98], [0.32, 2.06], [0, 2.06]].map(([r, y]) => new THREE.Vector2(r, y)), 10);
+  const footG = box(0.75, 0.16, 0.24), bunG = new THREE.SphereGeometry(0.11, 8, 6);
+  // bookmark: a thin satin ribbon lying in the gutter, out of the foot of the book, over the ledge's lip and hanging a little,
+  // with a swallowtail end. A strip of (left, centre, right) vertices along a curve in the book's y-z plane.
+  const ribbonG = (() => {
+    const path = new THREE.CatmullRomCurve3([[0, -0.85, 0.032], [0, -1.4, 0.034], [0, -1.56, 0.06], [0, -1.58, 0.2], [0, -1.555, 0.268], [0.005, -1.6, 0.292], [0.03, -1.8, 0.3], [0.075, -2.0, 0.296]].map(([x, y, z]) => new V3(x, y, z)));
+    const n = 48, w = 0.032, pos = [], idx = [];
+    for(let i=0;i<=n;i++){ const p = path.getPointAt(i/n), c = i === n ? path.getPointAt(1 - 0.05/path.getLength()) : p;   // the centre of the last row sits higher: the notch
+      pos.push(p.x - w, p.y, p.z, c.x, c.y, c.z, p.x + w, p.y, p.z); }
+    for(let i=0;i<n;i++){ const a = i*3, b = a + 3; idx.push(a, a + 1, b, a + 1, b + 1, b, a + 1, a + 2, b + 1, a + 2, b + 2, b + 1); }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals(); return geo;
+  })();
+  const creaseG = box(0.05, PH, 0.012), crease = mat(0x3a2a1a);
+  const ribbon = new THREE.Mesh(ribbonG, new THREE.MeshStandardMaterial({color:0x8e1c22, roughness:0.45, side:THREE.DoubleSide}));
+  const covers = [0x6b2a24, 0x2e4a6b, 0x3d5c3a, 0x5a3a6b, 0x6b4a2a], pages = [];
   pubs.forEach((b, k) => {
-    const x = bx(k), plat = b.platform || 'the web';
-    // lectern: base, post and a slanted desk under the book
-    add(mesh(box(1.5, 0.14, 1.1), mat(0x3a2618), x, 0.07, BZ - 0.2));
-    add(mesh(box(1.05, 0.14, 0.8), mat(0x4a3020), x, 0.21, BZ - 0.22));
-    add(mesh(cyl(0.2, 0.27, 2.0, 8), mat(0x4a3020), x, 1.28, BZ - 0.25));
-    add(mesh(cyl(0.3, 0.3, 0.08, 8), brass, x, 0.32, BZ - 0.25));
-    add(mesh(cyl(0.32, 0.24, 0.18, 8), mat(0x3a2618), x, 2.3, BZ - 0.25));
+    const x = bx(k), plat = b.platform || 'the web', LZ = BZ - 0.25;
+    // lectern: four scrolled feet, a turned column with a brass collar, a bracket under the desk
+    for(let j=0;j<4;j++){ const a = j*Math.PI/2 + Math.PI/4, f = add(mesh(footG, dark, x + Math.cos(a)*0.42, 0.08, LZ + Math.sin(a)*0.42)); f.rotation.y = -a;
+      add(mesh(bunG, dark, x + Math.cos(a)*0.78, 0.09, LZ + Math.sin(a)*0.78)); }
+    add(mesh(box(0.62, 0.12, 0.62), wood, x, 0.2, LZ));
+    add(mesh(turnedG, wood, x, 0.26, LZ));
+    add(mesh(cyl(0.2, 0.2, 0.07, 10), brass, x, 1.26, LZ));
     const bk = new THREE.Group(); bk.position.set(x, BY, BZ); bk.rotation.x = -TILT; g.add(bk);
-    bk.add(mesh(box(2.4, PH*0.8, 0.14), mat(0x4a3020), 0, 0, -0.2));
-    bk.add(mesh(box(BW + 0.2, 0.12, 0.26), mat(0x4a3020), 0, -BH/2 - 0.04, 0.02)); // ledge the book rests on
-    bk.add(mesh(box(BW, BH, 0.1), mat(covers[k % covers.length]), 0, 0, -0.08));
-    [-1, 1].forEach(s => bk.add(mesh(box(PW, PH, 0.1), mat(0xe6dabd), s*(PW/2 + 0.02), 0, -0.01)));
-    const rib = mesh(box(0.08, 0.9, 0.02), mat(0x9a2a24), 0.05, -BH/2 - 0.35, 0.06); rib.castShadow = false; bk.add(rib);
+    // slanted desk with a moulded edge, and the ledge the book rests on
+    bk.add(mesh(box(1.2, 1.3, 0.3), dark, 0, -0.45, -0.32));
+    bk.add(mesh(box(BW + 0.4, BH*0.9, 0.12), wood, 0, -0.05, -0.12));
+    [-1, 1].forEach(s => bk.add(mesh(box(0.08, BH*0.9, 0.16), dark, s*(BW/2 + 0.2), -0.05, -0.12)));
+    bk.add(mesh(box(BW + 0.56, 0.1, 0.36), dark, 0, -PH/2 - 0.15, 0.06), mesh(box(BW + 0.56, 0.16, 0.05), dark, 0, -PH/2 - 0.1, 0.25));
+    // the volume: leather boards and a rounded spine, gilt corners, the two page blocks, a ribbon down from the gutter
+    const leather = mat(covers[k % covers.length], {roughness:0.7});
+    [-1, 1].forEach(s => {
+      bk.add(mesh(boardG, leather, s*(PW/2 + 0.06), 0, -0.03));
+      [-1, 1].forEach(t => { const c = mesh(cornerG, gilt, s*(PW + 0.14), t*(PH/2 + 0.1), 0); c.scale.set(s, t, 1); bk.add(c); });
+      bk.add(mesh(blockG[(s + 1)/2], leafM));
+    });
+    const sp = mesh(spineG, leather, 0, 0, -0.06); bk.add(sp);
+    bk.add(ribbon.clone(), mesh(creaseG, crease, 0, 0, 0.012));   // a dark crease where the pages meet, so the spine doesn't show through
 
     const left = panel(PW, PH, (ctx, W, H, st) => {
-      paper(ctx, W, H, st, false);
-      const x0 = 22, mw = W - 44; let y = 24;
-      eyebrow(ctx, [plat, b.date].filter(Boolean).join(' · '), x0, y, COL.brown, 13); y += 30;
-      // largest title size whose lines (and longest word) fit above the read time and folio
-      const longest = b.title.split(/\s+/).reduce((a, w) => w.length > a.length ? w : a, ''), room = H - y - 100;
-      let fs = 28; const fits = () => { ctx.font = `400 ${fs}px ${FD}`; return ctx.measureText(longest).width <= mw && wrap(ctx, b.title, mw).length*fs*1.22 <= room; };
-      while(fs > 15 && !fits()) fs--;
-      ctx.fillStyle = COL.paperInk; y = para(ctx, b.title, x0, y, mw, Math.round(fs*1.22), Math.floor(room/(fs*1.22))) + 14;
-      ctx.fillStyle = '#b89a6a'; ctx.fillRect(x0, y, 44, 2); y += 14;
-      if(b.readTime){ ctx.font = `600 14px ${FM}`; ctx.fillStyle = '#7a6550'; ctx.fillText(b.readTime.toUpperCase(), x0, y); }
-      ctx.textAlign = 'center'; ctx.font = `400 13px ${FD}`; ctx.fillStyle = '#9a8468'; ctx.fillText(`— ${k + 1} of ${N} —`, W/2, H - 34);
+      paper(ctx, W, H, k*2); rules(ctx, W, H, st.focus);
+      ctx.textAlign = 'center';
+      caps(ctx, [plat, b.date].filter(Boolean).join(' · '), W/2, 28, 11, SEP, W - 50);
+      fleuron(ctx, W/2, 50, 90, SEP);
+      // largest title size whose lines (and longest word) fit, centred in the space above the read time and folio
+      const mw = W - 50, top = 66, room = H - top - 92;
+      const longest = b.title.split(/\s+/).reduce((a, w) => w.length > a.length ? w : a, '');
+      let fs = 27; const fits = () => { ctx.font = `400 ${fs}px ${FD}`; return ctx.measureText(longest).width <= mw && wrap(ctx, b.title, mw).length*fs*1.2 <= room; };
+      while(fs > 14 && !fits()) fs--;
+      const n = Math.min(wrap(ctx, b.title, mw).length, Math.floor(room/(fs*1.2))), lh = Math.round(fs*1.2);
+      ctx.fillStyle = INK; let y = para(ctx, b.title, W/2, top + Math.max(0, (room - n*lh)/2), mw, lh, n);
+      fleuron(ctx, W/2, y + 14, 60, SEP);
+      if(b.readTime){ ctx.font = `italic 400 15px ${FP}`; ctx.fillStyle = SEP; ctx.fillText(b.readTime.toLowerCase(), W/2, y + 26); }
+      ctx.font = `400 13px ${FP}`; ctx.fillStyle = SEP; ctx.fillText(`— ${k + 1} of ${N} —`, W/2, H - 40);
     });
     const right = panel(PW, PH, (ctx, W, H, st) => {
-      paper(ctx, W, H, st, true);
-      const x0 = 20, mw = W - 40, foot = H - 52, tags = b.tags || [];
-      const pr = pillRows(ctx, tags, mw, 12), ph = pr ? pr*23 + (pr - 1)*6 + 14 : 0;
-      // biggest body size (16 → 13px) that fits the whole description above the tags
-      let fs = 16, lh, max; const desc = b.description || '';
-      do { ctx.font = `400 ${fs}px ${FB}`; lh = Math.round(fs*1.36); max = Math.floor((foot - 22 - ph)/lh); } while(fs-- > 13 && wrap(ctx, desc, mw).length > max);
-      ctx.fillStyle = '#3a3026'; let y = para(ctx, desc, x0, 22, mw, lh, Math.max(2, max)) + 12;
-      if(pr) pills(ctx, tags, x0, y, mw, '#7a4f2a', 12);
-      ctx.fillStyle = 'rgba(122,101,80,.45)'; ctx.fillRect(x0, foot + 6, mw, 1.5);
-      const cta = `READ ON ${plat.toUpperCase()} ↗`;
-      ctx.font = `700 13px ${FM}`; ctx.fillStyle = st.focus ? '#a8540c' : '#7a6550';
-      ctx.fillText(clip(ctx, st.focus ? `${touch ? 'TAP' : '⏎'} ${cta}` : cta, mw), x0, foot + 18);
+      paper(ctx, W, H, k*2 + 1); rules(ctx, W, H, st.focus);
+      const x0 = 30, mw = W - 60, tags = b.tags || [];
+      ctx.textAlign = 'center';
+      // keywords in italic above the call to read on, then the description fills what's left
+      ctx.font = `italic 400 13px ${FP}`;
+      const kw = tags.reduce((ls, t) => { const l = ls[ls.length - 1]; if(l && ctx.measureText(l + ' · ' + t).width <= mw) ls[ls.length - 1] += ' · ' + t; else ls.push(t); return ls; }, []).slice(0, 2), kwY = H - 66 - kw.length*16;
+      ctx.fillStyle = SEP; kw.forEach((l, i) => ctx.fillText(l, W/2, kwY + i*16));
+      if(kw.length) fleuron(ctx, W/2, kwY - 10, 50, SEP);
+      const cta = `${st.focus && !touch ? '⏎ ' : ''}read on ${plat} ↗`;   // touch: the hint bar already says tap to open
+      caps(ctx, cta, W/2, H - 44, 11, st.focus ? RED : SEP, mw);
+      ctx.textAlign = 'left'; dropCap(ctx, b.description || '', x0, 38, mw, kwY - (kw.length ? 20 : 4));
     });
-    left.position.set(-(PW/2 + 0.02), 0, 0.05); bk.add(left);
-    right.position.set(PW/2 + 0.02, 0, 0.05); bk.add(right);
+    [left, right].forEach((p, s) => { p.geometry.dispose(); p.geometry = pageG[s]; p.material.vertexColors = true; p.material.transparent = false; p.position.x = (s ? 1 : -1)*(PW/2 + GAP); bk.add(p); pages.push(p); });
     items.push(item({obj:bk, panels:[left, right], bx:x,
-      view:view(new V3(x, BY, BZ), BW + 0.25, BH + 0.7, new V3(0, Math.sin(TILT), Math.cos(TILT))),
+      view:view(new V3(x, BY, BZ + 0.1), BW + 0.6, BH + 0.7, new V3(0, Math.sin(TILT), Math.cos(TILT))),
       label:`Book ${k + 1} of ${N}: ${b.title}. ${[plat, b.date, b.readTime].filter(Boolean).join(', ')}. ${b.description || ''} Press Enter to read it on ${plat}.`,
       activate:() => openLink(b.link)}));
   });
+  // the page face is a webfont the page doesn't otherwise use, so it may not be loaded yet: repaint the pages once it is
+  document.fonts && Promise.all(['400 16px "EB Garamond"', 'italic 400 16px "EB Garamond"', '600 16px "EB Garamond"'].map(f => document.fonts.load(f))).then(() => pages.forEach(p => p.userData.panel.redraw()), () => {});
 
   /* brass plaque, framed and hung from the picture rail above the centre bookcase */
   const med = DATA.contact && DATA.contact.medium;
@@ -287,7 +415,7 @@ export default function build(){
   }
 
   let lx = 0;
-  return {group:g, items, start:0, follow:true,
+  return {group:g, items, start:0, follow:true, maxDist:FZ - 1.5,   // the camera stays inside the hall (front wall at z = FZ, ceiling at RH)
     light:{key:[0, 4.6, 3.4, 0xffc580, 1.7], fill:[0, 4, -2, 0xffa060, 0.6]},
     heroSpot:new V3(bx(0) - 4.2, 0, 0.4),
     onFocus(i, snap){ const it = items[i]; lx = it.bx ?? 0; if(snap) keyL.position.x = g.position.x + lx; },

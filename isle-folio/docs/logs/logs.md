@@ -5,6 +5,25 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Lorehall: a proper bookmark ribbon, a dark gutter, no running head on the right page
+- `js/rooms/writing.js`: the bookmark was three stiff boxes that read as a red pole. It is now one thin satin strip along a curve: lying in the gutter, out of the foot of the book, rolling over the ledge's lip and hanging a little to one side, with a swallowtail end. A dark crease fills the gap where the pages meet (the red leather spine showed through as a line). The right page no longer repeats the title at the top; the description starts higher.
+- Why: user feedback.
+- Checked: desktop close-up and default view.
+
+## 2026-10-20 — Lorehall: books as real open volumes, turned lecterns, a woven rug, richer bookcases
+- `js/rooms/writing.js`:
+  - **The books.** Each is now a leather-bound volume lying open: two leather boards with gilt corner pieces and a rounded spine, a page block under each page (its head, tail and fore-edge striped like stacked leaves), and pages that dip into the gutter, swell and droop slightly at the edge (bent planes; the gutter shadow is in vertex colours since the pages are unlit). A ribbon runs from the gutter over the ledge and hangs down.
+  - **The pages are set like print**, not cards: aged paper with foxing, a printed double frame (gilt when focused, replacing the orange outline), letterspaced small-caps running heads, fleurons, the title centred in Young Serif, an italic read time and folio. The description has a red three-line drop cap and auto-fits 17 → 12px. Tags are an italic keyword line wrapped by whole tags (no pills), and the call to read is small caps (`⏎` only on desktop). Body face is EB Garamond (added to the Google Fonts link in `index.html`); the pages repaint once it loads.
+  - **Lecterns**: four feet with bun ends, a lathe-turned column with a brass collar, a bracket under a slanted desk with moulded sides and a lipped ledge.
+  - **Rug**: a rectangular woven runner drawn on canvas (navy guards, gilt-and-diamond border, lozenge lattice, a medallion under each book) with fringed ends, replacing the scaled ellipses.
+  - **Bookcases**: a plinth under the bottom shelf, a stepped cornice, and the odd curio among the books (stoppered jar, hourglass, iron-banded box). Two more cases stand along each side wall.
+- Why: the user asked for better room geometry and a display that reads as an open book in the library's style rather than web cards.
+- Checked: desktop (focused and unfocused book, max zoom-out), phone (375×812).
+
+## 2026-10-20 — Lorehall: closed hall, zoom-out stays inside
+- `js/rooms/writing.js`: the library only had a back wall, so zooming out (and the phone view) showed its open sides and front and the void. The hall is now closed: side walls, a front wall at z = 21 behind the portrait camera, and the floor, planks, ceiling and beams run to it. The shell is 1.6 wider than the bookcase layout so the angled corner cases clear the side walls; the picture rail and cornice run the full width. `maxDist` (19.5) keeps zoom-out inside, like Forgewell and Runespire.
+- Checked: desktop max zoom-out, phone (375×812) resting view and zoom-out. No page errors.
+
 ## 2026-10-20 — Forgewell: bigger carts, the card on the chest lid, stone tunnel portals, more detail, a bigger wizard
 - `js/rooms/projects.js`:
   - **Bigger carts and track.** Carts and chests are modelled in cart units inside a body group scaled ×1.85, and the track's gauge, sleepers, rails and ballast widened to match.
