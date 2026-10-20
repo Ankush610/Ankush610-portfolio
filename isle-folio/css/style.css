@@ -1,7 +1,8 @@
-/* Layout: full-bleed WebGL world. All content lives in 3D; the only 2D UI is a back pill, a hint line, and a fade for room transitions. */
+/* Layout: full-bleed WebGL world. All content lives in 3D; the 2D UI is a back pill, a hint line (island cards on touch screens), and a fade for room transitions. */
 :root{
   --night:#0a0f1e;
   --panel:rgba(14,20,38,.82);
+  --sign:rgba(12,18,34,.88);   /* the floating island signs' panel colour */
   --line:rgba(173,186,222,.18);
   --ink:#ece7da;
   --muted:#9aa4bd;
@@ -18,16 +19,16 @@ body{background:var(--night);color:var(--ink);font-family:var(--f-body);overflow
 .sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 
 .back,.gate{position:fixed;z-index:3;top:calc(16px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));
-  font:600 14px/1 var(--f-body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:11px 16px;cursor:pointer;
+  font:400 15px/1 var(--f-display);color:var(--ink);background:var(--sign);border:2px solid var(--line);border-radius:14px;padding:10px 15px;cursor:pointer;
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .back.mode{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 .gate{text-decoration:none}
 #backBtn:not([hidden]) ~ .gate{display:none}
-.back:hover,.gate:hover{border-color:var(--ember);color:var(--ember)}
+.back:hover,.gate:hover{border-color:var(--ember);color:var(--ember);box-shadow:0 0 12px rgba(240,181,74,.45)}
 .back:focus-visible,.gate:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
 .hint{position:fixed;z-index:3;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
   display:flex;gap:14px;align-items:center;font-size:12.5px;color:var(--muted);font-weight:600;white-space:nowrap;
-  background:rgba(10,15,30,.6);border:1px solid var(--line);border-radius:999px;padding:7px 14px;max-width:calc(100vw - 32px);overflow:hidden}
+  background:var(--sign);border:2px solid var(--line);border-radius:14px;padding:8px 14px;max-width:calc(100vw - 32px);overflow:hidden;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .hint b{color:var(--ink);font-weight:600}
 .hint span{display:inline-flex;gap:5px;align-items:center}
 kbd{font-family:var(--f-mono);font-size:11px;color:var(--ink);border:1px solid var(--line);background:rgba(17,24,48,.8);border-radius:5px;padding:2px 6px}
@@ -36,20 +37,36 @@ kbd{font-family:var(--f-mono);font-size:11px;color:var(--ink);border:1px solid v
   box-shadow:0 0 0 6px rgba(240,181,74,.18),0 8px 24px rgba(0,0,0,.35);white-space:pre}
 .enter:hover{filter:brightness(1.08)}
 .enter:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
-.stick{position:fixed;z-index:3;left:max(24px,env(safe-area-inset-left,0px));bottom:calc(70px + env(safe-area-inset-bottom,0px));
-  width:120px;height:120px;border-radius:50%;background:rgba(14,20,38,.45);border:1px solid var(--line);touch-action:none;display:grid;place-items:center}
-.stick[hidden]{display:none}
-.stick .knob{width:52px;height:52px;border-radius:50%;background:rgba(240,181,74,.75);box-shadow:0 0 12px rgba(240,181,74,.4);pointer-events:none}
+.hint[hidden]{display:none}
+/* touch: swipeable island cards along the bottom */
+.isles{position:fixed;z-index:3;left:0;right:0;bottom:0;display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
+  padding:10px 0 calc(16px + env(safe-area-inset-bottom,0px));padding-inline:calc(50vw - min(37vw,150px));-webkit-overflow-scrolling:touch}
+.isles::-webkit-scrollbar{display:none}
+.isles[hidden]{display:none}
+.card{flex:none;width:min(74vw,300px);scroll-snap-align:center;display:flex;gap:12px;align-items:center;text-align:left;color:var(--ink);font-family:var(--f-body);
+  background:var(--sign);border:2px solid var(--line);border-radius:14px;padding:9px 14px 9px 9px;cursor:pointer;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:.55;transform:scale(.92);transition:opacity .25s,transform .25s,border-color .25s,box-shadow .25s}
+.pic{flex:none;width:64px;height:64px;border-radius:10px;overflow:hidden;background:#0d1530;box-shadow:inset 0 0 0 2px var(--c)}
+.pic canvas{display:block;width:100%;height:100%}
+.txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.card small{font:700 11px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.card b{font:400 22px/1.1 var(--f-display);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card i{font:700 11px/1.2 var(--f-mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--ember);display:none}
+.card.on{opacity:1;transform:none;border-color:var(--ember);box-shadow:0 0 14px rgba(240,181,74,.55),0 10px 30px rgba(0,0,0,.45)}
+.card.on small{color:var(--ember)}
+.card.on i{display:block;animation:nudge 1.6s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateX(3px)}}
+.card:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 #fader{position:fixed;inset:0;z-index:6;background:#05070f;opacity:0;pointer-events:none;transition:opacity .35s ease}
 #fader.on{opacity:1}
 .loader{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:var(--night);color:var(--muted);font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;transition:opacity .6s}
 .loader.done{opacity:0;pointer-events:none}
 @media (max-width:640px){ .hint .k{display:none} }
-@media (prefers-reduced-motion:reduce){ #fader,.loader{transition:none} }
+@media (prefers-reduced-motion:reduce){ #fader,.loader,.card{transition:none} .card.on i{animation:none} }
 
 /* No-WebGL fallback: show the plain content */
 body.fallback{overflow:auto}
-.fallback #world,.fallback .back,.fallback .hint{display:none}
+.fallback #world,.fallback .back,.fallback .hint,.fallback .isles{display:none}
 .fallback .loader{position:static;display:block;padding:24px 16px 0;max-width:760px;margin:0 auto;letter-spacing:.04em;line-height:1.7}
 .fallback #content{position:static!important;width:auto;height:auto;overflow:visible;clip:auto;clip-path:none;white-space:normal;max-width:760px;margin:0 auto;padding:16px;line-height:1.6}
 .fallback #content a{color:var(--ember)}

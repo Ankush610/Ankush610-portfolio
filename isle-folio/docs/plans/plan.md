@@ -31,7 +31,7 @@
 
 - [x] Seven islands, bridges, walking, auto-travel, map view
 - [x] Seven rooms built from `data.json`
-- [x] Touch: joystick, swipe, pinch
+- [x] Touch: island card strip (top view only), swipe, pinch
 - [x] Two modes: walk (WASD) and top view (pick an island, the camera circles it while the wizard walks to the door, a second press goes in)
 - [x] Plain-text / no-WebGL fallback
 - [ ] Résumé PDF in `resume/`

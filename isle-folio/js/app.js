@@ -13,11 +13,12 @@ export function startApp({hero, flies, debris, labelSprites, doorRing}){
 const {renderer, scene, camera, hemi, moon, keyL, fillL} = E, canvas = renderer.domElement;
 
 /* ---------- State ---------- */
-// top: top-view mode (pick an island, the camera circles it while the wizard walks to its door; a second press goes in) vs walking with WASD
-let current = 'home', near = null, top = false, tour = null, tourA = 0, mode = 'world', room = null, busy = false, diving = null;
+// top: top-view mode (pick an island, the camera circles it while the wizard walks to its door; a second press goes in) vs walking with WASD.
+// Touch screens stay in top view and pick islands from a swipeable card strip instead of walking.
+let current = 'home', near = null, top = touch, tour = null, tourA = 0, mode = 'world', room = null, busy = false, diving = null;
 const camTarget = new V3(), camPos = new V3(), wantTarget = new V3(), wantPos = new V3();
 const backBtn = document.getElementById('backBtn'), hint = document.getElementById('hint'), fader = document.getElementById('fader'), live = document.getElementById('live');
-const enterBtn = document.getElementById('enterBtn'), stickEl = document.getElementById('stick'), modeBtn = document.getElementById('modeBtn');
+const enterBtn = document.getElementById('enterBtn'), modeBtn = document.getElementById('modeBtn'), strip = document.getElementById('isles');
 const player = createPlayer(hero, () => mode === 'world' && !top && !busy);
 
 function hud(){
@@ -33,15 +34,63 @@ function hud(){
       : (touch ? '<b>Top view</b> · tap an island to visit it' : `<b>Top view</b><span class="k">click an island to visit</span><span class="k"><kbd>1–${KEYS}</kbd> visit</span><span class="k"><kbd>M</kbd> walk mode</span>`)
       : touch ? `<b>${isl.name}</b> · drag to look · tap a sign to travel` : `<b>${isl.name}</b><span class="k"><kbd>W A S D</kbd> walk</span><span class="k"><kbd>Drag</kbd> look</span><span class="k"><kbd>E</kbd> enter</span><span class="k"><kbd>1–${KEYS}</kbd> travel</span><span class="k"><kbd>M</kbd> top view</span>`;
   }
-  modeBtn.hidden = mode !== 'world';
+  modeBtn.hidden = touch || mode !== 'world';
   modeBtn.textContent = top ? '✥ Walk mode' : '◎ Top view';
-  enterBtn.hidden = !(mode === 'world' && near && (!top || near === tour));
-  if(near) enterBtn.textContent = `Enter ${byId[near].name}` + (touch ? '' : '  ·  E');
-  if(stickEl) stickEl.hidden = !(touch && mode === 'world' && !top);
+  enterBtn.hidden = touch || !(mode === 'world' && near && (!top || near === tour));
+  if(near) enterBtn.textContent = `Enter ${byId[near].name}  ·  E`;
+  hint.hidden = touch && mode === 'world';   // the cards say it all
+  strip.hidden = !(touch && mode === 'world');
 }
 const KEYS = Math.min(9, ISLANDS.length);
+
+/* touch: one card per island, styled like the floating island signs, with a snapshot of the island.
+   Swiping centres a card and the camera circles that island; tapping the centred card goes in. */
+const cards = {};
+ISLANDS.forEach((i, n) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'card'; b.style.setProperty('--c', '#' + i.top.toString(16).padStart(6, '0'));
+  b.innerHTML = `<span class="pic"></span><span class="txt"><small>${String(n + 1).padStart(2, '0')} · ${i.sub}</small><b>${i.name}</b><i>▸ tap to go inside</i></span>`;
+  b.setAttribute('aria-label', `${i.sub}: ${i.name}`);
+  b.addEventListener('click', () => tour === i.id ? goInside(i.id) : show(i.id));
+  strip.appendChild(cards[i.id] = b);
+});
+function snapIslands(){   // render each island once into its card's picture
+  const pr = renderer.getPixelRatio(), S = 128, v = S/pr, cam = new THREE.PerspectiveCamera(34, 1, 0.1, 400);
+  const hidden = [hero, doorRing, ...labelSprites].filter(o => o.visible); hidden.forEach(o => o.visible = false);
+  const fog = [scene.fog.near, scene.fog.far]; scene.fog.near = 400; scene.fog.far = 900;
+  renderer.setScissorTest(true);
+  ISLANDS.forEach(i => {
+    const d = (i.R + 2)*2.3, fx = Math.sin(i.face), fz = Math.cos(i.face);
+    cam.position.set(i.x + fx*d, i.h + d*0.62, i.z + fz*d); cam.lookAt(i.x, i.h + 1.2, i.z);
+    renderer.setViewport(0, 0, v, v); renderer.setScissor(0, 0, v, v); renderer.render(scene, cam);
+    const c = document.createElement('canvas'); c.width = c.height = S;
+    c.getContext('2d').drawImage(canvas, 0, canvas.height - S, S, S, 0, 0, S, S);   // GL draws from the bottom-left
+    cards[i.id].querySelector('.pic').appendChild(c);
+  });
+  renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight);
+  hidden.forEach(o => o.visible = true); [scene.fog.near, scene.fog.far] = fog;
+}
+function pickTour(id){   // circle this island, with the wizard waiting at its door
+  if(tour === id || busy) return;
+  const i = byId[id]; tourA = Math.atan2(camPos.x - i.x, camPos.z - i.z); tour = id;
+  player.place(i.door, i.face);
+  ISLANDS.forEach(j => { cards[j.id].classList.toggle('on', j.id === id); cards[j.id].setAttribute('aria-current', j.id === id); });
+  live.textContent = `${i.sub}: ${i.name}. Tap again to go inside.`;
+}
+function show(id, now){ pickTour(id); const c = cards[id]; strip.scrollTo({left: c.offsetLeft - (strip.clientWidth - c.offsetWidth)/2, behavior: now || reduce ? 'auto' : 'smooth'}); }
+let scrollRaf = 0;
+strip.addEventListener('scroll', () => {
+  cancelAnimationFrame(scrollRaf);
+  scrollRaf = requestAnimationFrame(() => {
+    const mid = strip.scrollLeft + strip.clientWidth/2;
+    let best = null, bd = 1e9;
+    ISLANDS.forEach(i => { const c = cards[i.id], d = Math.abs(c.offsetLeft + c.offsetWidth/2 - mid); if(d < bd){ bd = d; best = i.id; } });
+    if(best) pickTour(best);
+  });
+}, {passive:true});
 function setLabels(){ ISLANDS.forEach(i => i.labelP.redraw({active: i.id === current, near: i.id === near})); }
 function travel(id){
+  if(touch){ if(tour === id) goInside(id); else show(id); return; }
   if(top){
     if(tour === id){ if(near === id) goInside(id); return; }   // second pick of the island being toured: go in
     const i = byId[id]; tourA = Math.atan2(camPos.x - i.x, camPos.z - i.z); tour = id;   // start the orbit from where the camera already is
@@ -51,6 +100,7 @@ function travel(id){
   live.textContent = near === id ? `At the door of ${byId[id].name}. Press E to go inside.` : `Walking to ${byId[id].name}, ${byId[id].sub}.`;
 }
 function setTop(on){
+  if(touch) return;   // touch screens always stay in top view
   top = on; tour = null; zoom = 1; hud();
   live.textContent = on ? 'Top view. Pick an island to visit.' : 'Walk mode.';
 }
@@ -100,11 +150,12 @@ function leaveRoom(){
   if(busy || mode !== 'room') return; busy = true;
   fader.classList.add('on');
   setTimeout(() => {
-    const id = room.id; room.group.visible = false; room = null; mode = 'world'; setLights(null); zoom = zoomCur = 1; tour = null;   // top view comes back out to the whole map
+    const id = room.id; room.group.visible = false; room = null; mode = 'world'; setLights(null); zoom = zoomCur = 1; tour = null;   // top view comes back out to the whole map; touch stays on that island's card
     hero.userData.inRoom = false; hero.scale.setScalar(HERO_SCALE.world);
     player.place(byId[id].door, byId[id].face);   // step out of the door, camera looking back at the building
+    hud(); busy = false; if(touch) show(id, true);
     desired(); camTarget.copy(wantTarget); camPos.copy(wantPos);
-    hud(); fader.classList.remove('on'); busy = false; canvas.focus({preventScroll:true});
+    fader.classList.remove('on'); canvas.focus({preventScroll:true});
   }, reduce ? 30 : 380);
 }
 backBtn.addEventListener('click', leaveRoom);
@@ -218,7 +269,8 @@ function desired(){
   const fk = top ? k : 1; scene.fog.near = 70*fk; scene.fog.far = 190*fk;   // portrait pulls the top view back: push the fog back with it
   if(top && tour){   // circle the chosen island, framed so the whole of it stays in view
     const i = byId[tour], d = (i.R + 3)*2.6*k;
-    wantTarget.set(i.x, i.h + 1, i.z); wantPos.set(i.x + Math.sin(tourA)*d, i.h + 1 + d*0.85, i.z + Math.cos(tourA)*d);
+    // touch: aim a little low so the island sits above the cards
+    wantTarget.set(i.x, i.h + 1 - (touch ? d*0.07 : 0), i.z); wantPos.set(i.x + Math.sin(tourA)*d, i.h + 1 + d*0.85, i.z + Math.cos(tourA)*d);
   }
   else if(top){ wantTarget.set(0, 0, 4); wantPos.set(0, 50*k, 48*k); }   // centred a little south: the near islands draw bigger
   else player.camera(wantPos, wantTarget, camera.aspect);
@@ -239,6 +291,7 @@ function whereAmI(){
 
 { const [x, z] = home.rot(0, home.obs + 3.2); player.place(new V3(home.x + x, home.topY(x, z), home.z + z), home.face); }   // on the cleared path in front of the door
 setLabels(); hud();
+if(touch){ snapIslands(); show('home', true); }
 desired(); camTarget.copy(wantTarget); camPos.copy(wantPos).add(new V3(0, 30, 30));
 
 const tmp = new V3(), clock = new THREE.Clock();
@@ -286,7 +339,9 @@ const at = new URLSearchParams(location.search).get('at');
 if(byId[at] && !byId[deep]){
   const i = byId[at], d = i.door, fx = Math.sin(i.face), fz = Math.cos(i.face);
   const k = [3, 2, 1.5, 1, 0].find(k => groundY(d.x + fx*k, d.z + fz*k) !== null) ?? 0;   // farthest walkable spot in front of the door
-  player.place(new V3(d.x + fx*k, groundY(d.x + fx*k, d.z + fz*k) ?? d.y, d.z + fz*k), i.face); desired(); camTarget.copy(wantTarget); camPos.copy(wantPos);
+  if(touch) show(at, true);
+  else player.place(new V3(d.x + fx*k, groundY(d.x + fx*k, d.z + fz*k) ?? d.y, d.z + fz*k), i.face);
+  desired(); camTarget.copy(wantTarget); camPos.copy(wantPos);
 }
 hooks.announce = msg => { live.textContent = msg; };
 requestAnimationFrame(frame);
