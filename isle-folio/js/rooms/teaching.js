@@ -17,6 +17,37 @@ function balanced(ctx, text, maxW){
 }
 function hitPlane(w, h){ return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({visible:false})); }
 const fx = (geo, m, x=0, y=0, z=0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); return o; };
+// one draw call for many copies: each entry [x, y, z, rx, ry, rz, sx, sy, sz, color?]
+const _o = new THREE.Object3D(), _c = new THREE.Color();
+function inst(geo, m, list, shadow = true){
+  const im = new THREE.InstancedMesh(geo, m, list.length);
+  list.forEach((p, i) => {
+    _o.position.set(p[0], p[1], p[2]); _o.rotation.set(p[3] || 0, p[4] || 0, p[5] || 0);
+    const s = p[6] || 1; _o.scale.set(s, p[7] || s, p[8] || s); _o.updateMatrix(); im.setMatrixAt(i, _o.matrix);
+    if(p[9] !== undefined) im.setColorAt(i, _c.set(p[9]));
+  });
+  im.castShadow = shadow; im.receiveShadow = true; return im;
+}
+// a laurel wreath (open at the bottom, tied with a ribbon) as one instanced mesh of leaves
+const leafGeo = new THREE.OctahedronGeometry(1, 0);
+function laurel(r, m, tie){
+  const w = new THREE.Group(), leaves = [];
+  [-1, 1].forEach(s => { for(let i = 0; i < 9; i++){
+    const f = 0.42 + i*0.29, x = s*Math.sin(f)*r, y = -Math.cos(f)*r, out = i % 2 ? 1.18 : 0.84;
+    leaves.push([x*out, y*out, 0, 0, 0, s*(f - Math.PI/2 + (i % 2 ? 0.45 : -0.45)), r*0.13, r*0.32, r*0.06]);
+  }});
+  w.add(inst(leafGeo, m, leaves, false));
+  if(tie) w.add(fx(box(r*0.34, r*0.22, r*0.12), tie, 0, -r*0.98, 0.02));
+  return w;
+}
+// soft additive glow card (no new lights)
+let haloTex;
+function halo(color, size){
+  if(!haloTex){ const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); haloTex = new THREE.CanvasTexture(c); }
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:haloTex, color, transparent:true, opacity:0.55, blending:THREE.AdditiveBlending, depthWrite:false}));
+  s.scale.set(size, size, 1); s.raycast = () => {}; return s;
+}
 
 export default function build(){
   const g = new THREE.Group(), talks = DATA.talks || [], works = DATA.workshops || [], honours = DATA.achievements || [];
@@ -97,6 +128,73 @@ export default function build(){
     g.add(mesh(box(0.55, 0.1, 0.4), cush[(t + k) % 3], s*Math.sin(a)*r, (t + 1)*0.5 + 0.05, Math.cos(a)*r - 1).rotateY(s*a));
   });
 
+  /* ---------- set dressing: stage wall, capitals, garlands, frieze, paving, aisles, parapet, braziers ---------- */
+  const colX = []; for(let x = -Math.floor(stageHalf - 0.6); x <= stageHalf - 0.6; x += 2) colX.push(x);
+  const jointM = mat(0x7d725d), leafM = mat(0x4f7a3a), wallM = mat(0x958a73), whiteM = mat(0xffffff);
+  // scaenae frons: a wall behind the colonnade with pilasters and string courses (only its top and flanks show around the board)
+  g.add(mesh(box(stageHalf*2 + 0.4, ET + 0.5, 0.4), wallM, 0, (ET + 0.5)/2, CZ - 0.75));
+  g.add(inst(box(0.55, ET - SH, 0.14), stoneD, colX.slice(1).map(x => [x - 1, SH + (ET - SH)/2, CZ - 0.5])));
+  g.add(inst(box(stageHalf*2 + 0.4, 0.14, 0.22), stoneL, [[0, SH + 2.6, CZ - 0.48], [0, SH + 5.0, CZ - 0.48]]));
+  // column capitals (abacus + echinus), base tori and the dentil course under the cornice
+  g.add(inst(box(0.86, 0.16, 0.86), stoneL, colX.map(x => [x, ET - 0.08, CZ])));
+  g.add(inst(cyl(0.44, 0.31, 0.24, 10), stoneL, colX.map(x => [x, ET - 0.28, CZ])));
+  g.add(inst(new THREE.TorusGeometry(0.34, 0.06, 4, 12), stoneL, colX.map(x => [x, SH + 0.27, CZ, Math.PI/2])));
+  const dent = []; for(let x = -stageHalf + 0.35; x < stageHalf - 0.2; x += 0.4) dent.push([x, ET + 0.47, CZ + 0.55]);
+  g.add(inst(box(0.18, 0.12, 0.12), stoneL, dent, false));
+  // laurel garlands swagged between the columns above the board, gold rosettes where they're pinned
+  const swag = colX.slice(1).map(x => x - 1).filter(x => Math.abs(x) < half);
+  g.add(inst(new THREE.TorusGeometry(0.78, 0.09, 4, 12, Math.PI), leafM, swag.map(x => [x, ET - 0.12, CZ + 0.62, 0, 0, Math.PI, 1, 0.5, 1]), false));
+  g.add(inst(cyl(0.11, 0.11, 0.06, 8), gold, [...new Set(swag.flatMap(x => [x - 0.8, x + 0.8]))].map(x => [x, ET - 0.12, CZ + 0.66, Math.PI/2]), false));
+  // gold laurel in the pediment, with a star that slowly glints
+  const crest = laurel(0.42, gold); crest.position.set(0, ET + 1.08, CZ + 0.6); g.add(crest);
+  const starM = new THREE.MeshStandardMaterial({color:0xffe08a, emissive:0xffd27a, emissiveIntensity:1.2, flatShading:true});
+  const star = fx(new THREE.OctahedronGeometry(0.13), starM, 0, ET + 1.1, CZ + 0.62); star.scale.set(1, 1.4, 0.5); g.add(star);
+  // stage: slab joints on the deck, relief panels on the front, a second step
+  const deck = [], SF = SZ + SD/2;
+  for(let k = 1; k < 4; k++) deck.push([0, SH + 0.105, SZ - SD/2 + k*SD/4, 0, 0, 0, 1, 1, 1]);
+  for(let k = 0; k < 4; k++) for(let x = -stageHalf + 1.1 + (k % 2)*0.8; x < stageHalf; x += 1.6) deck.push([x, SH + 0.105, SZ - SD/2 + (k + 0.5)*SD/4, 0, Math.PI/2, 0, SD/4/(stageHalf*2), 1, 1]);
+  g.add(inst(box(stageHalf*2, 0.012, 0.035), stoneD, deck, false));
+  const relief = []; for(let x = 3.75; x < stageHalf - 0.4; x += 1.3) relief.push([x, SH*0.5, SF + 0.03], [-x, SH*0.5, SF + 0.03]);
+  g.add(inst(box(1.0, 0.3, 0.07), stoneL, relief, false));
+  g.add(inst(new THREE.TorusGeometry(0.09, 0.025, 4, 8), gold, relief.map(p => [p[0], p[1], p[2] + 0.05]), false));
+  g.add(mesh(box(6.8, SH/4, 0.5), stoneL, 0, SH/8, SF + 0.95));
+  // orchestra: flagstone joints, a drain channel at the foot of the stands, a tiled ring inside the inlay
+  const flags = [];
+  for(let k = 0; k < 40; k++){ const a = k/40*Math.PI*2, r = 8.15; if(Math.cos(a)*r - 1 < SF + 0.3 && Math.abs(Math.sin(a)*r) < stageHalf) continue; flags.push([Math.sin(a)*r, 0.006, Math.cos(a)*r - 1, 0, a]); }
+  g.add(inst(box(0.05, 0.012, 2.5), jointM, flags, false));
+  const gut = mesh(new THREE.TorusGeometry(9.45, 0.12, 3, 64), mat(0x4a4236), 0, 0.0, -1); gut.rotation.x = Math.PI/2; gut.scale.z = 0.4; g.add(gut);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(6.85, 6.95, 64), jointM); ring.rotation.x = -Math.PI/2; ring.position.set(0, 0.007, -1); g.add(ring);
+  const tiles = []; for(let k = 0; k < 36; k++){ const a = k/36*Math.PI*2; tiles.push([Math.sin(a)*4.45, 0.055, Math.cos(a)*4.45 + 0.9, 0, a, 0, 1, 1, 1, [0x8a4a3a, 0xc9bc9c, 0x5a6a7a, 0xc9bc9c][k % 4]]); }
+  g.add(inst(box(0.74, 0.012, 0.16), whiteM, tiles, false));
+  // aisle stairs: half-steps up each stand, and a parapet with coping along the top tier
+  const steps = [], wallB = [], cope = [], TOPR = 9.6 + 6*0.95;
+  [-1, 1].forEach(s => {
+    [1.265, 1.835].forEach(a => { for(let t = 0; t < 6; t++){ const r = 9.6 + t*0.95 - 0.24; steps.push([s*Math.sin(a)*r, t*0.5 + 0.125, Math.cos(a)*r - 1, 0, s*a]); } });
+    for(let k = 0; k < 16; k++){ const a = 0.9 + (k + 0.5)*1.45/16, r = TOPR - 0.17; wallB.push([s*Math.sin(a)*r, 3.35, Math.cos(a)*r - 1, 0, s*a]); cope.push([s*Math.sin(a)*r, 3.74, Math.cos(a)*r - 1, 0, s*a]); }
+  });
+  g.add(inst(box(0.9, 0.25, 0.48), stoneL, steps));
+  g.add(inst(box(1.4, 0.7, 0.32), stoneD, wallB));
+  g.add(inst(box(1.46, 0.1, 0.46), stoneL, cope, false));
+  // notebooks and handouts left on the benches (deterministic scatter, clear of the aisles)
+  const left = [];
+  for(let i = 0; i < 16; i++){
+    const s = i % 2 ? 1 : -1, t = Math.floor(((i*0.618) % 1)*6), a = 1.0 + ((i*0.377) % 1)*1.1; if(Math.abs(a - 1.265) < 0.08 || Math.abs(a - 1.835) < 0.08) continue;
+    const r = 9.6 + t*0.95 + 0.3 + ((i*0.29) % 1)*0.3;
+    left.push([s*Math.sin(a)*r, (t + 1)*0.5 + 0.03, Math.cos(a)*r - 1, 0, s*a + (i % 3 - 1)*0.4, 0, 1, 1, 1, [0xefe6cf, 0x2f6a8a, 0xa8382a, 0xd8a640][i % 4]]);
+  }
+  g.add(inst(box(0.36, 0.06, 0.26), whiteM, left, false));
+  // braziers on the parapet: bronze bowls on short stands, flickering flames + soft halos (light without lights)
+  const brz = [[-1, 1.05], [1, 1.05]].map(([s, a]) => [s*Math.sin(a)*(TOPR - 0.17), 3.79, Math.cos(a)*(TOPR - 0.17) - 1]);
+  const bronze = mat(0x6a4a2a, {metalness:0.5, roughness:0.5});
+  g.add(inst(cyl(0.08, 0.18, 0.7, 6), bronze, brz.map(p => [p[0], p[1] + 0.35, p[2]])));
+  g.add(inst(cyl(0.42, 0.22, 0.3, 8), bronze, brz.map(p => [p[0], p[1] + 0.82, p[2]])));
+  const flameO = glow(0xff8a2a, 1.8), flameI = glow(0xffe08a, 2.4), flames = brz.map(p => {
+    const f = new THREE.Group(); f.position.set(p[0], p[1] + 0.97, p[2]); g.add(f);
+    f.add(fx(new THREE.ConeGeometry(0.3, 0.75, 6), flameO, 0, 0.37, 0), fx(new THREE.ConeGeometry(0.16, 0.5, 5), flameI, 0, 0.27, 0.02));
+    const h = halo(0xffa040, 2.6); h.position.set(p[0], p[1] + 1.35, p[2]); g.add(h); f.userData.h = h;
+    f.children.forEach(c => { c.raycast = () => {}; }); return f;
+  });
+
   /* ---------- chalkboard ---------- */
   const chalk = new THREE.Group(); g.add(chalk);
   chalk.add(mesh(box(bw + 0.4, bh + 0.4, 0.2), mat(0x5a3a26), 0, BY, BZ - 0.12));
@@ -128,6 +226,11 @@ export default function build(){
   });
   board.position.set(0, BY, BZ); chalk.add(board);
   chalk.add(mesh(box(bw, 0.08, 0.25), mat(0x5a3a26), 0, BY - bh/2 - 0.2, BZ + 0.1));
+  // on the tray: chalk sticks and a felt eraser
+  const TY = BY - bh/2 - 0.16 + 0.025;
+  chalk.add(inst(cyl(0.025, 0.025, 0.24, 5), whiteM, [-half + 1.9, -half + 2.2, -1.1, 0.4, half - 2.6, half - 2.25, half - 1.4].map((x, i) =>
+    [x, TY, BZ + 0.12 + (i % 2)*0.06, 0, (i % 3)*0.3, Math.PI/2, 1, 1, 1, [0xf4f1ea, 0xf3d58a, 0xf4f1ea, 0xe8a0a0, 0xf4f1ea, 0xa8d0e8, 0xf4f1ea][i]]), false));
+  chalk.add(mesh(box(0.42, 0.06, 0.15), mat(0x3a3a3a), -half + 1.05, TY + 0.005, BZ + 0.13), mesh(box(0.42, 0.05, 0.15), woodM, -half + 1.05, TY + 0.06, BZ + 0.13));
   const slotX = sl => -half + (PX + sl*(CW + GAP) + CW/2)/100;
   const hits = Array.from({length:vis}, (_, sl) => { const h = hitPlane(CW/100 + 0.3, bh); h.position.set(slotX(sl), BY, BZ + 0.02); chalk.add(h); return h; });
   const turnTo = pg => hits.forEach((h, sl) => { h.userData.item = chalkItems[pg*VC + sl] || null; });
@@ -202,6 +305,8 @@ export default function build(){
     grp.add(mesh(box(PW + 0.5, 0.22, 1.7), stoneD, 0, 0.11, 0));
     grp.add(mesh(box(PW, PH, 1.2), mat(0x8a8172), 0, 0.22 + PH/2, 0));
     grp.add(mesh(box(PW + 0.12, 0.1, 1.32), glow(0xd8a640, 0.45), 0, 0.22 + PH + 0.05, 0));
+    grp.add(mesh(box(PW + 0.2, 0.12, 1.3), stoneL, 0, 0.3, 0), mesh(box(PW + 0.2, 0.12, 1.28), stoneL, 0, 0.22 + PH - 0.1, 0));   // base and cap mouldings
+    grp.add(inst(cyl(0.07, 0.07, PH - 0.3, 6), stoneL, [-1, 1].flatMap(sx => [-1, 1].map(sz => [sx*(PW/2 + 0.02), 0.22 + PH/2, sz*0.52])), false));   // corner colonnettes
     const top = 0.22 + PH + 0.1, scroll = new THREE.Group(), trophy = new THREE.Group(); scroll.position.y = trophy.position.y = top; grp.add(scroll, trophy);
     scroll.add(mesh(box(1.5, 0.12, 0.7), mat(0x5a3a26), 0, 0.06, 0));
     const sc = mesh(cyl(0.2, 0.2, 1.4, 14), mat(0xefe6cf), 0, 0.34, 0); sc.rotation.z = Math.PI/2; scroll.add(sc);
@@ -260,6 +365,22 @@ export default function build(){
   const motes = new THREE.Points(mGeo, new THREE.PointsMaterial({color:0xffd27a, size:0.07, transparent:true, opacity:0.85, blending:THREE.AdditiveBlending, depthWrite:false}));
   motes.raycast = () => {}; if(honours.length) g.add(motes);
 
+  /* ---------- the speaker's lectern, off to the side of the orchestra ---------- */
+  const lect = new THREE.Group(); lect.position.set(Math.max(1, nSlots)*AS/2 + 2.1, 0, AZ + 2.5); lect.rotation.y = -0.45; g.add(lect);
+  lect.add(mesh(box(0.9, 0.14, 0.75), stoneD, 0, 0.07, 0), mesh(cyl(0.16, 0.22, 1.05, 8), woodM, 0, 0.66, 0));
+  const desk = new THREE.Group(); desk.position.set(0, 1.25, 0); desk.rotation.x = 0.38; lect.add(desk);
+  desk.add(mesh(box(0.95, 0.08, 0.7), woodM, 0, 0, 0), mesh(box(0.95, 0.1, 0.05), gold, 0, 0.04, 0.36));
+  desk.add(mesh(box(0.36, 0.03, 0.5), mat(0xefe6cf), -0.19, 0.06, 0).rotateZ(0.06), mesh(box(0.36, 0.03, 0.5), mat(0xefe6cf), 0.19, 0.06, 0).rotateZ(-0.06));
+  desk.add(mesh(box(0.03, 0.01, 0.4), mat(0xa8382a), 0.05, 0.08, 0.1));   // ribbon marker
+  lect.add(mesh(cyl(0.04, 0.04, 0.4, 5), gold, 0.36, 1.4, -0.3), mesh(new THREE.SphereGeometry(0.07, 6, 4), glow(0xffe08a, 1.6), 0.36, 1.62, -0.3));   // reading lamp
+  const lh = halo(0xffd27a, 0.9); lh.position.set(0.36, 1.62, -0.3); lect.add(lh);
+  // a potted bay laurel on each side of the orchestra mouth
+  const laurelPot = [-1, 1].map(s => [s*6.7, 0, 5.7]);
+  g.add(inst(cyl(0.3, 0.22, 0.42, 8), mat(0xa0583a), laurelPot.map(p => [p[0], 0.21, p[2]])));
+  g.add(inst(cyl(0.33, 0.33, 0.06, 8), mat(0x7a4028), laurelPot.map(p => [p[0], 0.42, p[2]]), false));
+  g.add(inst(cyl(0.04, 0.06, 0.6, 5), woodM, laurelPot.map(p => [p[0], 0.7, p[2]])));
+  g.add(inst(new THREE.IcosahedronGeometry(0.42, 0), leafM, laurelPot.flatMap((p, k) => [[p[0], 1.12, p[2], 0.3, k, 0, 1, 0.9], [p[0] + 0.17, 1.42, p[2] - 0.07, 0, k + 1, 0, 0.7], [p[0] - 0.14, 1.55, p[2] + 0.1, 0.5, k, 0, 0.5]])));
+
   /* ---------- order: left to right as seen ---------- */
   const L = easels.filter(e => e.side < 0).sort((a, b) => a.x - b.x), R = easels.filter(e => e.side > 0).sort((a, b) => a.x - b.x);
   const paged = NA > AC, AL = awards.filter(a => paged || a.x < 0), AR = awards.filter(a => !paged && a.x >= 0);   // paged honours stay together, before the board
@@ -270,7 +391,11 @@ export default function build(){
   const soft = items.map(it => chalkItems.includes(it) ? frame
     : view(frame.c.clone().lerp(it.view.c, 0.55), 11.5, 5.4, frame.n.clone().lerp(it.view.n, 0.35).normalize()));
   const room = {group:g, items, start:items.indexOf(chalkItems[0]),
-    view:narrow => narrow ? room.items[room.focus].view : soft[room.focus],
+    view:narrow => {
+      // portrait frames one thing at a time: show an easel only while it is focused, so no half-card peeks in at the edge
+      const it = room.items[room.focus]; wings.forEach(w => { if(w) w.grp.visible = !narrow || it.side === w.side; });
+      return narrow ? it.view : soft[room.focus];
+    },
     light:{key:[0, 8, 5, 0xfff0d0, 1.5], fill:[0, 4, -3, 0xffd28a, 0.6]},
     heroSpot:new V3(-(Math.max(1, nSlots)*AS/2 + 4.1), 0.05, AZ + 1.7)};
   if(!reduce) room.update = t => {
@@ -278,6 +403,8 @@ export default function build(){
     banners.forEach((b, k) => { b.rotation.x = Math.sin(t*0.7 + k*2)*0.035; });
     for(let i = 0; i < M; i++){ const s = seeds[i], u = (t*0.25 + s[1]/5) % 1; mPos[i*3] = s[0] + Math.sin(t*0.8 + s[3])*0.15; mPos[i*3 + 1] = 1.7 + u*5; mPos[i*3 + 2] = AZ + s[2]; }
     mGeo.attributes.position.needsUpdate = true;
+    flames.forEach((f, k) => { const q = 1 + Math.sin(t*9 + k*2.1)*0.08 + Math.sin(t*23 + k)*0.05; f.scale.set(2 - q, q*1.08, 2 - q); f.userData.h.material.opacity = 0.42 + (q - 1)*1.5; });
+    starM.emissiveIntensity = 1.1 + Math.max(0, Math.sin(t*0.9))**8*1.6; star.rotation.y = t*0.6;
   };
   return room;
 }

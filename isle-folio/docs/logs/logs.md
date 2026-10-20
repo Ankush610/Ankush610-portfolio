@@ -5,6 +5,25 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Two phone fixes: Lyceum easel peek, Runespire title overlap
+- `js/rooms/teaching.js`: in portrait, the workshop easels are only shown while one of them is focused, so a half-cut easel no longer peeks in beside the chalkboard and trophies.
+- `js/rooms/skills.js`: the legend starts in place on the first frame instead of sliding up from the floor, and the focused ring's title fades in only once the legend has nearly arrived, so the moving legend never crosses it (it did for about half a second on every ring change).
+- Why: both read as layout bugs on phones.
+- Checked on a phone (390×844, touch): Runespire on entry and through a ring change, frame by frame; Lyceum stepped through trophy, easel, easel, trophy; desktop views of both rooms unchanged; no page errors.
+
+## 2026-10-20 — Richer room interiors (all seven rooms)
+- One pass per room in `js/rooms/<id>.js`. Each room only gained set dressing and architecture; items, views, heroSpot, light and DATA reads are unchanged.
+  - **Hearthstone** (`home.js`): instanced flagstone floor and ashlar walls, timber wainscot and roof beams, an iron candle wheel, swaying banners, sconces, braziers with sparks, corner bookcases, a woven hearth rug.
+  - **Oakreach** (`journey.js`): plank floor with a runner rug, a taller carved back wall with gable trusses and a journey map, full-height posts with roots and a leafy canopy, arched windows with candles, a waypost, a travel chest, a milestone, a spinning globe, fireflies. Set dressing is baked into one mesh per material, so the room now has fewer meshes than before.
+  - **Forgewell** (`projects.js`): forge hall detail: tool racks, chains and hooks, ingot crates, bellows, a grindstone, workbenches, embers.
+  - **Runespire** (`skills.js`): rune-carved stone, floating crystals, arcane floor circles, star charts, cool braziers, orbiting motes.
+  - **Lorehall** (`writing.js`): varied shelves and books, ladders, a reading table and chair, scrolls, a globe, candles.
+  - **Lyceum** (`teaching.js`): tiered seating, columns, a laurel crest and garlands, a lectern, trophy plinths, banners.
+  - **Beacon Point** (`contact.js`): lantern-room lens, spiral stair, bunting, life rings, a ship wheel, a telescope, crates, a compass rose.
+- No new lights or network textures; repeated props are instanced or merged; animations are skipped under reduced motion.
+- Why: the interiors felt bare next to the outside world.
+- Checked: every room on desktop (1280×720) and phone (390×844, touch), default view and one step, with no page errors. Two quirks seen on phones were already on `main` and are unchanged: Lyceum's first view crops the left workshop card, and Runespire's ring title overlaps the legend while it unfolds.
+
 ## 2026-10-20 — Navigation UI styled like the island signs
 - `js/app.js`: island cards now show a snapshot of their island, rendered once at load (`snapIslands()`: each island framed from its door side into a 128px scissored viewport, copied to a canvas; hero, labels and door ring hidden, fog pushed back). Card text matches the floating signs: mono uppercase `03 · PROJECTS`, serif island name, and `▸ TAP TO GO INSIDE` in ember on the centred card.
 - `css/style.css`: cards, the Gateway/Leave buttons and the hint bar use the sign panel (`--sign`, 2px border, 14px radius, serif button text); the centred card gets the ember border and glow the 3D focus uses.
