@@ -1,29 +1,28 @@
 <!doctype html>
-<!-- Gateway: pick the classic terminal portfolio or the 3D Isle Folio. Text is static so link previews can read it. -->
+<!-- Gateway: pick the classic Office portfolio or the 3D Isle Folio. Text is static so link previews can read it. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Ankush Sonawane — Portfolio</title>
-<meta name="description" content="Ankush Sonawane, AI/ML & HPC engineer. Pick a way in: a retro terminal portfolio or a walkable 3D world.">
+<meta name="description" content="Ankush Sonawane, AI/ML & HPC engineer. Pick a way in: a bold, flat classic portfolio or a walkable 3D world.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Ankush Sonawane — Portfolio">
-<meta property="og:description" content="AI/ML & HPC engineer. Pick a way in: a retro terminal or a walkable 3D world of floating islands.">
+<meta property="og:description" content="AI/ML & HPC engineer. Pick a way in: a bold, flat classic site or a walkable 3D world of floating islands.">
 <!-- ponytail: relative og:image; most link scrapers need an absolute URL, set it once the site has a domain -->
 <meta property="og:image" content="shared/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="shared/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Young+Serif&family=Figtree:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Press+Start+2P&family=Space+Grotesk:wght@700&family=Young+Serif&family=Figtree:wght@400;600;700&display=swap">
 <style>
 :root{--bg:#07080d;--ink:#ece7da;--muted:#8b93a7;--line:rgba(173,186,222,.14);
-  --teal:#00e5ff;--green:#4db840;--amber:#ffb300;--pink:#ff4081;
-  --night:#0a0f1e;--ember:#f0b54a}
+  --ember:#f0b54a}
 *{box-sizing:border-box;margin:0}
 html,body{min-height:100%}
 body{background:var(--bg);color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif;
-  background-image:radial-gradient(60% 50% at 15% 30%,rgba(0,229,255,.07),transparent 70%),radial-gradient(60% 50% at 85% 70%,rgba(240,181,74,.08),transparent 70%);
+  background-image:radial-gradient(60% 50% at 15% 30%,rgba(136,212,152,.08),transparent 70%),radial-gradient(60% 50% at 85% 70%,rgba(240,181,74,.08),transparent 70%);
   display:grid;place-items:center;padding:clamp(24px,6vw,64px) 16px}
 main{width:100%;max-width:1040px}
 header{text-align:center;margin-bottom:clamp(28px,5vw,48px)}
@@ -41,27 +40,43 @@ h1{font:700 clamp(30px,5vw,48px)/1.1 Figtree,sans-serif;margin:10px 0 8px;letter
 .go{font-weight:600;font-size:14px;white-space:nowrap;opacity:.7;transition:opacity .3s,transform .3s}
 .door:hover .go,.door:focus-visible .go{opacity:1;transform:translateX(4px)}
 
-/* ---- terminal door ---- */
-.term .screen{background:#05060a;font-family:VT323,monospace;color:var(--teal)}
-.term canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.28}
-.term .screen::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px),radial-gradient(120% 90% at 50% 50%,transparent 55%,rgba(0,0,0,.65))}
-.bar{position:relative;display:flex;gap:7px;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(0,229,255,.18);background:rgba(0,229,255,.05);font:13px 'Share Tech Mono',monospace;color:#5e8f99}
-.bar i{width:10px;height:10px;border-radius:50%;background:var(--pink)}.bar i+i{background:var(--amber)}.bar i+i+i{background:var(--green);margin-right:8px}
-.out{position:relative;padding:18px 20px;font-size:clamp(20px,2.3vw,24px);line-height:1.25;text-shadow:0 0 6px rgba(0,229,255,.55)}
-.out p{white-space:nowrap;overflow:hidden}
-.ps{color:var(--green)}.ok{color:var(--green)}.dim{color:#4a7d87}.amb{color:var(--amber)}
-.typed{display:inline-block;vertical-align:bottom;width:0;overflow:hidden;animation:type 1.4s steps(22) .4s forwards}
-.l2,.l3,.l4,.l5{opacity:0;animation:show 0s forwards}
-.l2{animation-delay:2s}.l3{animation-delay:2.3s}.l4{animation-delay:2.6s}.l5{animation-delay:3s}
-.cur{display:inline-block;width:.55em;height:1em;background:var(--teal);vertical-align:-.12em;animation:blink 1s steps(1) infinite;box-shadow:0 0 8px var(--teal)}
-@keyframes type{to{width:22ch}}
-@keyframes show{to{opacity:1}}
+/* ---- office door: a mini of static-portfolio's neubrutalist "Office" look ---- */
+.office .screen{background:#88D498;border:2.5px solid #000;border-radius:4px;box-shadow:6px 6px 0 #000;color:#14120e;
+  font:11px 'Share Tech Mono',monospace;padding:clamp(12px,2vw,18px);display:flex;flex-direction:column;gap:10px;
+  transition:transform .15s,box-shadow .15s}
+.office:hover .screen,.office:focus-visible .screen{transform:translate(-3px,-3px);box-shadow:10px 10px 0 #000}
+.office:hover,.office:focus-visible{transform:none}
+.m-box{background:#FFFDF5;border:2px solid #000;box-shadow:3px 3px 0 #000}
+.m-head{background:#B8A9FA;display:flex;justify-content:space-between;align-items:center;padding:10px 12px}
+.m-logo{font:clamp(18px,2.4vw,24px) VT323,monospace;letter-spacing:.35em;font-weight:700}
+.m-badge{font:7px 'Press Start 2P',monospace;background:#2f9e57;color:#fff;border:2px solid #000;padding:5px 6px}
+.m-nav{display:flex;font:7px 'Press Start 2P',monospace}
+.m-nav i{font-style:normal;padding:7px 9px;border-right:2px solid #000}
+.m-nav i:nth-child(1){animation:tab 6s steps(1) infinite}
+.m-nav i:nth-child(2){animation:tab 6s steps(1) -4.5s infinite}
+.m-nav i:nth-child(3){animation:tab 6s steps(1) -3s infinite}
+.m-nav i:nth-child(4){animation:tab 6s steps(1) -1.5s infinite}
+@keyframes tab{0%{background:#FFD23F}25%,100%{background:transparent}}
+.m-grid{flex:1;display:grid;grid-template-columns:2fr 1fr;grid-template-rows:auto 1fr;gap:10px;min-height:0}
+.m-profile{display:flex;gap:12px;align-items:center;padding:12px}
+.m-av{flex:none;width:46px;height:46px;display:grid;place-items:center;background:#FFD23F;border:2px solid #000;box-shadow:3px 3px 0 #000;font:11px 'Press Start 2P',monospace}
+.m-profile b{display:block;font:20px VT323,monospace;letter-spacing:.06em}
+.m-profile b::after{content:"";display:inline-block;width:.5em;height:.8em;background:#14120e;margin-left:3px;vertical-align:-.05em;animation:blink 1s steps(1) infinite}
+.m-profile small{display:block;color:#c22a45;margin:2px 0 6px}
+.m-tags em{font-style:normal;display:inline-block;padding:2px 5px;margin:0 4px 4px 0;border:1.5px solid #000;background:#74B9FF}
+.m-tags em:nth-child(2){background:#FF6B6B}.m-tags em:nth-child(3){background:#FFA552}
+.m-side{grid-row:span 2;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.m-side b,.m-stat small{font:7px 'Press Start 2P',monospace;letter-spacing:.08em}
+.m-side b{padding-bottom:6px;border-bottom:2px solid #000}
+.m-side span{border-bottom:1.5px dashed #000;padding-bottom:4px}
+.m-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.m-stat{display:grid;place-items:center;align-content:center;gap:4px;padding:8px;transition:transform .15s,box-shadow .15s}
+.m-stat b{font:28px VT323,monospace;color:#1f66c2;line-height:1}
+.m-stat+.m-stat b{color:#c22a45}
+.office:hover .m-stat,.office:focus-visible .m-stat{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
 @keyframes blink{50%{opacity:0}}
-.term:hover .screen,.term:focus-visible .screen{border-color:rgba(0,229,255,.6);box-shadow:0 0 0 1px rgba(0,229,255,.25),0 0 40px rgba(0,229,255,.25)}
-.term:hover .out,.term:focus-visible .out{animation:flicker 2.5s infinite}
-@keyframes flicker{0%,100%{opacity:1}3%{opacity:.82}6%{opacity:1}48%{opacity:.94}50%{opacity:1}}
-.term .cap b{font:24px VT323,monospace;color:var(--teal);letter-spacing:.04em}
+@media (max-width:520px){.m-stats{display:none}.m-grid{grid-template-rows:1fr}.m-side{grid-row:auto}}
+.office .cap b{font:13px 'Press Start 2P',monospace;color:#14120e;background:#FFD23F;border:2px solid #000;box-shadow:3px 3px 0 #000;padding:7px 10px}
 
 /* ---- island door ---- */
 .isle .screen{background:linear-gradient(#070b19 0%,#0f1838 45%,#2a2a52 75%,#5a3f4f 100%)}
@@ -92,7 +107,7 @@ h1{font:700 clamp(30px,5vw,48px)/1.1 Figtree,sans-serif;margin:10px 0 8px;letter
 footer{margin-top:40px;text-align:center;font-size:14px;color:var(--muted)}
 footer a{color:inherit}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}
-  .typed{width:22ch}.l2,.l3,.l4,.l5{opacity:1}}
+}
 </style>
 </head>
 <body>
@@ -104,19 +119,17 @@ footer a{color:inherit}
   </header>
 
   <div class="doors">
-    <a class="door term" href="static-portfolio/" aria-label="Enter the classic terminal portfolio">
+    <a class="door office" href="static-portfolio/" aria-label="Enter Office, the classic portfolio">
       <div class="screen" aria-hidden="true">
-        <canvas id="rain"></canvas>
-        <div class="bar"><i></i><i></i><i></i>ankush@portfolio: ~</div>
-        <div class="out">
-          <p><span class="ps">$</span> <span class="typed">open portfolio --classic</span></p>
-          <p class="l2"><span class="ok">[ OK ]</span> <span class="dim">mounting</span> /about /skills</p>
-          <p class="l3"><span class="ok">[ OK ]</span> <span class="dim">mounting</span> /projects /blog</p>
-          <p class="l4"><span class="amb">&gt;</span> ready. press enter</p>
-          <p class="l5"><span class="ps">$</span> <span class="cur"></span></p>
+        <div class="m-box m-head"><span class="m-logo">PORTFOLIO</span><span class="m-badge">I'm ONLINE!</span></div>
+        <div class="m-box m-nav"><i>HOME</i><i>SKILLS</i><i>PROJECTS</i><i>BLOG</i></div>
+        <div class="m-grid">
+          <div class="m-box m-profile"><span class="m-av">AS</span><div><b>Ankush Sonawane</b><small>&gt;&gt; AI/ML &amp; HPC engineer</small><span class="m-tags"><em>vLLM</em><em>Slurm</em><em>CUDA</em></span></div></div>
+          <div class="m-box m-side"><b>LINKS</b><span>› GitHub</span><span>› Medium</span><span>› E-mail</span></div>
+          <div class="m-stats"><div class="m-box m-stat"><b>14+</b><small>GPU containers</small></div><div class="m-box m-stat"><b>10+</b><small>Workshops</small></div></div>
         </div>
       </div>
-      <div class="cap"><b>&gt; Terminal</b><small>Classic site, quick to skim</small><span class="go">Enter →</span></div>
+      <div class="cap"><b>Office</b><small>Classic site, quick to skim</small><span class="go">Enter →</span></div>
     </a>
 
     <a class="door isle" href="isle-folio/" aria-label="Enter Isle Folio, the walkable 3D portfolio">
@@ -153,7 +166,7 @@ footer a{color:inherit}
         </svg>
       </div>
       <div class="cap"><b>Isle Folio</b><small>Walk a 3D world of seven islands · best on desktop</small><span class="go">Enter →</span></div>
-      <p class="note" id="nogl" hidden>Your browser can't run 3D, so this opens as plain text. The Terminal site is the better pick here.</p>
+      <p class="note" id="nogl" hidden>Your browser can't run 3D, so this opens as plain text. The Office site is the better pick here.</p>
     </a>
   </div>
 
@@ -165,20 +178,6 @@ footer a{color:inherit}
 try { var c = document.createElement('canvas'); if(!(c.getContext('webgl') || c.getContext('experimental-webgl'))) throw 0; }
 catch(e){ document.getElementById('nogl').hidden = false; }
 
-// Matrix rain behind the terminal card, like static-portfolio/js/rain.js but tiny.
-(function(){
-  var cv = document.getElementById('rain'), g = cv.getContext('2d'), fs = 14, drops = [];
-  var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function size(){ cv.width = cv.offsetWidth; cv.height = cv.offsetHeight; drops = Array.from({length: Math.ceil(cv.width/fs)}, () => Math.random()*-40); }
-  function tick(){
-    g.fillStyle = 'rgba(5,6,10,.18)'; g.fillRect(0, 0, cv.width, cv.height);
-    g.fillStyle = '#00e5ff'; g.font = fs + 'px "Share Tech Mono",monospace';
-    drops.forEach((y, i) => { g.fillText(Math.random() < .5 ? '0' : '1', i*fs, y*fs); drops[i] = y*fs > cv.height && Math.random() > .97 ? 0 : y + 1; });
-  }
-  size(); addEventListener('resize', size);
-  if(still){ for(var i = 0; i < 40; i++) tick(); return; }
-  setInterval(tick, 70);
-})();
 </script>
 </body>
 </html>

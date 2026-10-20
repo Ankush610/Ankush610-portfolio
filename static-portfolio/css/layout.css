@@ -21,34 +21,6 @@
   z-index: 2;
 }
 
-/* ── Rain canvas behind everything — only visible in side gutters ── */
-#rain-canvas {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.18;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    black 0px,
-    black calc(50% - 590px),
-    transparent calc(50% - 490px),
-    transparent calc(50% + 490px),
-    black calc(50% + 590px),
-    black 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    black 0px,
-    black calc(50% - 590px),
-    transparent calc(50% - 490px),
-    transparent calc(50% + 490px),
-    black calc(50% + 590px),
-    black 100%
-  );
-}
-
 /* ── Header ── */
 #header {
   grid-area: header;
@@ -128,13 +100,18 @@
 .gateway-link {
   font-family: var(--font-pixel);
   font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--teal);
-  border: 1px solid var(--teal3);
-  padding: 3px 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 12px;
+  background: var(--nb-yellow);
+  color: var(--text);
+  border: 2px solid var(--border);
+  box-shadow: var(--nb-shadow-sm);
   text-decoration: none;
+  transition: transform .1s, box-shadow .1s, background .1s;
 }
-.gateway-link:hover { background: var(--teal); color: #000; }
+.gateway-link:hover { background: var(--nb-coral); transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--border); }
+.gateway-link:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--border); }
 
 .online-badge {
   font-family: var(--font-pixel);

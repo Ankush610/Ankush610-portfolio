@@ -5,7 +5,7 @@ One static site, two ways in. The gateway at `/` lets visitors pick:
 | Path | What it is |
 |---|---|
 | `/` | Gateway page (`index.html`) |
-| `/static-portfolio/` | Classic retro-terminal portfolio |
+| `/static-portfolio/` | "Office": the classic portfolio, a bold, flat neubrutalist look |
 | `/isle-folio/` | Isle Folio, a walkable 3D world (Three.js) |
 | `/shared/` | Content both sites read: `data.json`, `resume/`, `favicon.png`, `og.png` |
 

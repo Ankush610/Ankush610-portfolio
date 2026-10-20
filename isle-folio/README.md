@@ -16,7 +16,7 @@ Then open <http://localhost:8080/isle-folio/>.
 
 ## Edit content
 
-Everything you'd want to change lives in **`../shared/data.json`**, which the terminal portfolio uses too (profile, experience, projects, skills, writing, workshops, talks, contact). Rooms read it at startup and lay themselves out from it.
+Everything you'd want to change lives in **`../shared/data.json`**, which the Office portfolio (`static-portfolio/`) uses too (profile, experience, projects, skills, writing, workshops, talks, contact). Rooms read it at startup and lay themselves out from it.
 
 The résumé link points to `../shared/resume/Ankush_Sonawane_Resume.pdf`.
 
