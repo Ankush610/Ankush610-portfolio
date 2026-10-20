@@ -17,12 +17,14 @@ body{background:var(--night);color:var(--ink);font-family:var(--f-body);overflow
 #world.hovering{cursor:pointer}
 .sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 
-.back{position:fixed;z-index:3;top:calc(16px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));
+.back,.gate{position:fixed;z-index:3;top:calc(16px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));
   font:600 14px/1 var(--f-body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:11px 16px;cursor:pointer;
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .back.mode{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
-.back:hover{border-color:var(--ember);color:var(--ember)}
-.back:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+.gate{text-decoration:none}
+#backBtn:not([hidden]) ~ .gate{display:none}
+.back:hover,.gate:hover{border-color:var(--ember);color:var(--ember)}
+.back:focus-visible,.gate:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
 .hint{position:fixed;z-index:3;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
   display:flex;gap:14px;align-items:center;font-size:12.5px;color:var(--muted);font-weight:600;white-space:nowrap;
   background:rgba(10,15,30,.6);border:1px solid var(--line);border-radius:999px;padding:7px 14px;max-width:calc(100vw - 32px);overflow:hidden}

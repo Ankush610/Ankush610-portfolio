@@ -40,7 +40,7 @@
     "medium": "https://medium.com/@ankushsonawane36",
     "intro": "I'm always excited to explore opportunities in AI, ML, and HPC. If you're working on challenging projects in these domains, let's connect!"
   },
-  "resume": "./resume/Ankush_Sonawane_Resume.pdf",
+  "resume": "../shared/resume/Ankush_Sonawane_Resume.pdf",
   "skills": [
     { "name": "Python", "cat": "lang" },
     { "name": "C++", "cat": "lang" },

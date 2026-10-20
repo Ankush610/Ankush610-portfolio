@@ -293,6 +293,7 @@ function buildShell() {
       </div>
     </div>
     <div class="header-right">
+      <a class="gateway-link" href="../" title="Back to the gateway">⌂ GATEWAY</a>
       <button id="theme-toggle" class="theme-toggle-btn" type="button" title="Switch theme"></button>
       <div class="online-badge">I'm ONLINE!</div>
       <div class="header-clock">■ <span id="clock"></span></div>
@@ -332,18 +333,18 @@ function buildShell() {
 /* ── Boot ── */
 async function boot() {
   try {
-    const res = await fetch('./data.json');
+    const res = await fetch('../shared/data.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     DATA = await res.json();
   } catch (err) {
     document.getElementById('main').innerHTML = `
       <div class="panel" style="border-color:var(--red-dim)">
         <div class="pt" style="color:var(--red)">ERROR.LOG</div>
-        <div class="prompt"><span class="ps">$</span> <span class="cmd">fetch</span> <span class="arg">./data.json</span></div>
+        <div class="prompt"><span class="ps">$</span> <span class="cmd">fetch</span> <span class="arg">../shared/data.json</span></div>
         <p style="color:var(--red);margin-bottom:8px">⚠ Failed to load data.json: ${esc(err.message)}</p>
         <p style="font-size:11px;color:var(--text-dim)">
-          Serve this folder over HTTP:<br>
-          <code style="color:var(--teal)">python3 -m http.server 8080</code>
+          Serve the parent folder (timepass/) over HTTP:<br>
+          <code style="color:var(--teal)">python3 -m http.server 8123</code>
         </p>
       </div>`;
     return;

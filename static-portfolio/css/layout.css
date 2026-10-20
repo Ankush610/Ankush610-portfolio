@@ -125,6 +125,17 @@
   flex-shrink: 0;
 }
 
+.gateway-link {
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--teal);
+  border: 1px solid var(--teal3);
+  padding: 3px 10px;
+  text-decoration: none;
+}
+.gateway-link:hover { background: var(--teal); color: #000; }
+
 .online-badge {
   font-family: var(--font-pixel);
   font-size: 9px;

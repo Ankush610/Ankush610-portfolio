@@ -14,8 +14,8 @@ window.addEventListener('error', e => { if(!window.__worldOk) showFail(`The 3D w
 async function boot(){
   let data;
   // ?data=draft.json previews another content file without touching data.json
-  try { data = await loadData(new URLSearchParams(location.search).get('data') || 'data.json'); }
-  catch(e){ console.error(e); showFail('Could not load data.json. Serve this folder over HTTP (see README) instead of opening the file directly.'); return; }
+  try { data = await loadData(new URLSearchParams(location.search).get('data') || '../shared/data.json'); }
+  catch(e){ console.error(e); showFail('Could not load ../shared/data.json. Serve the parent folder (timepass/) over HTTP (see README) instead of opening the file directly.'); return; }
   renderContent(data);
   document.title = `Isle Folio — ${data.personal.name}`;
 
