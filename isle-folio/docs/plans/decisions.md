@@ -6,6 +6,14 @@ Format: **date — decision**, followed by why and what would change it.
 
 ---
 
+**2026-10-21 — The Lyceum is a hall whose sections come from the data, not an amphitheatre with a fixed spot per kind.**
+Why: the amphitheatre tied each part to one list (board = talks, wings = workshops, orchestra = awards) and paged when a list grew, so more entries were hidden rather than shown, and a new kind of entry had nowhere to go. Now each kind in `KINDS` (rooms/teaching.js) that has data gets a section with a header board and one bay per entry. Sections go to the shorter wall and the hall grows in length, so every entry is always on show. To add a kind: add its list to data.json, add a line to `KINDS` (key, label, style, emblem, colour), and add it to `js/content.js` and the classic site.
+Revisit if: one list gets so long (~60+) that walking the hall is tedious. Then group that section by year, one tablet per year.
+
+**2026-10-20 — Bridges run only from the centre island (hub and spoke), as weathered stone arches.**
+Why: the user asked for a centre-focused layout. Every island hangs off Hearthstone, so the centre reads as the start and travel between two outer islands passes through it (the route search in `player.js` handles that with no changes). Stone arches replaced rope bridges, at the user's request: they rise rather than sag, and no gateway beam crosses overhead, which used to cut across the wizard at the doors. The stones are hashed rather than random, so the bridges look the same on every visit.
+Revisit if: an island is added where the straight line from the centre crosses another island, or a bridge gets long enough (over ~14) that the rise (capped at 1.0) looks flat. Then add a pier or curve the path.
+
 **2026-10-20 — Forgewell is a closed hall; projects ride mine carts into tunnels in the back wall.**
 Why: the portals hide every cart off the open track, and the carts are spaced round a loop that closes behind the wall, so any number of projects reads the same and browsing past the last one simply loops. The track is a U (a semicircle in front, parallel legs back to the wall), with five carts out at a time. The board hangs high so the carts and the tunnel mouths show beneath it. The hall is closed, with walls all round, a ceiling and `maxDist`, so zooming out never shows the void.
 Revisit if: the room should show a different number of carts. `SP` is `(MOUTH + 1.8)/k` for k carts either side of the front; make sure k·SP stays past `MOUTH + 1.2`, so the next one is inside a tunnel.

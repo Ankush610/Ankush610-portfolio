@@ -1,11 +1,13 @@
 /* ---- Oakreach: the Chronicle hall (experience + education) ----
    Stations run oldest → newest, left → right, along a glowing timeline on the wainscot.
    Entering shows the whole hall for a moment, then the camera settles on the newest role.
-   Each highlight note on a corkboard is its own stop, so it can be read up close. */
+   Each highlight is a parchment leaf sealed to an oak board, its own stop so it can be read up close.
+   The boards are printed pages (Garamond, small caps, rules, like the Lorehall's books); the hall is closed all round. */
 import { THREE, V3, reduce, mat, mesh, glow, box, cyl, rnd } from '../engine.js';
 import { keyL } from '../engine.js';
 import { DATA } from '../data.js';
-import { FD, FB, FM, COL, panel, para, clip, fitFont, pills, card, eyebrow } from '../panels.js';
+import { FD, FP, INK, RED, SEP, panel, para, wrap, clip, fitFont, paper, rules, fleuron, caps, gilt, grain } from '../panels.js';
+const wrapN = (ctx, text, mw) => wrap(ctx, text, mw).length;
 import { view, item } from './kit.js';
 
 const NOTE_W = 2.35, NOTE_H = 2.0, GX = 0.15, GY = 0.25, COLS = 3, GAP = 1.5;
@@ -13,6 +15,8 @@ const WALLZ = -3.6, BOT = 1.15, LINE_Y = 0.55, H = 8.8;
 const N = new V3(0, 0.12, 1);
 const yearOf = p => +(String(p).match(/\d{4}/) || [9999])[0];
 const T1 = 12.4, T2 = 16.2, TOP = 19.6;            // upper tiers of the hall wall (seen above the boards in portrait framing)
+const FZ = 22, CEIL = TOP + 2.4;                    // front wall z (behind the overview camera) and ceiling: closed all round, so zoom-out never shows the void
+let sd = 23; const r01 = () => { sd = (sd*16807) % 2147483647; return (sd - 1)/2147483646; };   // own PRNG for the added planks/beams (rnd() is shared)
 
 /* Set dressing is baked into one mesh per material: parts are [geometry, x, y, z, rx, ry, rz, sx, sy, sz]. */
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new V3(), _s = new V3();
@@ -68,13 +72,13 @@ export default function build(){
   /* ---- the hall ---- */
   const B = baker(), add = B.add, PI = Math.PI;
   const wood = mat(0x2a1d16), iron = mat(0x3a3530), oak = mat(0x6b4a30), oakLt = mat(0x8a6440), seam = mat(0x3e2c20);
-  const root = mat(0x5a3d28), paper = mat(0xe3d5ad), brass = mat(0xc9a24a), chestW = mat(0x7a4e2c);
+  const root = mat(0x5a3d28), parch = mat(0xe3d5ad), brass = mat(0xc9a24a), chestW = mat(0x7a4e2c);
   // lantern glass and candle flames share one room-local material so they can flicker without touching the global glow() cache
   const lampMat = new THREE.MeshStandardMaterial({color:0xffb456, emissive:0xffa040, emissiveIntensity:1.3, flatShading:true});
   const unit = box(1, 1, 1), disc = cyl(1, 1, 1, 14), flameGeo = new THREE.ConeGeometry(0.045, 0.13, 5);
 
   // floor: base deck, staggered planks in two extra tones with butt joints, long seams
-  g.add(mesh(box(L, 0.3, 9.5), mat(0x5b4331), hc, -0.15, 0.6));
+  g.add(mesh(box(L, 0.3, FZ - WALLZ + 0.4), mat(0x5b4331), hc, -0.15, (FZ + WALLZ)/2));
   const plankA = mat(0x634936), plankB = mat(0x523b2b);
   for(let k = -1; k < 7; k++){
     const z = -2.65 + k*1.1;
@@ -85,7 +89,12 @@ export default function build(){
       x = xb;
     }
   }
-  for(let k = 0; k < 9; k++) add(seam, unit, hc, 0.01, -3.2 + k*1.1, 0, 0, 0, L, 0.02, 0.04);
+  for(let z = -2.65 + 7*1.1; z < FZ - 0.5; z += 1.1){   // the planks carry on toward the front wall
+    for(let x = hl - r01()*1.5; x < hr - 0.2;){ const len = Math.min(2.2 + r01()*2.4, hr - x), r = r01(), xa = Math.max(x, hl), xb = x + len;
+      if(r < 0.7 && xb - xa > 0.3) add(r < 0.35 ? plankA : plankB, unit, (xa + xb)/2, 0.006, z, 0, 0, 0, xb - xa - 0.03, 0.012, 1.04);
+      if(x > hl) add(seam, unit, x, 0.007, z, 0, 0, 0, 0.03, 0.014, 1.04); x = xb; }
+  }
+  for(let z = -3.2; z < FZ; z += 1.1) add(seam, unit, hc, 0.01, z, 0, 0, 0, L, 0.02, 0.04);
   // a long runner rug down the hall, gold borders, diamond pattern, fringed ends
   const ra = x0 - 1.2, rb = x1 + 0.9, rl = rb - ra, rc = (ra + rb)/2, RZ = -1.0, rugGold = mat(0xc28a3c), rugDark = mat(0x3f1915);
   add(mat(0x6e2a22), unit, rc, 0.012, RZ, 0, 0, 0, rl, 0.02, 1.8);
@@ -96,7 +105,12 @@ export default function build(){
 
   // walls: panelled lower wall, taller upper wall with two carved tiers
   g.add(mesh(box(L, H, 0.4), mat(0x3b2b22), hc, H/2, WALLZ));
-  [hl - 0.2, hr + 0.2].forEach(x => add(mat(0x33251c), unit, x, TOP/2, WALLZ + 2.7, 0, 0, 0, 0.4, TOP, 5.8));   // end walls
+  [hl - 0.2, hr + 0.2].forEach(x => add(mat(0x33251c), unit, x, CEIL/2, (WALLZ + FZ)/2, 0, 0, 0, 0.4, CEIL, FZ - WALLZ + 0.4));   // end walls
+  add(mat(0x33251c), unit, hc, CEIL/2, FZ + 0.2, 0, 0, 0, L + 0.8, CEIL, 0.4);                                                     // front wall
+  add(mat(0x24190f), unit, hc, CEIL + 0.2, (WALLZ + FZ)/2, 0, 0, 0, L + 0.8, 0.4, FZ - WALLZ + 0.4);                              // ceiling
+  for(let z = WALLZ + 2; z < FZ; z += 3.2) add(wood, unit, hc, CEIL - 0.25, z, 0, 0, 0, L, 0.5, 0.42);                             // joists
+  [hl, hr].forEach(x => { add(wood, unit, x + Math.sign(hc - x)*0.12, 0.5, (WALLZ + FZ)/2 + 0.2, 0, 0, 0, 0.1, 1.0, FZ - WALLZ - 0.4);   // the wainscot and chair rail turn the corners
+    add(oak, unit, x + Math.sign(hc - x)*0.15, 1.02, (WALLZ + FZ)/2 + 0.2, 0, 0, 0, 0.18, 0.08, FZ - WALLZ - 0.4); });
   add(mat(0x33251c), unit, hc, (H + TOP)/2, WALLZ, 0, 0, 0, L, TOP - H, 0.4);
   add(wood, unit, hc, 0.5, WALLZ + 0.25, 0, 0, 0, L, 1.0, 0.1);                 // wainscot
   add(oak, unit, hc, 1.02, WALLZ + 0.28, 0, 0, 0, L, 0.08, 0.18);               // chair rail
@@ -157,7 +171,7 @@ export default function build(){
   // the journey map: parchment with lands, a dotted route and one pin per station
   add(wood, unit, MX, MY, WALLZ + 0.25, 0, 0, 0, MW + 0.36, MH + 0.36, 0.1);
   add(mat(0xd9c9a0), unit, MX, MY, WALLZ + 0.31, 0, 0, 0, MW, MH, 0.06);
-  [-1, 1].forEach(sd => add(paper, disc, MX, MY + sd*MH/2, WALLZ + 0.36, 0, 0, PI/2, 0.08, MW + 0.1, 0.08));
+  [-1, 1].forEach(sd => add(parch, disc, MX, MY + sd*MH/2, WALLZ + 0.36, 0, 0, PI/2, 0.08, MW + 0.1, 0.08));
   const land = new THREE.DodecahedronGeometry(1, 0), landM = mat(0x8f9f63), sea = mat(0xa9bfb4);
   [[-1.7, 0.45, 0.9], [0.2, -0.35, 1.05], [1.75, 0.5, 0.7], [-0.6, 0.85, 0.42], [2.0, -0.8, 0.4]].forEach(([lx, ly, s]) => add(landM, land, MX + lx, MY + ly, WALLZ + 0.34, 0, 0, rnd()*3, s*1.3, s*0.75, 0.03));
   add(sea, unit, MX - 1.9, MY - 0.85, WALLZ + 0.34, 0, 0, 0, 1.0, 0.5, 0.01);
@@ -211,7 +225,7 @@ export default function build(){
   c(chestW, lidGeo, 0, 0.5, 0, 0, 0, PI/2);
   [-0.36, 0.36].forEach(dx => { c(iron, unit, dx, 0.25, 0, 0, 0, 0, 0.07, 0.52, 0.64); c(iron, bandGeo, dx, 0.5, 0, 0, 0, PI/2); });
   c(brass, unit, 0, 0.47, 0.32, 0, 0, 0, 0.14, 0.17, 0.04);
-  c(paper, disc, 0.05, 0.86, 0, 0, 0.3, PI/2, 0.065, 0.75, 0.065);
+  c(parch, disc, 0.05, 0.86, 0, 0, 0.3, PI/2, 0.065, 0.75, 0.065);
   c(mat(0x9a2f22), disc, 0.05, 0.86, 0, 0, 0.3, PI/2, 0.07, 0.05, 0.07);
   // the first milestone: a standing stone with a glowing rune where the timeline begins
   add(mat(0x6d717a), cyl(0.26, 0.33, 1.0, 6), x0 - 0.55, 0.5, -1.75, 0, 0.3, 0, 1, 1, 0.6);
@@ -223,13 +237,13 @@ export default function build(){
   const bx = hr - 0.62, bz = -2.85, stave = mat(0x6e4528);
   add(stave, cyl(0.32, 0.39, 0.45, 10), bx, 0.225, bz); add(stave, cyl(0.39, 0.33, 0.45, 10), bx, 0.675, bz);
   [0.12, 0.45, 0.8].forEach(y => add(iron, cyl(0.395, 0.395, 0.05, 10), bx, y, bz, 0, 0, 0, y === 0.45 ? 1.0 : 0.96, 1, y === 0.45 ? 1.0 : 0.96));
-  [[0.1, 0.18, 0.12, paper], [-0.12, -0.15, -0.1, mat(0xd2bf8a)], [0.05, -0.05, 0.22, paper], [-0.15, 0.12, -0.25, mat(0xd2bf8a)]].forEach(([dx, rx, rz, m]) => {
+  [[0.1, 0.18, 0.12, parch], [-0.12, -0.15, -0.1, mat(0xd2bf8a)], [0.05, -0.05, 0.22, parch], [-0.15, 0.12, -0.25, mat(0xd2bf8a)]].forEach(([dx, rx, rz, m]) => {
     add(m, disc, bx + dx, 1.05, bz + dx*0.5, rx, 0, rz, 0.06, 0.95, 0.06);
     add(mat(0x9a2f22), disc, bx + dx, 1.05, bz + dx*0.5, rx, 0, rz, 0.065, 0.04, 0.065);
   });
   // books stacked under the right window
   [[0x2f5560, 0.0], [0x7a3b2a, 0.25], [0x4f6e34, -0.15], [0x5a3a5e, 0.4]].forEach(([col, ry], i) => add(mat(col), unit, hr - 1.55, 0.06 + i*0.12, -3.0, 0, ry, 0, 0.55, 0.11, 0.4));
-  add(paper, unit, hr - 1.55, 0.06 + 4*0.12 - 0.05, -3.0, 0, 0.4, 0, 0.5, 0.01, 0.36);
+  add(parch, unit, hr - 1.55, 0.06 + 4*0.12 - 0.05, -3.0, 0, 0.4, 0, 0.5, 0.01, 0.36);
   // crate with a slowly turning globe
   const cr = at(hr - 0.75, -1.65, -0.2), crate = mat(0x8a6440);
   cr(crate, unit, 0, 0.33, 0, 0, 0, 0, 0.66, 0.66, 0.66);
@@ -264,9 +278,13 @@ export default function build(){
   for(let cx = x0 - 1.5; cx < x1 + 1.5 - CH; cx += CH){ const c = mesh(chevGeo, chevMat, cx, LINE_Y, lineZ + 0.03); c.castShadow = false; c.userData.x = cx; chevs.push(c); g.add(c); }
   const nodeGeo = cyl(0.3, 0.3, 0.06, 16), nodeMat = glow(0xf0a23a, 1.1);
   const plaque = (text, x) => {
-    const p = panel(1.3, 0.48, (ctx, W, Hh) => {
-      card(ctx, W, Hh, {}, {bg:'#20160f', border:COL.ember, lw:2.5, r:10});
-      ctx.textAlign = 'center'; ctx.font = `700 24px ${FM}`; ctx.fillStyle = COL.ember; ctx.fillText(clip(ctx, text, W - 24), W/2, 11); ctx.textAlign = 'left';
+    const p = panel(1.3, 0.48, (ctx, W, Hh) => {   // carved and gilded, like a date cut into a beam
+      grain(ctx, W, Hh, '#4a2e1e');
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,220,170,.2)'; ctx.beginPath(); ctx.moveTo(3, Hh - 3); ctx.lineTo(3, 3); ctx.lineTo(W - 3, 3); ctx.stroke();
+      ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.moveTo(W - 3, 3); ctx.lineTo(W - 3, Hh - 3); ctx.lineTo(3, Hh - 3); ctx.stroke();
+      ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(217,183,101,.55)'; ctx.strokeRect(8.5, 8.5, W - 17, Hh - 17);
+      ctx.textAlign = 'center'; ctx.font = `400 26px ${FD}`; const t = clip(ctx, text, W - 30);
+      ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(t, W/2 + 1, 10.5); ctx.fillStyle = gilt(ctx, 9, 37); ctx.fillText(t, W/2, 9); ctx.textAlign = 'left';
     });
     p.position.set(x, LINE_Y, lineZ + 0.05); g.add(p);
   };
@@ -278,16 +296,20 @@ export default function build(){
   if(last){ const p = String(last.e.period); plaque(/present|now/i.test(p) ? 'NOW' : String((p.match(/\d{4}/g) || [p]).pop()), x1 + 0.9); }
 
   /* ---- station boards ---- */
-  const paperDraw = e => (ctx, W, Hh, st) => {
-    card(ctx, W, Hh, st, {bg:'#efe6cf', border:'rgba(60,40,20,.35)', r:6});
-    const x = 22, mw = W - 44; let y = 22;
-    eyebrow(ctx, e.period, x, y, COL.brown, 14); y += 28;
-    ctx.font = `400 25px ${FD}`; ctx.fillStyle = COL.paperInk; y = para(ctx, e.title, x, y, mw, 30, 3) + 4;
-    ctx.font = `600 16px ${FB}`; ctx.fillStyle = '#6b5640'; y = para(ctx, e.company, x, y, mw, 21, 2) + 10;
-    ctx.font = `400 15px ${FB}`; ctx.fillStyle = '#3a3026'; y = para(ctx, e.description, x, y, mw, 21, 4) + 12;
-    pills(ctx, e.skills || [], x, y, mw, '#4f6e34', 12);
+  // a skills line set as italic keywords joined by middots (no pills), wrapped by whole keywords
+  const keywords = (ctx, list, x, y, mw, lh, max) => { if(!list.length) return y; ctx.font = `italic 400 15px ${FP}`; ctx.fillStyle = SEP; return para(ctx, list.join(' · '), x, y, mw, lh, max); };
+  const paperDraw = (e, k) => (ctx, W, Hh, st) => {
+    paper(ctx, W, Hh, 40 + k); rules(ctx, W, Hh, st.focus);
+    const x = 28, mw = W - 56; let y = 30;
+    caps(ctx, e.period, x, y, 11, st.focus ? RED : SEP, mw); y += 22;
+    ctx.font = `400 24px ${FD}`; ctx.fillStyle = INK; y = para(ctx, e.title, x, y, mw, 28, 3) + 4;
+    ctx.font = `italic 400 17px ${FP}`; ctx.fillStyle = '#5a4630'; y = para(ctx, e.company, x, y, mw, 21, 2) + 6;
+    fleuron(ctx, W/2, y + 4, mw*0.6, SEP); y += 16;
+    ctx.font = `400 16px ${FP}`; ctx.fillStyle = INK; y = para(ctx, e.description, x, y, mw, 20, 4) + 8;
+    keywords(ctx, e.skills || [], x, y, mw, 18, 2);
   };
-  const noteCols = ['#f3e9cf', '#e6efd6', '#f5dfcd', '#dfe8f0', '#efe2f2'], pinGeo = new THREE.SphereGeometry(0.07, 8, 6);
+  // a red wax seal holds each leaf to the board: a flattened disc with a raised rim and a sigil
+  const sealM = mat(0x8e2219, {roughness:0.5}), sealGeo = cyl(0.09, 0.1, 0.03, 12).rotateX(Math.PI/2), sigilGeo = new THREE.OctahedronGeometry(0.035, 0);
   const stop = k => `Timeline stop ${k + 1} of ${stations.length}`;
   let start = 0;
 
@@ -298,22 +320,28 @@ export default function build(){
     s.wide = view(c, s.w + (s.edu ? 3.2 : 1.8), hi - lo, N);
     if(s.edu){
       grp.add(mesh(box(3.4, 3.1, 0.12), mat(0x6b4a30), s.x, BOT + 1.55, -3.3));
-      const p = panel(3.2, 2.9, paperDraw(e)); p.position.set(s.x, BOT + 1.55, -3.2); grp.add(p);
+      grp.add(mesh(box(3.5, 3.2, 0.06), mat(0x9a7a3e, {metalness:0.5, roughness:0.4}), s.x, BOT + 1.55, -3.26));   // a gilt slip round the page
+      const p = panel(3.2, 2.9, paperDraw(e, k)); p.position.set(s.x, BOT + 1.55, -3.2); grp.add(p);
       const lamp = mesh(box(0.6, 0.12, 0.22), glow(0xffb35a, 0.9), s.x, top + 0.3, -3.25); lamp.castShadow = false; grp.add(lamp);
       items.push(item({obj:grp, panels:[p], wide:s.wide, narrow:view(new V3(s.x, BOT + 1.4, -3.2), 3.7, 3.6, N),
         label:`${stop(k)}. Education: ${e.title}, ${e.company}, ${e.period}. ${e.description}${(e.skills || []).length ? ' Topics: ' + e.skills.join(', ') + '.' : ''}`}));
       return;
     }
     const hls = e.highlights || [], cy = BOT + s.h/2, headY = top - 0.25 - 0.75;
-    grp.add(mesh(box(s.w, s.h, 0.1), mat(0x6b4a30), s.x, cy, -3.32));
-    grp.add(mesh(box(s.w - 0.2, s.h - 0.2, 0.14), mat(0xa47a4c), s.x, cy, -3.25));
+    // the board: an oak frame with a lighter moulding, a dark panel, a gilt slip inside the frame
+    grp.add(mesh(box(s.w, s.h, 0.1), mat(0x4a3222), s.x, cy, -3.32));
+    grp.add(mesh(box(s.w - 0.14, s.h - 0.14, 0.12), mat(0x8a6440), s.x, cy, -3.3));
+    grp.add(mesh(box(s.w - 0.3, s.h - 0.3, 0.14), mat(0x9a7a3e, {metalness:0.5, roughness:0.4}), s.x, cy, -3.29));
+    grp.add(mesh(box(s.w - 0.38, s.h - 0.38, 0.16), mat(0x3a2618), s.x, cy, -3.28));
     const head = panel(s.w - 0.5, 1.5, (ctx, W, Hh, st) => {
-      card(ctx, W, Hh, st, {bg:'#f6efdc', border:'rgba(60,40,20,.35)', r:6});
-      eyebrow(ctx, e.period, 24, 20, COL.brown, 13);
-      fitFont(ctx, e.title, 250, 30, 400, FD, 18); ctx.fillStyle = COL.paperInk; ctx.fillText(e.title, 24, 44);
-      ctx.font = `600 17px ${FB}`; ctx.fillStyle = '#6b5640'; ctx.fillText(clip(ctx, e.company, 250), 24, 88);
-      ctx.font = `400 16px ${FB}`; ctx.fillStyle = '#3a3026'; const y = para(ctx, e.description, 290, 20, W - 314, 21, 2);
-      pills(ctx, e.skills || [], 290, y + 10, W - 314, '#4f6e34', 12);
+      paper(ctx, W, Hh, 60 + k); rules(ctx, W, Hh, st.focus);
+      const cw = 270;
+      caps(ctx, e.period, 30, 28, 12, st.focus ? RED : SEP, cw);
+      fitFont(ctx, e.title, cw, 30, 400, FD, 18); ctx.fillStyle = INK; ctx.fillText(e.title, 30, 48);
+      ctx.font = `italic 400 19px ${FP}`; ctx.fillStyle = '#5a4630'; ctx.fillText(clip(ctx, e.company, cw), 30, 92);
+      ctx.strokeStyle = 'rgba(110,80,50,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cw + 46, 28); ctx.lineTo(cw + 46, Hh - 28); ctx.stroke();
+      ctx.font = `400 17px ${FP}`; ctx.fillStyle = INK; const y = para(ctx, e.description, cw + 64, 26, W - cw - 94, 22, 3);
+      keywords(ctx, e.skills || [], cw + 64, y + 8, W - cw - 94, 19, 2);
     });
     head.position.set(s.x, headY, -3.15); head.rotation.z = 0.006; grp.add(head);
     if(e === DATA.experience[0]) start = items.length;
@@ -324,14 +352,20 @@ export default function build(){
       const m = hl.match(/^(.*?)\s*\(([^)]*)\):\s*(.*)$/) || [0, '', '', hl];
       const row = Math.floor(j / COLS), col = j % COLS, inRow = Math.min(COLS, hls.length - row*COLS);
       const nx = s.x + (col - (inRow - 1)/2)*(NOTE_W + GX), ny = headY - 0.75 - 0.3 - NOTE_H/2 - row*(NOTE_H + GY);
-      const p = panel(NOTE_W, NOTE_H, (ctx, W, Hh, st) => {
-        card(ctx, W, Hh, st, {bg:noteCols[j % noteCols.length], border:'rgba(60,40,20,.25)', r:4});
-        let y = 20; ctx.font = `700 17px ${FB}`; ctx.fillStyle = COL.paperInk; y = para(ctx, m[1], 18, y, W - 36, 21, 2);
-        if(m[2]){ eyebrow(ctx, m[2], 18, y + 3, COL.brown, 12); y += 22; }
-        ctx.font = `400 14.5px ${FB}`; ctx.fillStyle = '#3a3026'; para(ctx, m[3], 18, y + 6, W - 36, 19.5, 6);
+      const p = panel(NOTE_W, NOTE_H, (ctx, W, Hh, st) => {   // a parchment leaf
+        paper(ctx, W, Hh, 80 + k*7 + j); rules(ctx, W, Hh, st.focus);
+        const mw = W - 44; let y = 30;
+        fitFont(ctx, m[1], mw, 19, 400, FD, 16); if(ctx.measureText(m[1]).width > mw) ctx.font = `400 18px ${FD}`;   // one line if it fits at 16px or more, else wrap
+        ctx.fillStyle = INK; y = para(ctx, m[1], 22, y, mw, 21, 2);
+        if(m[2]){ caps(ctx, m[2], 22, y + 4, 10, RED); y += 20; }
+        fleuron(ctx, W/2, y + 10, 70, SEP); y += 22;
+        // the body at the largest size (15.5 → 12px) whose lines fit above the bottom rule
+        let fs = 15.5, lh; do { ctx.font = `400 ${fs}px ${FP}`; lh = Math.round(fs*1.24); } while((wrapN(ctx, m[3], mw))*lh > Hh - 26 - y && (fs -= 0.5) >= 12);
+        ctx.fillStyle = INK; para(ctx, m[3], 22, y, mw, lh, Math.floor((Hh - 26 - y)/lh));
       });
       p.position.set(nx, ny, -3.13 + j*0.002); p.rotation.z = (rnd() - 0.5)*0.04; grp.add(p);
-      const pin = mesh(pinGeo, glow(0xd2402a, 0.8), nx, ny + NOTE_H/2 - 0.12, -3.07); pin.castShadow = false; grp.add(pin);
+      const pin = new THREE.Group(); pin.position.set(nx, ny + NOTE_H/2 - 0.02, -3.1); grp.add(pin);
+      pin.add(mesh(sealGeo, sealM), mesh(sigilGeo, sealM, 0, 0, 0.02)); pin.children.forEach(o => o.castShadow = false);
       items.push(item({obj:p, hits:[p, pin], panels:[p],
         wide:view(new V3(nx, ny, -3.13), NOTE_W*3, NOTE_H + 2.4, N), narrow:view(new V3(nx, ny, -3.13), NOTE_W + 0.35, NOTE_H + 0.4, N),
         label:`Highlight ${j + 1} of ${hls.length} at ${e.company}: ${hl}`}));
@@ -342,7 +376,7 @@ export default function build(){
   /* ---- camera: brief establishing shot of the whole hall on entry, then one stop at a time ---- */
   const overview = view(new V3(hc, 4.3, -3.2), L - 1, H, N);
   let introUntil = 0, keyX = items[start] ? items[start].wide.c.x : 0;
-  const R = {group:g, items, start, follow:true,
+  const R = {group:g, items, start, follow:true, maxDist:FZ - WALLZ - 2.5,   // zoom-out stops short of the front wall
     view(narrow){
       const it = items[R.focus];
       return performance.now() < introUntil || !it ? overview : narrow ? it.narrow : it.wide;

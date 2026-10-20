@@ -4,10 +4,12 @@ import { scene } from '../engine.js';
 import { DATA } from '../data.js';
 import { FD, FB, COL, canvasTex, fitFont, card, eyebrow } from '../panels.js';
 import { ISLANDS, byId, home } from './islands.js';
-import { tree, rock, lantern, starField } from './props.js';
-import { landmark, decorate } from './landmarks.js';
+import { tree, cypress, maple, oak, umbrella, wisteria, windswept, spruce, rock } from './props.js';
+import { buildSky } from './sky.js';
+const FLORA = {pine:tree, cypress, maple, oak, umbrella, wisteria, windswept, spruce};   // islands.js `flora` → the tree each island grows
+import { landmark, decorate, animated } from './landmarks.js';
 import { makeHero } from './hero.js';
-import { planBridges, bridges, bridgeMeshes, bridgePoint, shapeIsland, islandMesh, obstacles, surfaceY, smooth } from './terrain.js';
+import { planBridges, bridges, bridgeMeshes, shapeIsland, islandMesh, obstacles, smooth } from './terrain.js';
 
 export function buildWorld(){
 planBridges();
@@ -39,7 +41,7 @@ ISLANDS.forEach(isl => {
   const nTrees = Math.round(isl.R*1.3);
   for(let k = 0; k < nTrees; k++){
     const p = spot(isl.obs + 2.8, 0.8, 1.7, 1.7); if(!p) continue;
-    const s = 0.75 + rnd()*0.55, t = tree(s); t.position.set(p[0], isl.topY(p[0], p[1]) - 0.05, p[1]); grp.add(t);
+    const s = 0.75 + rnd()*0.55, t = (FLORA[isl.flora] || tree)(s); t.position.set(p[0], isl.topY(p[0], p[1]) - 0.05, p[1]); grp.add(t);
     obstacles.push({x:isl.x + p[0], z:isl.z + p[1], r:0.32*s});
   }
   for(let k = 0; k < 7; k++){
@@ -71,18 +73,8 @@ const flowerGeo = new THREE.OctahedronGeometry(0.09, 0); flowerGeo.translate(0, 
 const PETALS = [0xf2c14e, 0xe891bd, 0xb296f0, 0xf6efe0, 0x6fd3e6];
 scatterIM(flowers, flowerGeo, (isl, c) => c.setHex(PETALS[Math.floor(rnd()*PETALS.length)]), 1);
 
-/* ---------- bridges + a lantern at each end ---------- */
+/* ---------- bridges (each end has a gateway with a lantern) ---------- */
 scene.add(bridgeMeshes());
-const side = new V3();
-bridges.forEach(br => {
-  side.set(-br.dir.z, 0, br.dir.x);
-  [[br.p0, 1], [br.p1, -1]].forEach(([p, inward]) => {
-    const x = p.x + side.x*1.5 - br.dir.x*inward*0.4, z = p.z + side.z*1.5 - br.dir.z*inward*0.4, y = surfaceY(x, z);
-    if(y === null || obstacles.some(o => Math.hypot(o.x - x, o.z - z) < o.r + 0.6)) return;
-    const ln = lantern(); ln.position.set(x, y, z); scene.add(ln);
-    obstacles.push({x, z, r:0.35});
-  });
-});
 
 /* ---------- decorative floating islets in the gaps (not walkable) ---------- */
 const islets = [];
@@ -94,7 +86,7 @@ for(let tries = 0; tries < 200 && islets.length < 10; tries++){
   const it = {x, z, h:-3 + rnd()*6, R:1.8 + rnd()*2, obs:0, hill:1.2, top:[0x4b7445, 0x5d8746, 0x58636e, 0x6b5a7a][Math.floor(rnd()*4)], seed:40 + islets.length};
   shapeIsland(it);
   const m = islandMesh(it, 8, 24); m.position.set(x, 0, z); scene.add(m);
-  if(it.R > 2.8){ const t = tree(0.7); t.position.set(x + 0.3, it.topY(0.3, 0.2), z + 0.2); scene.add(t); }
+  if(it.R > 2.8){ const t = tree(0.7); t.position.set(0.3, it.topY(0.3, 0.2), 0.2); m.add(t); }   // a child of the islet, so it bobs and turns with it
   it.mesh = m; it.p = rnd()*6; islets.push(it);
 }
 
@@ -104,7 +96,7 @@ const hero = makeHero(); scene.add(hero);
 const doorRing = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.15, 40), new THREE.MeshBasicMaterial({color:0xf0b54a, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false}));
 doorRing.rotation.x = -Math.PI/2; doorRing.renderOrder = 2; scene.add(doorRing);
 
-scene.add(starField(1800, 160, 220, -30, 0.9));
+buildSky(scene, animated);   // dome, stars, Milky Way, nebulae, moon, shooting stars, far islands
 
 const flies = (function(){
   const n = 110, pos = new Float32Array(n*3), base = [];

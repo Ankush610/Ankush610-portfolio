@@ -1,6 +1,7 @@
 /* Shared building blocks for room interiors.
    A room = {group, items[], frame | view(), follow, start, maxDist, light, heroSpot, heroScale, update(t, dt), onFocus(i), onEnter(narrow)}
    maxDist: optional cap on the camera's distance from what it looks at (zoom-out stops there)
+   light: {key, fill: [x, y, z, colour, intensity], ambient?: [hemi, moon] intensities (default 0.35, 0.22)}
    heroScale: optional wizard size in this room (default HERO_SCALE.room), for rooms built at a bigger scale
    An item = a focusable thing: {obj, view:{c,w,h,n}, label, activate?} */
 import { THREE, V3, ZN, reduce, touch, mat, mesh, glow, box, cyl, rnd } from '../engine.js';

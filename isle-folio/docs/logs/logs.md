@@ -5,6 +5,153 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-21 — A full night sky: the islands float in space
+- `js/world/sky.js` (new), built from `build.js` in place of the single 1,800-point star field:
+  - **Dome.** A gradient sphere: deep navy overhead, a violet glow at the horizon, and a blue-violet space tone below. The top view looks down into the lower sky, so that half is no longer black.
+  - **Stars, all round the sphere.** 5,200 faint, 520 brighter in tinted colours (white, pale blue, gold, red), and three groups of 120 that twinkle. All use a soft round sprite, so none are squares.
+  - **Milky Way.** A tilted band of 7,000 small stars with twelve soft glowing clouds along it.
+  - **Nebulae.** Seven procedural clouds (violet, teal, rose, blue), four above the horizon and three below.
+  - **Moon.** A cratered moon with a halo, placed where the moonlight comes from.
+  - **Shooting stars.** One streak every 4–11 s.
+  - **Far islands.** Sixteen dark silhouettes of distant islands round the horizon.
+  - Nothing in the sky takes light or fog. It has its own seeded random (the shared `rnd()` is untouched) and animates through `animated`, so it is still with reduced motion.
+- Why: user feedback (more stars, a fuller and more detailed space background).
+- Checked: walk view and top view. No console errors.
+
+## 2026-10-21 — The outside world more saturated (not brighter; rooms unchanged)
+- `js/engine.js`: `vivid(colour, k = 1.4)` raises a colour's saturation, keeping its lightness.
+- `js/world/terrain.js`: every terrain colour (grass, earth, cliffs, underside, roots) goes through `vivid`.
+- `js/world/props.js`: baked tree colours go through `vivid`.
+- `js/app.js`:
+  - Outdoors the night light keeps its original strength (hemisphere 0.55, moon 1.05) but is a little less blue (sky 0x9cabdc, ground 0x22301d, moon 0xd8e0ff), so it stops washing the colours out. It is applied at startup too.
+  - Rooms restore the original cool sky colours and their own intensities, so interiors look as before.
+  - A first pass also brightened the outdoor light; the user wanted saturation only, so the brightness went back.
+- Shared `mat()` materials (buildings, props) are not recoloured, since rooms use them too.
+- Why: user feedback (more saturated colours outside, not brighter).
+- Checked: top view outdoors; the Lorehall room is unchanged. No console errors.
+
+## 2026-10-21 — Floating islets: trees stay on their islets
+- `js/world/build.js`: an islet's tree was added to the scene on its own, so it hung still while the islet bobbed and slowly turned beneath it, and drifted off. It is now a child of the islet mesh (local position), so it bobs and turns with it.
+- Why: user report (a tree floating loose over an islet).
+
+## 2026-10-21 — Island terrain: cliffs with strata, a rugged underside, hanging spires and roots
+- `js/world/terrain.js` (`islandMesh`, used by every island and floating islet):
+  - **Cliffs.** Below the rim there is now a grassy lip that overhangs a little, an earth band, and a cliff of rock strata stepping inward. The rings hang off the rim's real height and are jittered with coherent noise, so they read as ledges rather than fuzz. The strata are tinted toward each island's grass colour, so every island's cliffs differ.
+  - **Underside.** The old smooth cone is a rugged mass, lumpier the deeper it goes, tapering to the keel. Extra rock spires (about 0.6 per unit of radius) hang beneath it, their bases buried in the rock.
+  - **Roots.** Thin roots trail over the cliff edges and curl outward and down.
+  - **Edges.** The pale beach band round every island is gone: the grass now browns toward the edge. Only coastal islands (`beach: true`, Beacon Point) keep a sandy rim.
+  - It is all one mesh per island, as before. Walkable ground (`topY`) is unchanged: everything new is below and around the rim.
+- `js/world/islands.js`: Beacon Point `beach: true`, and the field is documented.
+- Why: user feedback (improve the island geometry for every island).
+- Checked: walk-mode side views of Hearthstone and Lorehall, the archipelago from above. No console errors.
+
+## 2026-10-21 — Trees: more detail, baked to one draw call each
+- `js/world/props.js`:
+  - **Baking.** Every tree is modelled from many small parts, then `bake()` merges all its non-glowing parts into one vertex-coloured mesh (glowing parts, like Runespire's crystals, stay their own mesh). Each tree costs one draw call however detailed it is, fewer than the 4–6 it used before.
+  - **Shared parts.** A flared root base and tapering bole (`trunk()`) and visible branches (`branch()`). Crowns are built from more pieces and shaded darker underneath and lighter on top.
+  - **Per species:** maples drop leaves round their feet; oaks have four limbs and a shaded under-canopy; umbrella pines have a forked crown in layers and cones on the ground; wisteria has a twisting trunk, sixteen long lilac racemes with pale tips and petals underfoot; windswept pines have pads streaming along the lean and roots gripping on the windward side; spruces have six drooping two-tone tiers and sometimes small rune crystals at the roots; some cypresses have twin tops.
+- Why: user feedback (improve the trees further).
+- Checked: top view, tours of Hearthstone, Lorehall, Oakreach and Forgewell. No console errors.
+
+## 2026-10-21 — Every island grows its own tree
+- `js/world/props.js`: six new trees beside the pine and cypress, each `(s, r = rnd)`:
+  - `maple`: Hearthstone, an autumn crown in ember reds and golds.
+  - `oak`: Oakreach, a short thick trunk with limbs under a wide low canopy.
+  - `umbrella`: Forgewell, a stone pine with a tall bare forked trunk and a flat dark crown.
+  - `wisteria`: Lorehall, a gnarled trunk hung with lilac blossom.
+  - `windswept`: Beacon Point, a coastal pine bent by the sea wind; every one leans the same way.
+  - `spruce`: Runespire, narrow and blue-black, some tipped with a glowing rune crystal.
+- `js/world/islands.js`: each island names its tree in `flora`. Unset means pine, which the floating islets keep.
+- `js/world/build.js`: the random scatter plants each island's own tree.
+- Why: user feedback (a unique tree per island).
+- Checked: top view of the archipelago, top-view tours of Lorehall, Beacon Point and Runespire. No console errors.
+
+## 2026-10-21 — Lyceum: the amphitheatre outside becomes the Hall of the Lyceum, its island a formal garden
+- `js/world/isles/teaching.js`: the outside now matches the new hall (and the user's concept image):
+  - **Centre block (the nave).** A pale stone front on a podium, with a rusticated base course, coursing, corner pilasters, an entablature with a gilt line, gold rosettes and dentils, and a cornice. The pediment has a recessed tympanum carved with the lamp of learning in a gilded laurel (as at the hall's far end), raking cornices and gilt acroteria. The blue slate roof is coursed and topped by an open ridge cupola with a flame burning in it.
+  - **Door and front.** A tall arched door of voussoirs with a gilt keystone, its leaves swung open on the warm-lit hall, a navy emblem plaque and a round leaded window above it, and navy banners either side.
+  - **Clerestory.** The centre block is tall enough to show lit arched windows with pilaster strips above the wing roofs.
+  - **Wings.** Two colonnades under blue slate (columns, navy banners between them, hanging lanterns, antefixes, gilt gable finials). Their back walls have lit doors and pilasters, and an arched lit window sits in each end wall. Planters run along the front.
+  - **Steps.** Wide steps between cheek walls with urns, a guardian lion on a plinth either side, lanterns on posts and slim cypresses. No carved name: the emblem stands for it.
+  - **Grounds.** A forecourt crescent (banner poles flanking the way in, cypresses, iron lanterns and scholars' busts), clipped box hedges round the sides and back, and a statue, scroll racks, benches and a few olives. Everything keeps clear of the circle the wizard walks.
+- `js/world/islands.js`: Lyceum `obs` 3.1 → 3.6, `lh` 4.8 → 7.0, a sage lawn (`top` 0x6f8448), and the new optional fields `plaza: true` (paved court) and `flora: 'cypress'`.
+- `js/world/build.js`, `js/world/props.js`: a `cypress()` prop (it takes a local random source, so decorations don't shift the shared `rnd()`). An island with `flora: 'cypress'` gets cypresses instead of pines in the random scatter.
+- Why: user feedback (exterior built from the new interior; the island's look updated to match; more design detail).
+- Checked: top-view tour (front, side, back), entering the hall. No console errors.
+
+## 2026-10-21 — Lyceum: the amphitheatre becomes the Hall of the Lyceum (scales with the data)
+- `js/rooms/teaching.js`, rewritten. The amphitheatre had one fixed place per kind of entry, paged when a list grew, and had nowhere for a new kind. It is now a long colonnaded stone hall under a timber roof:
+  - **Sections from the data.** `KINDS` lists the kinds: talks & events (stone tablets), workshops (easels with printed sheets), awards (marble pedestals with a trophy, laurel, star or scroll and a gilt-lettered plaque), and extracurriculars (gilt frames; shown once `extracurricular` exists in data.json). A kind with no entries is skipped.
+  - **It grows.** Each section has a carved header board (emblem and name in gold leaf, the count and years) and one bay per entry. Sections go to whichever wall is shorter, and the hall's length follows the data: nothing pages or hides. Checked with 30 talks, 6 workshops, 8 awards and 5 extracurriculars.
+  - **Camera.** A look down the nave on entry, then each stop turns to face its exhibit (wider framing on desktop, one exhibit on a phone). Browsing goes down the left wall and back up the right.
+  - **Displays like the other rooms.** Tablets have letters cut into marble (gilded when focused), sheets and frames are printed parchment, plaques have gilt letters on dark stone. Titles auto-fit, and there are no web cards.
+  - **The hall.** Marble flagstones, a blue runner with gold borders and lozenges, pilasters, a cornice and timber trusses. Sconces hang under every header, with planters, benches and floor lanterns between sections. A lamp of learning in a gilded laurel sits at the far end, under an arched niche between two banners. It is closed all round, and zoom-out stops inside.
+  - **Fewer lights, no clipping.** The header boards hang 0.36 out from the wall, clear of the pilasters (which used to cut through them). Wall sconces are one per ~5 units of a section (at least one), each on an iron arm from the wall. The floor lanterns are gone.
+  - **Candlelight.** A dim sky light (the new per-room `light.ambient`), warm flickering key and fill lights that follow the focused stop, and amber lantern glows. The unlit exhibit faces are tinted to the candlelight so they don't glare.
+- `js/app.js`, `js/rooms/kit.js`: a room may set `light.ambient: [hemi, moon]`. The default (0.35, 0.22) is unchanged for every other room.
+- `js/content.js`: the plain-text mirror lists extracurriculars when data.json has them.
+- `docs/plans/decisions.md`: why the hall layout, and how to add a kind.
+- Why: user feedback (it must scale to more awards, extracurriculars, seminars and events; dimmer medieval candlelight).
+- Checked: desktop entry view and stops (tablets, easels, pedestals), the scaled test data, phone (375×812) stops. No console errors.
+
+## 2026-10-20 — Bridges: hub and spoke from the centre, rebuilt as weathered stone arches
+- `js/world/islands.js`: `BRIDGES` is now generated so every island links only to the centre island (six spokes). The island-to-island bridges are gone, and travel between outer islands routes through the centre.
+- `js/world/terrain.js`: the rope bridges are replaced by old stone arch bridges:
+  - **Shape.** The deck rises to the middle (`rise`, up to 1.0) instead of sagging, on a rubble body that deepens toward the ends so they sink into the islands.
+  - **Surface.** The deck is uneven flagstones split at random, some sunken, tilted or mossy, and the arch stones under both faces vary in depth.
+  - **Parapets.** Laid stone by stone, with varied length and height, gaps where stones have fallen, and coping missing or askew. Moss sits on the tops and ivy trails over the outer faces.
+  - **Ends and underside.** Broken rock hangs under the arch, and a rough, leaning pillar at each corner carries a lantern.
+  - **Variation.** Every stone is sized, tilted and toned with `hash()`, so the bridges are irregular but stable across visits.
+  - **Walking.** No beam crosses overhead (a first timber gateway version cut across the wizard at the doors). The walkable strip narrowed to 0.6 so the wizard stays inside the parapets, and the corner pillars are obstacles.
+- `js/world/build.js`: the old lanterns beside each bridge end are gone (the pillars carry them). `js/world/props.js`: the now-unused `lantern()` is removed.
+- `README.md`, `docs/plans/decisions.md`: updated for the hub-and-spoke layout.
+- Why: user feedback (centre-focused bridges; a better, stone, weathered medieval bridge without clipping).
+- Checked: top view of all six spokes, walking and auto-travel between outer islands via the centre, the bridge seen from a door and from the side. No console errors.
+
+## 2026-10-20 — Oakreach: a closed Chronicle hall with printed pages, and a timber hall outside to match
+- `js/rooms/journey.js`:
+  - **Closed hall.** The hall had only a back wall and short end walls, so zooming out showed the void. The end walls, floor and planks now run to a front wall at z = 22 under a ceiling with joists, and the wainscot and chair rail turn the corners. `maxDist` keeps zoom-out inside. The added planks use the room's own PRNG so the shared `rnd()` sequence is untouched.
+  - **Displays as print** (like the Lorehall's books):
+    - **Role header:** a parchment page with a two-column layout (period in small caps, title, company in italics | description) and skills as an italic keyword line instead of pills.
+    - **Education card:** the same treatment in a gilt slip.
+    - **Highlight notes:** parchment leaves with a title, a red small-caps date, a fleuron and Garamond text that auto-fits (title on one line where it can, body 15.5 → 12px). Each is held by a red wax seal instead of a pushpin.
+    - **Board:** the orange corkboard is now a dark oak panel in an oak frame with a lighter moulding and a gilt slip.
+    - **Timeline year plaques:** carved wood with gilt numerals.
+- `js/panels.js`: `gilt()` and `grain()` moved here from `rooms/contact.js` so Beacon Point and Oakreach share them.
+- `js/world/isles/journey.js`: the cottage is now a timber-framed hall like the room it holds:
+  - **Walls.** A stone footing laid in courses, a dark plank wainscot under an oak chair rail, plaster above, posts on oak plinths with carved bands, a top plate and knee braces.
+  - **Roof and gables.** A shingled roof with its ridge along the hall and barge boards. Each gable has a truss (collar beam, king post, struts), a carved tree-ring medallion with a glowing heart, and a tall arched window (lit panes, mullion, transoms, keystone, sill), the same as the hall's end windows inside.
+  - **Front.** An arched oak door in a moulded frame, shuttered windows with flower boxes, wall lanterns on the posts, and a porch with carved posts on stone pads and a hanging lantern.
+  - **Around it.** Ivy up the front corner and a woodpile. A stone chimney climbs the right gable (at the user's request it replaced a plain box): a wide breast with sloped shoulders, a stack in coursed stone, a string course, a stepped cap and two clay pots that the smoke rises from.
+  - The corner roots tried on the exterior were removed at the user's request.
+- `js/world/islands.js`: Oakreach `obs` 2.0 → 2.6, `lh` 5.6 → 6.0.
+- Why: user feedback (interior and exterior improved in the same way as the other islands).
+- Checked: desktop interior resting view and zoom-out, exterior gable and front (top-view tour). No console errors.
+
+## 2026-10-20 — Beacon Point: the lighthouse outside built from its lantern room's parts
+- `js/world/isles/contact.js`:
+  - **Tower.** Taller (to 5.55) and wider at the foot, on a two-step stone plinth laid in courses, with front steps. The red and white bands are now painted brick (one instanced mesh of courses laid round the openings), the outside of the watch room's whitewashed brick. Ten arched windows climb the tower, each with a lit pane, a mullion, a stone surround, a sill and a hood.
+  - **Keeper's porch.** A gabled white porch with a red roof and a brass finial. It has a planked door with iron straps and a ring pull under a stone arch with a red keystone, quoined jambs, a threshold, and storm lanterns on brackets either side (as inside).
+  - **Watch room.** Brass portholes with bolts, lit from within, on every face under a red frieze (the interior's portholes and frieze).
+  - **Gallery.** Corbel brackets under a slate deck, and an iron railing of twenty posts with two rails.
+  - **Lantern, as inside.** A red parapet with a brass cap rail; see-through glazing with mullions and two transoms; and inside it the lens, with five glowing prism rings, a bright core, a slowly turning brass cage and a soft halo.
+  - **Roof.** A red dome with slate ribs (the rafters inside), a brass collar and vent ball, a lightning rod with compass arms, and the weather vane. The sweeping beams stay.
+  - The lantern's halo sprite opts out of raycasts: the walk camera's occlusion raycast crashes on sprites (no `raycaster.camera`), which froze the render loop.
+- `js/world/islands.js`: Beacon Point `obs` 1.4 → 1.9 (wider plinth), `lh` 7.6 → 9.0 (label clears the vane).
+- Why: user feedback (exterior matched to the interior, as done for the other islands).
+- Checked: desktop walk view at the door, top-view tour (back), entering the lantern room. No console errors after the fix.
+
+## 2026-10-20 — Beacon Point: a closed watch room, displays made in the room's own materials
+- `js/rooms/contact.js`:
+  - **Closed room.** The lantern room was open at the front, so zooming out showed it floating in the void. The glazed lantern (mullions, transoms, parapet, rafters, roof) is now the back half only. A watch room runs forward to a front wall at z = 18, behind the phone's portrait camera, and `maxDist` (16.5) keeps zoom-out inside, like the other halls.
+  - **The watch room** carries the tower's red and white bands inside: whitewashed brick over a red dado (battens, a mahogany rail), a red frieze between mouldings, a beamed ceiling and deck planks. Brass portholes with dark night glass line the walls, four more storm lanterns hang there, and there is a framed chart, a ship's clock and a barometer.
+  - **Displays, no more web cards** (like the Lorehall's printed pages):
+    - **Intro:** the keeper's log, a parchment chart with rhumb lines, a compass rose and a dashed course under Garamond text. It sits in a mahogany frame with brass corner plates on an easel, with gilt rules when focused.
+    - **Email me:** a navy enamel plaque with a gilt rope border, the title in gold leaf and the address in cream, on a mahogany desk with turned legs, brass collars and a picture lamp. Its two buttons are carved wooden plates with gilt letters (green or red letters when the copy succeeds or fails).
+    - **Links:** carved wooden nameplates with gilt letters (a gilt edge and a warmer board when focused) on a mahogany board on posts, under a carved header to match.
+- Why: user feedback. The user also asked to drop the signal flags tried on the nameplates (they read as national flags) and to make the clickable plates wood rather than brass.
+- Checked: desktop resting view, zoomed-out, focused nameplate; phone (375×812) resting and zoomed-out. No console errors.
+
 ## 2026-10-20 — Runespire: the slim spire outside becomes the rune tower it holds
 - `js/world/isles/skills.js`: the tower now matches its interior (coursed masonry, round columns in every corner, triple rune slits below and paired slits under a rune diamond above, a planked door under a voussoir arch with a violet keystone, a gallery on two-tier corbels with gold posts and rail, crystal lanterns, cold-fire sconces, a ribbed blue cone roof):
   - **Shaft.** Three octagonal tiers over a battered footing, each faced in coursed blocks laid round the openings (one instanced mesh), with a round column (base and capital) in every corner. The lower tier has triple rune slits in stone frames on every face but the door's. A string course sets off the upper tier, whose faces have paired tall slits under a glowing rune diamond.
