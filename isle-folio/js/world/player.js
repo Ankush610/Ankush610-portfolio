@@ -1,6 +1,6 @@
-/* Third-person walking: WASD/arrows or the touch joystick move the wizard relative to the camera,
+/* Third-person walking: WASD/arrows move the wizard relative to the camera (touch screens use the island cards instead),
    drag orbits the camera, and travelTo() auto-walks across bridges to another island's door. */
-import { THREE, V3, reduce, touch } from '../engine.js';
+import { THREE, V3, reduce } from '../engine.js';
 import { ISLANDS, byId } from './islands.js';
 import { groundY, surfaceY, islandAt, bridges } from './terrain.js';
 
@@ -8,7 +8,7 @@ const MOVE = {KeyW:[0, 1], ArrowUp:[0, 1], KeyS:[0, -1], ArrowDown:[0, -1], KeyA
 const wrapAng = a => ((a + Math.PI*3) % (Math.PI*2)) - Math.PI;
 
 export function createPlayer(hero, isActive){
-  const keys = new Set(), stick = {x:0, y:0};
+  const keys = new Set();
   let yaw = 0, pitch = 0.42, lastDrag = -1e9, route = null, bestD = 1e9, stuckT = 0, groundTarget = hero.position.y, moving = 0;
   const T = () => performance.now()/1000;
   const ray = new THREE.Raycaster(), dir = new V3(), occ = [];
@@ -19,17 +19,6 @@ export function createPlayer(hero, isActive){
   });
   addEventListener('keyup', e => keys.delete(e.code));
   addEventListener('blur', () => keys.clear());
-
-  /* touch joystick (bottom-left) */
-  const stickEl = document.getElementById('stick'), knob = stickEl && stickEl.firstElementChild;
-  if(stickEl){
-    let sid = null, cx = 0, cy = 0;
-    const set = (x, y) => { const R = 44, d = Math.hypot(x, y), k = d > R ? R/d : 1; stick.x = x*k/R; stick.y = -y*k/R; knob.style.transform = `translate(${x*k}px, ${y*k}px)`; };
-    stickEl.addEventListener('pointerdown', e => { sid = e.pointerId; const r = stickEl.getBoundingClientRect(); cx = r.left + r.width/2; cy = r.top + r.height/2; try { stickEl.setPointerCapture(sid); } catch(_){} set(e.clientX - cx, e.clientY - cy); route = null; e.preventDefault(); });
-    stickEl.addEventListener('pointermove', e => { if(e.pointerId === sid) set(e.clientX - cx, e.clientY - cy); });
-    const end = e => { if(e.pointerId !== sid) return; sid = null; set(0, 0); };
-    stickEl.addEventListener('pointerup', end); stickEl.addEventListener('pointercancel', end);
-  }
 
   /* try to move; slide along walls/edges when the direct step is blocked */
   function tryMove(dx, dz){
@@ -43,8 +32,8 @@ export function createPlayer(hero, isActive){
   }
 
   function update(dt, t){
-    if(!isActive()){ keys.clear(); stick.x = stick.y = 0; }
-    let ix = stick.x, iz = stick.y;
+    if(!isActive()) keys.clear();
+    let ix = 0, iz = 0;
     keys.forEach(c => { if(MOVE[c]){ ix += MOVE[c][0]; iz += MOVE[c][1]; } });
     const len = Math.hypot(ix, iz);
     let vx = 0, vz = 0, speed = 0;

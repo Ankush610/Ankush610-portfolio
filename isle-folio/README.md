@@ -50,7 +50,7 @@ js/
   world/
     islands.js        island names, positions, sizes, colours, and which islands bridges connect
     terrain.js        island shapes (noise coastline, hills, paths, underside), bridges, walkable-ground checks
-    player.js         walking, follow camera, joystick, auto-travel over bridges
+    player.js         walking, follow camera, auto-travel over bridges
     props.js          trees, rocks, lanterns, gates, anvils, star fields
     landmarks.js      each island's building, seen from outside
     hero.js           the wizard
@@ -71,10 +71,12 @@ js/
 
 | | Outside | Inside a room |
 |---|---|---|
-| Move | W A S D / arrow keys (Shift to run) · joystick on phones | ← → (↑ ↓ in Runespire) / click / swipe |
+| Move | W A S D / arrow keys (Shift to run) | ← → (↑ ↓ in Runespire) / click / swipe |
 | Look | drag | — |
 | Go inside / open | walk up to a door, then E / Enter / the Enter button | Enter / click the focused thing |
 | Travel | click an island's floating sign, or keys 1–7 (walks you there over the bridges) | — |
 | Top view | M / Esc or the top-right button toggles it. Click anywhere on an island: the camera circles it while the wizard walks to its door; then E / Enter, the Enter button, or picking it again goes inside | — |
 | Back | — | Esc / “← Leave” button (top view returns to the whole map) |
 | Zoom | scroll, pinch, `+` `-` `0` | same |
+
+**Phones and tablets** (any touch screen) stay in top view; there is no walking. A strip of island cards runs along the bottom: swipe it and the camera circles whichever island's card is centred; tap that card (or the island itself) to go inside. Leaving a room returns to the same card.

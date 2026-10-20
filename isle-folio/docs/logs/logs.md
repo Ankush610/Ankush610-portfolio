@@ -5,6 +5,13 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-20 — Touch screens: island card strip instead of walking
+- `js/app.js`: on `(pointer: coarse)` the world starts and stays in top view (no mode button, no hint bar, no Enter pill). A `#isles` strip of cards, one per island (section, island name, colour), sits at the bottom. Scrolling it centres a card and the camera circles that island with the wizard placed at its door; tapping the centred card, or the island itself, goes inside. Leaving a room re-centres that island's card. The touch tour aims a little low so the island sits above the cards.
+- `js/world/player.js`, `index.html`, `css/style.css`: removed the joystick; added the card strip styles.
+- README controls, decisions, plan updated; closes #11.
+- Why: walking with a joystick was fiddly on phones, and the portrait top view cut off two islands.
+- Checked in headless Chromium as a phone (390×844, touch): swipe → camera follows, tap off-centre card → centres, tap centred card → room, Leave → same card; tablet (1024×768, touch) and desktop walk/top view unchanged.
+
 ## 2026-10-20 — Shared-content cleanup after the gateway
 - Run from the repo root now (`python3 -m http.server 8080`, open `/isle-folio/`); README, CLAUDE.md and the load-error message say so. One root `.claude/launch.json` replaces the per-folder ones, which served the subfolder and broke `../shared/`.
 - `js/content.js`: plain-text mirror skips empty contact links (closes #3).
