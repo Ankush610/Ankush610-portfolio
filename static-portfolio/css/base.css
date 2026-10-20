@@ -1,0 +1,222 @@
+/* =================================================================
+   base.css — CSS Variables, Reset, Typography
+   Theme: dimden.dev inspired — dark bg with colorful accents
+================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Press+Start+2P&family=VT323&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+:root {
+  /* ── Backgrounds ── */
+  --bg-root:   #0a0a0e;
+  --bg-panel:  #0e0e14;
+  --bg-card:   #0c0c12;
+  --bg-input:  #080810;
+
+  /* ── Teal (primary — headers, titles, links) ── */
+  --teal:      #00e5ff;
+  --teal2:     #00bcd4;
+  --teal3:     #0097a7;
+  --teal-dim:  #004d5c;
+  --teal-dark: #001e26;
+
+  /* ── Cyan-green (secondary) ── */
+  --green:     #4db840;
+  --green2:    #3da030;
+  --green-dim: #0d3a05;
+
+  /* ── Amber (accent — project titles, stats) ── */
+  --amber:     #ffb300;
+  --amber2:    #e89a00;
+  --amber-dim: #3d2800;
+
+  /* ── Pink/Magenta (blog, highlights) ── */
+  --pink:      #ff4081;
+  --pink2:     #f50057;
+  --pink-dim:  #3d0020;
+
+  /* ── Orange (mlops) ── */
+  --orange:    #ff6d00;
+  --orange-dim:#3d1a00;
+
+  /* ── Red (systems) ── */
+  --red:       #ff1744;
+  --red-dim:   #3d0010;
+
+  /* ── Purple (data) ── */
+  --purple:    #ce93d8;
+  --purple-dim:#2d003d;
+
+  /* ── Text ── */
+  --text:      #c8d8e8;
+  --text-dim:  #7590a3;
+  --text-muted:#252e38;
+  --border:    #151a25;
+  --border-hi: #1e2a3a;
+
+  /* ── Custom mouse cursor ── */
+  --cursor-fill: var(--teal);
+
+  /* ── Typography ── */
+  --font-pixel: 'Press Start 2P', 'VT323', monospace;
+  --font-vt:    'VT323', 'Courier New', monospace;
+  --font-mono:  'Share Tech Mono', 'Courier New', monospace;
+
+  /* ── Layout ── */
+  --sidebar-w: 262px;
+  --gap:       9px;
+  --pad:       16px;
+}
+
+/* ── CRT scanlines ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 229, 255, 0.012) 3px,
+    rgba(0, 229, 255, 0.012) 4px
+  );
+  pointer-events: none;
+  z-index: 9000;
+}
+
+/* ── CRT vignette ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.75) 100%);
+  pointer-events: none;
+  z-index: 8999;
+}
+
+body {
+  background: 
+    linear-gradient(rgba(10, 10, 14, 0.88), rgba(10, 10, 14, 0.88)),
+    url('../bg.gif') no-repeat center center fixed;
+  background-size: cover;
+  background-color: var(--bg-root);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a { color: var(--teal); text-decoration: none; }
+a:hover { color: var(--teal2); text-decoration: underline; }
+
+/* ── Cursor blink ── */
+.cursor {
+  display: inline-block;
+  width: 9px; height: 14px;
+  background: var(--teal);
+  vertical-align: middle;
+  margin-left: 3px;
+  animation: blink 1s step-end infinite;
+  box-shadow: 0 0 6px var(--teal);
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-root); }
+::-webkit-scrollbar-thumb { background: var(--teal-dim); }
+::-webkit-scrollbar-thumb:hover { background: var(--teal3); }
+
+/* ── Selection ── */
+::selection { background: var(--teal-dim); color: var(--teal); }
+
+/* =================================================================
+   LIGHT THEME — Canonical neubrutalist palette
+   Activated via [data-theme="light"] on <html>
+================================================================= */
+html[data-theme="light"] {
+  /* ── Canonical palette ── */
+  --nb-black:    #000000;
+  --nb-offwhite: #FFFDF5;
+  --nb-yellow:   #FFD23F;
+  --nb-coral:    #FF6B6B;
+  --nb-sky:      #74B9FF;
+  --nb-mint:     #88D498;
+  --nb-orange:   #FFA552;
+  --nb-lavender: #B8A9FA;
+
+  /* ── Layered surfaces: page bg / header bg / card bg all differ ── */
+  --bg-root:   var(--nb-mint);      /* page background — soft green */
+  --bg-header: var(--nb-lavender);  /* header strip — light violet */
+  --bg-panel:  var(--nb-offwhite);  /* cards / panels */
+  --bg-card:   var(--nb-offwhite);
+  --bg-input:  #ffffff;
+
+  /* Primary accent (was teal) → sky blue */
+  --teal:      #2f7fe0;
+  --teal2:     #1f66c2;
+  --teal3:     #164f99;
+  --teal-dim:  var(--nb-sky);
+  --teal-dark: #dceeff;
+
+  /* Secondary (green) → mint/green */
+  --green:     #2f9e57;
+  --green2:    #1f8043;
+  --green-dim: var(--nb-mint);
+
+  /* Accent (amber) → bold yellow */
+  --amber:     var(--nb-yellow);
+  --amber2:    #d9a900;
+  --amber-dim: #fff0b8;
+
+  /* Pink/Magenta → coral */
+  --pink:      #e0405a;
+  --pink2:     #c22a45;
+  --pink-dim:  var(--nb-coral);
+
+  /* Orange */
+  --orange:    var(--nb-orange);
+  --orange-dim:#ffe0bd;
+
+  /* Red */
+  --red:       #e0193f;
+  --red-dim:   #fbd3dc;
+
+  /* Purple → lavender */
+  --purple:    #8065e0;
+  --purple-dim:var(--nb-lavender);
+
+  /* Text */
+  --text:      #14120e;
+  --text-dim:  #3a382f;
+  --text-muted:#6b6858;
+  --border:    var(--nb-black);
+  --border-hi: var(--nb-black);
+
+  /* Custom cursor — white square, black border, no neon glow */
+  --cursor-fill: var(--bg-card);
+
+  --nb-shadow: 5px 5px 0 var(--nb-black);
+  --nb-shadow-sm: 3px 3px 0 var(--nb-black);
+  --nb-shadow-lg: 7px 7px 0 var(--nb-black);
+  --nb-border-w: 2.5px;
+
+  /* Neubrutalist display font for headers */
+  --font-nb: 'Space Grotesk', 'Archivo Black', sans-serif;
+}
+
+/* Kill CRT effects, rain and bg image entirely in light mode */
+html[data-theme="light"] body::before,
+html[data-theme="light"] body::after {
+  display: none;
+}
+html[data-theme="light"] #rain-canvas {
+  display: none !important;
+}
+html[data-theme="light"] body {
+  background: var(--bg-root);
+}

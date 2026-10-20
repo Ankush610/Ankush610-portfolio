@@ -1,0 +1,43 @@
+/* =================================================================
+   animations.css — Entrance, stagger, and utility animations
+================================================================= */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes typeIn {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+/* ── Panel entrance ── */
+.panel {
+  animation: fadeIn 0.35s ease both;
+}
+
+/* ── Stagger children ── */
+.stagger > * { animation: fadeIn 0.35s ease both; }
+.stagger > *:nth-child(1)  { animation-delay: 0.04s; }
+.stagger > *:nth-child(2)  { animation-delay: 0.08s; }
+.stagger > *:nth-child(3)  { animation-delay: 0.12s; }
+.stagger > *:nth-child(4)  { animation-delay: 0.16s; }
+.stagger > *:nth-child(5)  { animation-delay: 0.20s; }
+.stagger > *:nth-child(6)  { animation-delay: 0.24s; }
+.stagger > *:nth-child(7)  { animation-delay: 0.28s; }
+.stagger > *:nth-child(8)  { animation-delay: 0.32s; }
+.stagger > *:nth-child(9)  { animation-delay: 0.36s; }
+.stagger > *:nth-child(10) { animation-delay: 0.40s; }
+
+/* ── Typewriter prompt line ── */
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typeIn 1s steps(40, end) both;
+}
