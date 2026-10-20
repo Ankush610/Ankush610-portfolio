@@ -127,7 +127,7 @@ function openRoom(id){
   room = r; mode = 'room'; current = id;
   r.group.visible = true; setLights(r); zoom = zoomCur = 1;
   r.onEnter && r.onEnter(camera.aspect < 1.05);
-  hero.position.copy(r.group.position).add(r.heroSpot); hero.userData.inRoom = true; hero.scale.setScalar(HERO_SCALE.room);
+  hero.position.copy(r.group.position).add(r.heroSpot); hero.userData.inRoom = true; hero.scale.setScalar(r.heroScale || HERO_SCALE.room);   // big rooms can scale the wizard up
   desired();
   camTarget.copy(wantTarget);
   camPos.copy(wantPos).sub(wantTarget).multiplyScalar(reduce ? 1 : 1.35).add(wantTarget);
@@ -299,7 +299,7 @@ function frame(){
   desired();
   const f = reduce ? 1 : 1 - Math.exp(-dt*(diving ? 3.6 : mode === 'room' ? 4 : 3.2));
   camTarget.lerp(wantTarget, f); camPos.lerp(wantPos, f);
-  if(mode === 'room' && room.maxDist) zoom = Math.min(zoom, room.maxDist/Math.max(0.01, camPos.distanceTo(camTarget)));   // enclosed rooms: never zoom out through a wall
+  if(mode === 'room' && room.maxDist) zoom = Math.min(zoom, room.maxDist/Math.max(0.01, wantPos.distanceTo(wantTarget)));   // enclosed rooms: never zoom out through a wall (measured on the resting view, not the entry fly-in)
   zoomCur += (zoom - zoomCur) * (reduce ? 1 : Math.min(1, dt*8));
   camera.position.copy(camPos).sub(camTarget).multiplyScalar(zoomCur).add(camTarget);
   if(!reduce && mode === 'room'){ camera.position.x += mouse.x*0.5; camera.position.y -= mouse.y*0.28; }
