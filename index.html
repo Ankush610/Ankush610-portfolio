@@ -31,7 +31,6 @@ body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow
 .half:hover,.half:focus-visible{flex-grow:1.3}
 .split:hover .half:not(:hover){filter:saturate(.6) brightness(.8)}
 .label{text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
-.go{display:inline-block;transition:transform .2s}
 
 /* ---- Office half: static-portfolio's neubrutalist look ---- */
 .office{background:var(--mint) radial-gradient(rgba(0,0,0,.12) 1px,transparent 1.2px) 0 0/18px 18px;color:var(--ink);font-family:'Share Tech Mono',monospace}
@@ -62,8 +61,6 @@ body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow
 @keyframes blink{50%{opacity:0}}
 .office h2{font:400 clamp(18px,2.2vw,24px) 'Press Start 2P',monospace;background:var(--yellow);border:2.5px solid #000;box-shadow:5px 5px 0 #000;padding:12px 16px}
 .office p{font-size:15px;color:#2b2a22}
-.office .go{font:10px 'Press Start 2P',monospace;background:var(--paper);border:2px solid #000;box-shadow:3px 3px 0 #000;padding:10px 14px}
-.office:hover .go,.office:focus-visible .go{background:var(--coral);transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
 
 /* ---- Isle half: a low-poly scene from Isle Folio's night world ---- */
 .isle{background:linear-gradient(#060918 0%,#0d1636 40%,#25264d 72%,#4f3a52 100%);color:var(--cream)}
@@ -106,21 +103,11 @@ body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow
 .isle h2::before,.isle h2::after{content:"";width:34px;height:1px;background:linear-gradient(90deg,transparent,var(--ember))}
 .isle h2::after{transform:scaleX(-1)}
 .isle p{font-size:15px;color:var(--haze)}
-.isle .go{display:inline-flex;align-items:center;gap:12px;padding:7px 20px 7px 7px;border-radius:14px;font:600 15px Figtree,sans-serif;color:var(--cream);
-  background:linear-gradient(#2c2552,#17142f);border:1px solid rgba(240,181,74,.55);
-  box-shadow:0 0 0 4px rgba(240,181,74,.07),0 10px 28px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.1);
-  transition:box-shadow .3s,transform .2s}
-.isle .go kbd{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;font:700 15px Figtree,sans-serif;color:#231d45;
-  background:linear-gradient(#fff7df,#e8d6a6);box-shadow:0 3px 0 #a88c52,0 0 16px rgba(240,181,74,.45);transition:transform .15s,box-shadow .15s}
-.isle .go small{font-weight:400;font-size:13px;color:var(--haze);margin-left:2px}
-.isle:hover .go,.isle:focus-visible .go{transform:translateY(-2px);box-shadow:0 0 0 4px rgba(240,181,74,.16),0 0 34px rgba(240,181,74,.35),0 12px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12)}
-.isle:hover .go kbd,.isle:focus-visible .go kbd{transform:translateY(2px);box-shadow:0 1px 0 #a88c52,0 0 22px rgba(240,181,74,.7)}
-@media (hover:none){.isle .go small{display:none}}
 .note{color:var(--ember);font-size:14px;max-width:34ch}
 
 @media (max-width:760px){
   .split{flex-direction:column}
-  .half{flex:none;padding:48px 20px;gap:20px}
+  .half{flex:1 0 auto;padding:48px 20px;gap:20px}
   .half:hover,.half:focus-visible{flex-grow:1}
   .split:hover .half:not(:hover){filter:none}
   .moon{top:22px;right:22px;width:34px;height:34px}
@@ -146,7 +133,6 @@ body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow
     <div class="label">
       <h2>Office</h2>
       <p>The classic site. Bold, flat, quick to skim.</p>
-      <span class="go">ENTER →</span>
     </div>
   </a>
 
@@ -234,7 +220,6 @@ body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow
     <div class="label">
       <h2>Isle Folio</h2>
       <p>Walk a 3D world of seven islands · best on desktop</p>
-      <span class="go"><kbd>E</kbd>Enter the isles<small>or press E</small></span>
       <p class="note" id="nogl" hidden>Your browser can't run 3D, so this opens as plain text. Office is the better pick here.</p>
     </div>
   </a>
