@@ -70,38 +70,8 @@ html { scroll-behavior: smooth; }
   --pad:       16px;
 }
 
-/* ── CRT scanlines ── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0px,
-    transparent 3px,
-    rgba(0, 229, 255, 0.012) 3px,
-    rgba(0, 229, 255, 0.012) 4px
-  );
-  pointer-events: none;
-  z-index: 9000;
-}
-
-/* ── CRT vignette ── */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.75) 100%);
-  pointer-events: none;
-  z-index: 8999;
-}
-
 body {
-  background: 
-    linear-gradient(rgba(10, 10, 14, 0.88), rgba(10, 10, 14, 0.88)),
-    url('../bg.webp') no-repeat center center fixed;
-  background-size: cover;
-  background-color: var(--bg-root);
+  background: var(--bg-root);
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 13px;
@@ -209,14 +179,3 @@ html[data-theme="light"] {
   --font-nb: 'Space Grotesk', 'Archivo Black', sans-serif;
 }
 
-/* Kill CRT effects, rain and bg image entirely in light mode */
-html[data-theme="light"] body::before,
-html[data-theme="light"] body::after {
-  display: none;
-}
-html[data-theme="light"] #rain-canvas {
-  display: none !important;
-}
-html[data-theme="light"] body {
-  background: var(--bg-root);
-}

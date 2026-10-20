@@ -46,49 +46,8 @@ html[data-theme="light"] .online-badge {
 html[data-theme="light"] .header-clock { color: var(--text-dim); }
 html[data-theme="light"] .header-clock #clock { color: var(--pink2); font-weight: bold; }
 
-/* ── Theme toggle button ── */
-.theme-toggle-btn {
-  font-family: var(--font-pixel);
-  font-size: 9px;
-  letter-spacing: 1px;
-  padding: 8px 12px;
-  background: var(--amber);
-  color: #0a0a0e;
-  border: 2px solid var(--border);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  transition: transform 0.1s ease;
-}
-html[data-theme="dark"] .theme-toggle-btn {
-  background: var(--bg-input);
-  color: var(--amber);
-  border-color: var(--amber-dim);
-  box-shadow: none;
-}
-html[data-theme="light"] .theme-toggle-btn {
-  font-weight: 700;
-  background: var(--nb-yellow);
-  color: var(--text);
-  box-shadow: var(--nb-shadow-sm);
-}
-html[data-theme="light"] .theme-toggle-btn:hover {
-  background: var(--nb-coral);
-  transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0 var(--border);
-}
-html[data-theme="light"] .theme-toggle-btn:active {
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 var(--border);
-}
-html[data-theme="dark"] .theme-toggle-btn:hover {
-  color: var(--amber2);
-  border-color: var(--amber);
-}
-
 /* ── Nav ── */
+
 html[data-theme="light"] #nav {
   background: var(--bg-panel);
   border: var(--nb-border-w) solid var(--border);

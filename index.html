@@ -1,184 +1,187 @@
 <!doctype html>
-<!-- Gateway: pick the classic terminal portfolio or the 3D Isle Folio. Text is static so link previews can read it. -->
+<!-- Gateway: the page is split into the two portfolios' own worlds, Office (left) and Isle Folio (right). Text is static so link previews can read it. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Ankush Sonawane — Portfolio</title>
-<meta name="description" content="Ankush Sonawane, AI/ML & HPC engineer. Pick a way in: a retro terminal portfolio or a walkable 3D world.">
+<meta name="description" content="Ankush Sonawane, AI/ML & HPC engineer. Pick a way in: a bold, flat classic portfolio or a walkable 3D world.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Ankush Sonawane — Portfolio">
-<meta property="og:description" content="AI/ML & HPC engineer. Pick a way in: a retro terminal or a walkable 3D world of floating islands.">
+<meta property="og:description" content="AI/ML & HPC engineer. Pick a way in: a bold, flat classic site or a walkable 3D world of floating islands.">
 <!-- ponytail: relative og:image; most link scrapers need an absolute URL, set it once the site has a domain -->
 <meta property="og:image" content="shared/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="shared/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Young+Serif&family=Figtree:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Press+Start+2P&family=Young+Serif&family=Figtree:wght@400;600&display=swap">
 <style>
-:root{--bg:#07080d;--ink:#ece7da;--muted:#8b93a7;--line:rgba(173,186,222,.14);
-  --teal:#00e5ff;--green:#4db840;--amber:#ffb300;--pink:#ff4081;
-  --night:#0a0f1e;--ember:#f0b54a}
+:root{--ink:#14120e;--paper:#FFFDF5;--mint:#88D498;--yellow:#FFD23F;--coral:#FF6B6B;--sky:#74B9FF;--orange:#FFA552;--lav:#B8A9FA;
+  --night:#0b1230;--cream:#f4ead2;--ember:#f0b54a;--haze:#a9b2cf}
 *{box-sizing:border-box;margin:0}
-html,body{min-height:100%}
-body{background:var(--bg);color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif;
-  background-image:radial-gradient(60% 50% at 15% 30%,rgba(0,229,255,.07),transparent 70%),radial-gradient(60% 50% at 85% 70%,rgba(240,181,74,.08),transparent 70%);
-  display:grid;place-items:center;padding:clamp(24px,6vw,64px) 16px}
-main{width:100%;max-width:1040px}
-header{text-align:center;margin-bottom:clamp(28px,5vw,48px)}
-.kicker{font:14px 'Share Tech Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-h1{font:700 clamp(30px,5vw,48px)/1.1 Figtree,sans-serif;margin:10px 0 8px;letter-spacing:-.01em}
-.sub{color:var(--muted)}
-.doors{display:grid;gap:24px;grid-template-columns:1fr}
-@media (min-width:760px){.doors{grid-template-columns:1fr 1fr;gap:32px}}
+html,body{height:100%}
+body{background:var(--night);font:16px/1.5 Figtree,system-ui,sans-serif;overflow-x:hidden}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
-.door{display:block;text-decoration:none;color:inherit;border-radius:18px;outline:none;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
-.door:hover,.door:focus-visible{transform:translateY(-6px)}
-.screen{position:relative;height:clamp(260px,34vw,340px);border-radius:14px;overflow:hidden;border:1px solid var(--line);transition:box-shadow .35s,border-color .35s}
-.cap{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:14px 4px 0;flex-wrap:wrap}
-.cap small{color:var(--muted);font-size:14px}
-.go{font-weight:600;font-size:14px;white-space:nowrap;opacity:.7;transition:opacity .3s,transform .3s}
-.door:hover .go,.door:focus-visible .go{opacity:1;transform:translateX(4px)}
+.split{position:relative;display:flex;min-height:100vh;min-height:100svh}
+.half{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:26px;padding:64px clamp(20px,4vw,56px) 80px;text-decoration:none;overflow:hidden;outline:none;
+  transition:flex-grow .55s cubic-bezier(.2,.8,.2,1),filter .4s}
+.half:hover,.half:focus-visible{flex-grow:1.3}
+.split:hover .half:not(:hover){filter:saturate(.6) brightness(.8)}
+.label{text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.go{display:inline-block;transition:transform .2s}
 
-/* ---- terminal door ---- */
-.term .screen{background:#05060a;font-family:VT323,monospace;color:var(--teal)}
-.term canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.28}
-.term .screen::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px),radial-gradient(120% 90% at 50% 50%,transparent 55%,rgba(0,0,0,.65))}
-.bar{position:relative;display:flex;gap:7px;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(0,229,255,.18);background:rgba(0,229,255,.05);font:13px 'Share Tech Mono',monospace;color:#5e8f99}
-.bar i{width:10px;height:10px;border-radius:50%;background:var(--pink)}.bar i+i{background:var(--amber)}.bar i+i+i{background:var(--green);margin-right:8px}
-.out{position:relative;padding:18px 20px;font-size:clamp(20px,2.3vw,24px);line-height:1.25;text-shadow:0 0 6px rgba(0,229,255,.55)}
-.out p{white-space:nowrap;overflow:hidden}
-.ps{color:var(--green)}.ok{color:var(--green)}.dim{color:#4a7d87}.amb{color:var(--amber)}
-.typed{display:inline-block;vertical-align:bottom;width:0;overflow:hidden;animation:type 1.4s steps(22) .4s forwards}
-.l2,.l3,.l4,.l5{opacity:0;animation:show 0s forwards}
-.l2{animation-delay:2s}.l3{animation-delay:2.3s}.l4{animation-delay:2.6s}.l5{animation-delay:3s}
-.cur{display:inline-block;width:.55em;height:1em;background:var(--teal);vertical-align:-.12em;animation:blink 1s steps(1) infinite;box-shadow:0 0 8px var(--teal)}
-@keyframes type{to{width:22ch}}
-@keyframes show{to{opacity:1}}
+/* ---- Office half: static-portfolio's neubrutalist look ---- */
+.office{background:var(--mint) radial-gradient(rgba(0,0,0,.12) 1px,transparent 1.2px) 0 0/18px 18px;color:var(--ink);font-family:'Share Tech Mono',monospace}
+.mini{width:min(100%,440px);display:flex;flex-direction:column;gap:10px;font-size:11px;transition:transform .3s}
+.office:hover .mini,.office:focus-visible .mini{transform:rotate(-1.2deg) scale(1.02)}
+.m-box{background:var(--paper);border:2px solid #000;box-shadow:4px 4px 0 #000}
+.m-head{background:var(--lav);display:flex;justify-content:space-between;align-items:center;padding:12px 14px}
+.m-logo{font:26px VT323,monospace;letter-spacing:.35em}
+.m-badge{font:7px 'Press Start 2P',monospace;background:#2f9e57;color:#fff;border:2px solid #000;padding:5px 6px}
+.m-nav{display:flex;font:7px 'Press Start 2P',monospace}
+.m-nav i{font-style:normal;padding:8px 10px;border-right:2px solid #000}
+.m-nav i:nth-child(1){animation:tab 6s steps(1) infinite}
+.m-nav i:nth-child(2){animation:tab 6s steps(1) -4.5s infinite}
+.m-nav i:nth-child(3){animation:tab 6s steps(1) -3s infinite}
+.m-nav i:nth-child(4){animation:tab 6s steps(1) -1.5s infinite}
+@keyframes tab{0%{background:var(--yellow)}25%,100%{background:transparent}}
+.m-grid{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.m-profile{display:flex;gap:12px;align-items:center;padding:14px 12px}
+.m-av{flex:none;width:48px;height:48px;display:grid;place-items:center;background:var(--yellow);border:2px solid #000;box-shadow:3px 3px 0 #000;font:11px 'Press Start 2P',monospace}
+.m-profile b{display:block;font:20px VT323,monospace;letter-spacing:.06em;font-weight:400}
+.m-profile b::after{content:"";display:inline-block;width:.5em;height:.8em;background:var(--ink);margin-left:3px;vertical-align:-.05em;animation:blink 1s steps(1) infinite}
+.m-profile small{display:block;color:#c22a45;margin:2px 0 6px}
+.m-tags em{font-style:normal;display:inline-block;padding:2px 5px;margin:0 4px 4px 0;border:1.5px solid #000;background:var(--sky)}
+.m-tags em:nth-child(2){background:var(--coral)}.m-tags em:nth-child(3){background:var(--orange)}
+.m-side{padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.m-side b{font:7px 'Press Start 2P',monospace;padding-bottom:6px;border-bottom:2px solid #000;font-weight:400}
+.m-side span{border-bottom:1.5px dashed #000;padding-bottom:3px}
 @keyframes blink{50%{opacity:0}}
-.term:hover .screen,.term:focus-visible .screen{border-color:rgba(0,229,255,.6);box-shadow:0 0 0 1px rgba(0,229,255,.25),0 0 40px rgba(0,229,255,.25)}
-.term:hover .out,.term:focus-visible .out{animation:flicker 2.5s infinite}
-@keyframes flicker{0%,100%{opacity:1}3%{opacity:.82}6%{opacity:1}48%{opacity:.94}50%{opacity:1}}
-.term .cap b{font:24px VT323,monospace;color:var(--teal);letter-spacing:.04em}
+.office h2{font:400 clamp(18px,2.2vw,24px) 'Press Start 2P',monospace;background:var(--yellow);border:2.5px solid #000;box-shadow:5px 5px 0 #000;padding:12px 16px}
+.office p{font-size:15px;color:#2b2a22}
+.office .go{font:10px 'Press Start 2P',monospace;background:var(--paper);border:2px solid #000;box-shadow:3px 3px 0 #000;padding:10px 14px}
+.office:hover .go,.office:focus-visible .go{background:var(--coral);transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
 
-/* ---- island door ---- */
-.isle .screen{background:linear-gradient(#070b19 0%,#0f1838 45%,#2a2a52 75%,#5a3f4f 100%)}
+/* ---- Isle half: Isle Folio's night sky ---- */
+.isle{background:linear-gradient(#070b19 0%,#0f1838 45%,#2a2a52 78%,#5a3f4f 100%);color:var(--cream)}
 .stars{position:absolute;inset:0;background-image:
   radial-gradient(1.2px 1.2px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 28% 42%,#cdd6ff,transparent),
-  radial-gradient(1.4px 1.4px at 45% 12%,#fff,transparent),radial-gradient(1px 1px at 63% 30%,#fff,transparent),
+  radial-gradient(1.4px 1.4px at 45% 9%,#fff,transparent),radial-gradient(1px 1px at 63% 30%,#fff,transparent),
   radial-gradient(1.2px 1.2px at 78% 14%,#dfe5ff,transparent),radial-gradient(1px 1px at 88% 38%,#fff,transparent),
-  radial-gradient(1px 1px at 8% 55%,#fff,transparent),radial-gradient(1.2px 1.2px at 92% 58%,#fff,transparent);
+  radial-gradient(1px 1px at 8% 62%,#fff,transparent),radial-gradient(1.2px 1.2px at 92% 66%,#fff,transparent),
+  radial-gradient(1px 1px at 35% 74%,#dfe5ff,transparent),radial-gradient(1px 1px at 70% 82%,#fff,transparent),
+  radial-gradient(1.3px 1.3px at 20% 88%,#fff,transparent),radial-gradient(1px 1px at 55% 55%,#cdd6ff,transparent);
   animation:twinkle 4s ease-in-out infinite alternate}
-.moon{position:absolute;top:22px;right:34px;width:34px;height:34px;border-radius:50%;background:#f4ead2;box-shadow:0 0 30px rgba(244,234,210,.45)}
-.cloud{position:absolute;height:14px;border-radius:999px;background:rgba(220,226,255,.12);filter:blur(2px)}
-.c1{width:120px;top:58%;left:-130px;animation:drift 26s linear infinite}
-.c2{width:80px;top:30%;left:-90px;animation:drift 34s linear -14s infinite}
-.isle svg{position:absolute;left:50%;top:52%;width:min(78%,360px);transform:translate(-50%,-50%);overflow:visible}
+.moon{position:absolute;top:13%;right:12%;width:46px;height:46px;border-radius:50%;background:var(--cream);box-shadow:0 0 40px rgba(244,234,210,.45)}
+.cloud{position:absolute;height:16px;border-radius:999px;background:rgba(220,226,255,.12);filter:blur(2px)}
+.c1{width:140px;top:62%;left:-150px;animation:drift 30s linear infinite}
+.c2{width:90px;top:28%;left:-100px;animation:drift 38s linear -16s infinite}
+.isle svg{position:relative;width:min(100%,440px);overflow:visible}
 .isle .main{animation:bob 5s ease-in-out infinite}
 .isle .far{animation:bob 6s ease-in-out -2s infinite}
 .glow{opacity:.45;transition:opacity .4s}
 .isle:hover .glow,.isle:focus-visible .glow{opacity:1}
-.isle:hover .screen,.isle:focus-visible .screen{border-color:rgba(240,181,74,.55);box-shadow:0 0 0 1px rgba(240,181,74,.2),0 0 44px rgba(240,181,74,.22)}
 .isle:hover .main,.isle:focus-visible .main{animation-duration:2.6s}
 @keyframes bob{50%{transform:translateY(-8px)}}
-@keyframes drift{to{transform:translateX(calc(100vw + 260px))}}
+@keyframes drift{to{transform:translateX(calc(60vw + 300px))}}
 @keyframes twinkle{to{opacity:.55}}
-.isle .cap b{font:400 24px 'Young Serif',serif;color:var(--ember)}
-.note{margin-top:8px;color:var(--ember);font-size:14px}
+.isle .label{position:relative}
+.isle h2{font:400 clamp(30px,3.6vw,42px)/1 'Young Serif',serif;color:var(--ember);text-shadow:0 0 24px rgba(240,181,74,.35)}
+.isle p{font-size:15px;color:var(--haze)}
+.isle .go{font-weight:600;font-size:15px;color:var(--cream);border:1px solid rgba(240,181,74,.5);border-radius:999px;padding:9px 20px;background:rgba(240,181,74,.08);transition:transform .2s,box-shadow .3s,background .3s}
+.isle:hover .go,.isle:focus-visible .go{background:rgba(240,181,74,.18);box-shadow:0 0 24px rgba(240,181,74,.35);transform:translateX(4px)}
+.note{color:var(--ember);font-size:14px;max-width:34ch}
 
-.door:focus-visible .screen{outline:2px solid var(--ink);outline-offset:4px}
-footer{margin-top:40px;text-align:center;font-size:14px;color:var(--muted)}
-footer a{color:inherit}
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}
-  .typed{width:22ch}.l2,.l3,.l4,.l5{opacity:1}}
+/* ---- the seam: CV link across the bottom ---- */
+.cv{position:absolute;left:50%;transform:translateX(-50%);z-index:2;white-space:nowrap;transition:left .55s cubic-bezier(.2,.8,.2,1)}
+.split:has(.office:hover) .cv,.split:has(.office:focus-visible) .cv{left:56.52%}  /* seam at 1.3/2.3 */
+.split:has(.isle:hover) .cv,.split:has(.isle:focus-visible) .cv{left:43.48%}
+.cv{bottom:22px;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px;
+  background:linear-gradient(90deg,var(--ink) 50%,var(--cream) 50%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+@media (max-width:760px){
+  .split{flex-direction:column}
+  .half{flex:none;padding:48px 20px;gap:20px}
+  .half:hover,.half:focus-visible{flex-grow:1}
+  .split:hover .half:not(:hover){filter:none}
+  .cv,.split:has(.half:hover) .cv{left:50%}
+  .moon{top:22px;right:22px;width:34px;height:34px}
+  .cv{background:none;color:var(--cream)}
+  .isle{padding-bottom:72px}
+  .m-side{display:none}.m-grid{grid-template-columns:1fr}
+}
+.half:focus-visible{outline:3px solid var(--yellow);outline-offset:-6px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <p class="kicker">Ankush Sonawane · AI/ML &amp; HPC engineer</p>
-    <h1>Two ways in.</h1>
-    <p class="sub">Same work, two worlds. Pick one.</p>
-  </header>
-
-  <div class="doors">
-    <a class="door term" href="static-portfolio/" aria-label="Enter the classic terminal portfolio">
-      <div class="screen" aria-hidden="true">
-        <canvas id="rain"></canvas>
-        <div class="bar"><i></i><i></i><i></i>ankush@portfolio: ~</div>
-        <div class="out">
-          <p><span class="ps">$</span> <span class="typed">open portfolio --classic</span></p>
-          <p class="l2"><span class="ok">[ OK ]</span> <span class="dim">mounting</span> /about /skills</p>
-          <p class="l3"><span class="ok">[ OK ]</span> <span class="dim">mounting</span> /projects /blog</p>
-          <p class="l4"><span class="amb">&gt;</span> ready. press enter</p>
-          <p class="l5"><span class="ps">$</span> <span class="cur"></span></p>
-        </div>
+<h1 class="sr">Ankush Sonawane, AI/ML &amp; HPC engineer. Pick a way into the portfolio.</h1>
+<main class="split">
+  <a class="half office" href="static-portfolio/" aria-label="Enter Office, the classic portfolio">
+    <div class="mini" aria-hidden="true">
+      <div class="m-box m-head"><span class="m-logo">PORTFOLIO</span><span class="m-badge">I'm ONLINE!</span></div>
+      <div class="m-box m-nav"><i>HOME</i><i>SKILLS</i><i>PROJECTS</i><i>BLOG</i></div>
+      <div class="m-grid">
+        <div class="m-box m-profile"><span class="m-av">AS</span><div><b>Ankush Sonawane</b><small>&gt;&gt; AI/ML &amp; HPC engineer</small><span class="m-tags"><em>vLLM</em><em>Slurm</em><em>CUDA</em></span></div></div>
+        <div class="m-box m-side"><b>LINKS</b><span>› GitHub</span><span>› Medium</span><span>› E-mail</span></div>
       </div>
-      <div class="cap"><b>&gt; Terminal</b><small>Classic site, quick to skim</small><span class="go">Enter →</span></div>
-    </a>
+    </div>
+    <div class="label">
+      <h2>Office</h2>
+      <p>The classic site. Bold, flat, quick to skim.</p>
+      <span class="go">ENTER →</span>
+    </div>
+  </a>
 
-    <a class="door isle" href="isle-folio/" aria-label="Enter Isle Folio, the walkable 3D portfolio">
-      <div class="screen" aria-hidden="true">
-        <div class="stars"></div><div class="moon"></div>
-        <div class="cloud c1"></div><div class="cloud c2"></div>
-        <svg viewBox="0 0 300 200">
-          <defs>
-            <radialGradient id="dg"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
-            <linearGradient id="rk" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4a3f5e"/><stop offset="1" stop-color="#1c1830"/></linearGradient>
-          </defs>
-          <g class="far" opacity=".7">
-            <path d="M18 92 L72 92 L54 120 L40 132 L30 112 Z" fill="url(#rk)"/>
-            <ellipse cx="45" cy="92" rx="28" ry="6" fill="#3d6b45"/>
-            <path d="M228 70 L282 70 L266 96 L254 108 L240 90 Z" fill="url(#rk)"/>
-            <ellipse cx="255" cy="70" rx="28" ry="6" fill="#3d6b45"/>
-            <rect x="248" y="56" width="12" height="12" fill="#c9b893"/><path d="M246 57 L254 49 L262 57 Z" fill="#7a5a8a"/>
-            <path d="M72 95 Q100 104 108 100" stroke="#8a6a4a" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>
-            <path d="M192 96 Q214 86 228 74" stroke="#8a6a4a" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>
-          </g>
-          <g class="main">
-            <path d="M88 100 L212 100 L196 128 L176 150 L162 182 L150 160 L132 152 L110 128 Z" fill="url(#rk)"/>
-            <path d="M150 160 L162 182 L170 156 Z" fill="#14111f"/>
-            <ellipse cx="150" cy="100" rx="64" ry="13" fill="#4f8a4a"/>
-            <ellipse cx="150" cy="97" rx="58" ry="9" fill="#62a15a"/>
-            <circle class="glow" cx="146" cy="86" r="26" fill="url(#dg)"/>
-            <rect x="128" y="64" width="36" height="32" fill="#d9c7a3"/>
-            <path d="M123 66 L146 44 L169 66 Z" fill="#8a3b3b"/>
-            <rect x="141" y="78" width="10" height="18" rx="5" fill="#ffc560"/>
-            <rect x="132" y="72" width="6" height="6" fill="#ffc560" opacity=".8"/>
-            <rect x="182" y="80" width="3" height="14" fill="#5a3d2a"/><circle cx="183" cy="76" r="9" fill="#3f7a44"/>
-            <circle cx="110" cy="92" r="5" fill="#3f7a44"/>
-          </g>
-        </svg>
-      </div>
-      <div class="cap"><b>Isle Folio</b><small>Walk a 3D world of seven islands · best on desktop</small><span class="go">Enter →</span></div>
-      <p class="note" id="nogl" hidden>Your browser can't run 3D, so this opens as plain text. The Terminal site is the better pick here.</p>
-    </a>
-  </div>
+  <a class="half isle" href="isle-folio/" aria-label="Enter Isle Folio, the walkable 3D portfolio">
+    <div class="stars" aria-hidden="true"></div><div class="moon" aria-hidden="true"></div>
+    <div class="cloud c1" aria-hidden="true"></div><div class="cloud c2" aria-hidden="true"></div>
+    <svg viewBox="0 0 300 200" aria-hidden="true">
+      <defs>
+        <radialGradient id="dg"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+        <linearGradient id="rk" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4a3f5e"/><stop offset="1" stop-color="#1c1830"/></linearGradient>
+      </defs>
+      <g class="far" opacity=".7">
+        <path d="M18 92 L72 92 L54 120 L40 132 L30 112 Z" fill="url(#rk)"/>
+        <ellipse cx="45" cy="92" rx="28" ry="6" fill="#3d6b45"/>
+        <path d="M228 70 L282 70 L266 96 L254 108 L240 90 Z" fill="url(#rk)"/>
+        <ellipse cx="255" cy="70" rx="28" ry="6" fill="#3d6b45"/>
+        <rect x="248" y="56" width="12" height="12" fill="#c9b893"/><path d="M246 57 L254 49 L262 57 Z" fill="#7a5a8a"/>
+        <path d="M72 95 Q100 104 108 100" stroke="#8a6a4a" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>
+        <path d="M192 96 Q214 86 228 74" stroke="#8a6a4a" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>
+      </g>
+      <g class="main">
+        <path d="M88 100 L212 100 L196 128 L176 150 L162 182 L150 160 L132 152 L110 128 Z" fill="url(#rk)"/>
+        <path d="M150 160 L162 182 L170 156 Z" fill="#14111f"/>
+        <ellipse cx="150" cy="100" rx="64" ry="13" fill="#4f8a4a"/>
+        <ellipse cx="150" cy="97" rx="58" ry="9" fill="#62a15a"/>
+        <circle class="glow" cx="146" cy="86" r="26" fill="url(#dg)"/>
+        <rect x="128" y="64" width="36" height="32" fill="#d9c7a3"/>
+        <path d="M123 66 L146 44 L169 66 Z" fill="#8a3b3b"/>
+        <rect x="141" y="78" width="10" height="18" rx="5" fill="#ffc560"/>
+        <rect x="132" y="72" width="6" height="6" fill="#ffc560" opacity=".8"/>
+        <rect x="182" y="80" width="3" height="14" fill="#5a3d2a"/><circle cx="183" cy="76" r="9" fill="#3f7a44"/>
+        <circle cx="110" cy="92" r="5" fill="#3f7a44"/>
+      </g>
+    </svg>
+    <div class="label">
+      <h2>Isle Folio</h2>
+      <p>Walk a 3D world of seven islands · best on desktop</p>
+      <span class="go">Enter →</span>
+      <p class="note" id="nogl" hidden>Your browser can't run 3D, so this opens as plain text. Office is the better pick here.</p>
+    </div>
+  </a>
 
-  <footer><a href="shared/resume/Ankush_Sonawane_Resume.pdf">Just the CV (PDF)</a></footer>
+  <a class="cv" href="shared/resume/Ankush_Sonawane_Resume.pdf">Just the CV (PDF)</a>
 </main>
 
 <script>
-// No WebGL means Isle Folio falls back to text, so say so on its card.
+// No WebGL means Isle Folio falls back to text, so say so on its half.
 try { var c = document.createElement('canvas'); if(!(c.getContext('webgl') || c.getContext('experimental-webgl'))) throw 0; }
 catch(e){ document.getElementById('nogl').hidden = false; }
-
-// Matrix rain behind the terminal card, like static-portfolio/js/rain.js but tiny.
-(function(){
-  var cv = document.getElementById('rain'), g = cv.getContext('2d'), fs = 14, drops = [];
-  var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function size(){ cv.width = cv.offsetWidth; cv.height = cv.offsetHeight; drops = Array.from({length: Math.ceil(cv.width/fs)}, () => Math.random()*-40); }
-  function tick(){
-    g.fillStyle = 'rgba(5,6,10,.18)'; g.fillRect(0, 0, cv.width, cv.height);
-    g.fillStyle = '#00e5ff'; g.font = fs + 'px "Share Tech Mono",monospace';
-    drops.forEach((y, i) => { g.fillText(Math.random() < .5 ? '0' : '1', i*fs, y*fs); drops[i] = y*fs > cv.height && Math.random() > .97 ? 0 : y + 1; });
-  }
-  size(); addEventListener('resize', size);
-  if(still){ for(var i = 0; i < 40; i++) tick(); return; }
-  setInterval(tick, 70);
-})();
 </script>
 </body>
 </html>

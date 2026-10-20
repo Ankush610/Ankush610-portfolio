@@ -10,39 +10,6 @@ let activeSkillFilter = 'all';
 
 const TABS = ['HOME', 'SKILLS', 'PROJECTS', 'BLOG', 'WORKSHOPS', 'CONTACT'];
 
-/* ── Theme (dark / light) ── */
-function getStoredTheme() {
-  try { return localStorage.getItem('site-theme'); } catch (e) { return null; }
-}
-function storeTheme(t) {
-  try { localStorage.setItem('site-theme', t); } catch (e) { /* ignore */ }
-}
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  const btn = document.getElementById('theme-toggle');
-  if (btn) {
-    btn.textContent = theme === 'light' ? '◐ NEXUS' : '◑ OFFICE';
-  }
-  if (typeof window._refreshPhaseWidget === 'function') window._refreshPhaseWidget();
-}
-function initTheme() {
-  const saved = getStoredTheme();
-  applyTheme(saved === 'light' ? 'light' : 'dark');
-}
-function attachThemeToggle() {
-  const btn = document.getElementById('theme-toggle');
-  if (!btn) return;
-  const current = document.documentElement.getAttribute('data-theme') || 'dark';
-  btn.textContent = current === 'light' ? '◐ NEXUS' : '◑ OFFICE';
-  btn.addEventListener('click', () => {
-    const now = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    applyTheme(now);
-    storeTheme(now);
-  });
-}
-
-/* Apply saved theme immediately (before first paint of shell) to avoid flash */
-initTheme();
 
 /* ── Clock + Phase widget ── */
 const PHASE_SVGS = {
@@ -156,16 +123,14 @@ function startClock() {
     const label = document.getElementById('phase-label');
     const clock2 = document.getElementById('sb-clock');
     const title = document.getElementById('phase-panel-title');
-    const isOffice = document.documentElement.getAttribute('data-theme') === 'light';
-    if (wrap) { wrap.style.background = isOffice ? phase.bg : ''; }
+    if (wrap) { wrap.style.background = phase.bg; }
     if (glyph) { glyph.innerHTML = phase.svg; }
-    if (label) { label.textContent = phase.label; label.style.color = isOffice ? phase.color : ''; }
-    if (clock2) { clock2.style.color = isOffice ? phase.color : ''; }
+    if (label) { label.textContent = phase.label; label.style.color = phase.color; }
+    if (clock2) { clock2.style.color = phase.color; }
     if (title) title.textContent = '◆ ' + phase.title;
   };
   tick();
   setInterval(tick, 1000);
-  window._refreshPhaseWidget = tick;
 }
 
 /* ── Neubrutalist square cursor ── */
@@ -294,12 +259,10 @@ function buildShell() {
     </div>
     <div class="header-right">
       <a class="gateway-link" href="../" title="Back to the gateway">⌂ GATEWAY</a>
-      <button id="theme-toggle" class="theme-toggle-btn" type="button" title="Switch theme"></button>
       <div class="online-badge">I'm ONLINE!</div>
       <div class="header-clock">■ <span id="clock"></span></div>
     </div>`;
 
-  attachThemeToggle();
 
   /* Nav */
   const nav = document.getElementById('nav');
