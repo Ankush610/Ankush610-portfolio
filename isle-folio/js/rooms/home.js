@@ -1,7 +1,7 @@
 /* ---- Hearthstone: the Sanctum (inside the glowing monolith) ---- */
-import { THREE, V3, reduce, mat, mesh, glow, box, cyl, rnd } from '../engine.js';
+import { THREE, V3, reduce, touch, mat, mesh, glow, box, cyl, rnd } from '../engine.js';
 import { DATA } from '../data.js';
-import { FD, FB, FM, COL, panel, setPanel, rr, para, fitFont, card, eyebrow } from '../panels.js';
+import { FD, FB, FP, INK, RED, SEP, panel, setPanel, para, clip, fitFont, paper, rules, fleuron, caps } from '../panels.js';
 import { byId } from '../world/islands.js';
 import { view, faceY, item, hooks } from './kit.js';
 
@@ -38,6 +38,21 @@ function haloMaterial(opacity){
 }
 const flameMat = (color, i) => new THREE.MeshStandardMaterial({color, emissive:color, emissiveIntensity:i, flatShading:true});   // own instance: animated
 
+/* the hero board: a slate tablet set into the heart-stone, its letters cut and gilded; the incised border kindles when focused */
+function slate(ctx, W, H, on){
+  const gr = ctx.createLinearGradient(0, 0, W*0.3, H); gr.addColorStop(0, '#393b42'); gr.addColorStop(1, '#23252b');
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+  for(let i=0;i<260;i++){ const h = n => Math.abs(Math.sin((i + 1)*n)*43758.5453 % 1); ctx.fillStyle = h(3.1) > 0.55 ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.14)'; ctx.fillRect(h(12.99)*W, h(78.23)*H, 1 + h(39.4)*3, 1 + h(17.7)*2); }
+  ctx.fillStyle = 'rgba(255,255,255,.09)'; ctx.fillRect(0, 0, W, 5); ctx.fillRect(0, 0, 5, H);   // chiselled bevel: lit top and left, shadowed bottom and right
+  ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(0, H - 5, W, 5); ctx.fillRect(W - 5, 0, 5, H);
+  ctx.save(); if(on){ ctx.shadowColor = 'rgba(255,170,60,.95)'; ctx.shadowBlur = 14; }
+  ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = 3; ctx.strokeRect(17, 18, W - 34, H - 34);
+  ctx.strokeStyle = ctx.fillStyle = on ? '#ffc861' : '#a8853f'; ctx.lineWidth = on ? 2 : 1.4; ctx.strokeRect(16, 16, W - 32, H - 32);
+  [[16, 16], [W - 16, 16], [16, H - 16], [W - 16, H - 16]].forEach(([x, y]) => { ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 6, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 6, y); ctx.closePath(); ctx.fill(); });
+  ctx.restore();
+}
+const giltFill = (ctx, y, h) => { const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#fbe2a0'); g.addColorStop(0.55, '#e0a94a'); g.addColorStop(1, '#a8752a'); return g; };
+
 export default function build(){
   const g = new THREE.Group(), P = DATA.personal, items = [];
   const company = DATA.experience[0] ? DATA.experience[0].company : '';
@@ -58,11 +73,14 @@ export default function build(){
   const SX = Math.max(5.25, (cols - 1)*LX/2 + 2.4 + (rows - 1)*0.6), SY = Math.max((HY + 3.8)/2, 1.25 + (m - 1)*SG/2);
   const TOP = Math.max(HY + 2.0, SY + (m - 1)*SG/2 + 1.0);
 
-  /* ---- the chamber: a square stone shaft (the monolith, seen from inside) ---- */
-  const CZ = -2, HW = Math.max(7.8, SX + 2.2), BZ = CZ - HW, WH = 14;               // shaft centre z, half width, back wall z, wall height
-  const shell = new THREE.Mesh(new THREE.CylinderGeometry(HW*Math.SQRT2, HW*Math.SQRT2, WH, 4, 1, true), mat(0x23262e, {side:THREE.BackSide}));
-  shell.rotation.y = Math.PI/4; shell.position.set(0, WH/2, CZ); shell.receiveShadow = true; g.add(shell);   // BackSide: only the far walls draw, never the one between us and the camera
-  g.add(mesh(box(HW*2, 0.4, HW*2), mat(0x2e313a), 0, -0.2, CZ));
+  /* ---- the chamber: a long stone hall inside the monolith, closed all round so zoom-out never shows the void ---- */
+  const CZ = -2, HW = Math.max(7.8, SX + 2.2), BZ = CZ - HW, WH = 14;               // centre z of the dais end, half width, back wall z, wall height
+  const FW = 28, SL = FW - BZ, SC = (FW + BZ)/2;                                     // front wall z (behind the phone's portrait camera), side wall length and centre
+  const wallM = mat(0x23262e);
+  g.add(dec(box(HW*2, WH, 0.4), wallM, 0, WH/2, BZ - 0.2), dec(box(HW*2 + 0.8, WH, 0.4), wallM, 0, WH/2, FW + 0.2));
+  [-1, 1].forEach(s => g.add(dec(box(0.4, WH, SL), wallM, s*(HW + 0.2), WH/2, SC)));
+  g.add(dec(box(HW*2 + 0.8, 0.4, SL + 0.8), mat(0x1a1c22), 0, WH + 0.2, SC));        // ceiling
+  g.add(mesh(box(HW*2, 0.4, SL), mat(0x2e313a), 0, -0.2, SC));
   // floor: stepped dais under the hero board + a glowing inlay ring
   g.add(mesh(box(9.4, 0.22, 4.2), mat(0x3a3e48), 0, 0.11, -4.6));
   g.add(mesh(box(8.4, 0.22, 3.2), mat(0x434752), 0, 0.33, -4.9));
@@ -77,21 +95,20 @@ export default function build(){
     const seam = mesh(seamGeo, seamMat, sx, WH/2, BZ + 0.03); seam.castShadow = false; g.add(seam);
     const p = mesh(pulseGeo, pulseMat, sx, 2 + k*2.6, BZ + 0.05); p.castShadow = false; g.add(p); pulses.push(p);
   });
-  [[0, BZ + 0.05, HW*2, 0.1], [-HW + 0.05, CZ, 0.1, HW*2], [HW - 0.05, CZ, 0.1, HW*2]].forEach(([x, z, w, d]) => {
+  [[0, BZ + 0.05, HW*2, 0.1], [-HW + 0.05, SC, 0.1, SL], [HW - 0.05, SC, 0.1, SL]].forEach(([x, z, w, d]) => {
     const band = mesh(box(w, 0.09, d), seamMat, x, HY + 2.85, z); band.castShadow = false; g.add(band);
   });
   // side walls: deep niches with a dim ember glow, so the room reads as carved stone rather than a backdrop
   const nicheMat = glow(0x6a4a2a, 0.22);
-  [-1, 1].forEach(s => [-6.5, 2.2].forEach(z => {
+  [-1, 1].forEach(s => [-6.5, 2.2, 10.2, 18.2].forEach(z => {
     g.add(mesh(box(0.3, 3.4, 1.6), mat(0x1c1e25), s*(HW - 0.1), 2.6, z));
     const n = mesh(box(0.05, 2.9, 1.2), nicheMat, s*(HW - 0.26), 2.6, z); n.castShadow = false; g.add(n);
   }));
 
   /* ---- set dressing: a lived-in great hall carved into the stone ---- */
-  const FZ = CZ + HW;                                                               // front edge of the floor
   // flagstone floor, laid in staggered courses with a little height and tone variation
   const stones = [], STONE = [0x3b3a3e, 0x34363d, 0x403d3d, 0x303239, 0x3a3b42, 0x443d38];
-  for(let z = BZ + 0.6, r = 0; z < FZ; z += 1.2, r++) for(let x = -HW + (r % 2 ? 0.65 : 0); x < HW; x += 1.3){
+  for(let z = BZ + 0.6, r = 0; z < FW; z += 1.2, r++) for(let x = -HW + (r % 2 ? 0.65 : 0); x < HW; x += 1.3){
     const w = Math.min(1.22, HW - x + 0.6);
     stones.push([x, 0.02 + rnd()*0.02, z, w, 0.06, 1.12, 0, STONE[Math.floor(rnd()*STONE.length)]]);
   }
@@ -101,21 +118,22 @@ export default function build(){
   const blocks = [], BLOCK = [0x2e2a2c, 0x2a2c33, 0x332e2c, 0x26282e, 0x302b29, 0x2b2d35];
   const course = (len, fn) => { for(let y = 1.62, r = 0; y < WH; y += 0.72, r++){ let u = -len/2 + (r % 2 ? -0.5 : 0); while(u < len/2){ const w = 0.9 + rnd()*0.8, a = Math.max(u, -len/2), b = Math.min(u + w, len/2); if(b - a > 0.2) fn((a + b)/2, y, b - a - 0.07, BLOCK[Math.floor(rnd()*BLOCK.length)]); u += w; } } };
   course(HW*2, (u, y, w, c) => blocks.push([u, y, BZ + 0.03, w, 0.65, 0.05, 0, c]));
-  [-1, 1].forEach(s => course(HW*2, (u, y, w, c) => blocks.push([s*(HW - 0.03), y, CZ + u, 0.05, 0.65, w, 0, c])));
+  [-1, 1].forEach(s => course(SL, (u, y, w, c) => blocks.push([s*(HW - 0.03), y, SC + u, 0.05, 0.65, w, 0, c])));
   g.add(instanced(box(1, 1, 1), mat(0xffffff, {roughness:1}), blocks));
   // wainscot: dark panelling with battens and a rail, around the three walls
   const woodM = mat(WOOD), woodD = mat(WOOD_D), woodL = mat(WOOD_L);
   g.add(dec(box(HW*2, 1.25, 0.08), woodD, 0, 0.62, BZ + 0.05), dec(box(HW*2, 0.14, 0.2), woodL, 0, 1.3, BZ + 0.1));
-  [-1, 1].forEach(s => g.add(dec(box(0.08, 1.25, HW*2), woodD, s*(HW - 0.05), 0.62, CZ), dec(box(0.2, 0.14, HW*2), woodL, s*(HW - 0.1), 1.3, CZ)));
+  [-1, 1].forEach(s => g.add(dec(box(0.08, 1.25, SL), woodD, s*(HW - 0.05), 0.62, SC), dec(box(0.2, 0.14, SL), woodL, s*(HW - 0.1), 1.3, SC)));
   const battens = [];
-  for(let u = -HW + 0.5; u < HW; u += 0.78){ battens.push([u, 0.62, BZ + 0.1, 0.09, 1.2, 0.05, 0, WOOD]); [-1, 1].forEach(s => battens.push([s*(HW - 0.1), 0.62, CZ + u, 0.05, 1.2, 0.09, 0, WOOD])); }
+  for(let u = -HW + 0.5; u < HW; u += 0.78) battens.push([u, 0.62, BZ + 0.1, 0.09, 1.2, 0.05, 0, WOOD]);
+  for(let z = BZ + 0.5; z < FW; z += 0.78) [-1, 1].forEach(s => battens.push([s*(HW - 0.1), 0.62, z, 0.05, 1.2, 0.09, 0, WOOD]));
   g.add(instanced(box(1, 1, 1), mat(0xffffff, {roughness:0.85}), battens));
 
   // roof timbers: tie beams across the shaft, two purlins along it, corbels on the back wall
   const TB = WH - 0.7;
-  [-8.2, -4.6, -1, 2.6].forEach(z => z > BZ && g.add(dec(box(HW*2, 0.5, 0.42), woodM, 0, TB, z)));
+  for(let z = -8.2; z < FW; z += 3.6) z > BZ && g.add(dec(box(HW*2, 0.5, 0.42), woodM, 0, TB, z));
   [-1, 1].forEach(s => {
-    g.add(dec(box(0.36, 0.36, HW*2), woodD, s*3.1, TB - 0.43, CZ));
+    g.add(dec(box(0.36, 0.36, SL), woodD, s*3.1, TB - 0.43, SC));
     const corbel = dec(box(0.5, 0.9, 0.7), woodM, s*3.1, TB - 1.06, BZ + 0.38); g.add(corbel);
   });
 
@@ -211,6 +229,9 @@ export default function build(){
   const fringe = [];
   for(let u = -RW/2 + 0.12; u < RW/2; u += 0.16) [-1, 1].forEach(s => fringe.push([u, 0.07, RZ + s*(RD/2 + 0.09), 0.05, 0.02, 0.18, 0, 0xd8c7a0]));
   g.add(instanced(box(1, 1, 1), mat(0xffffff), fringe));
+  // a runner down the length of the hall to the rug, red with gilt edges
+  { const z0 = RZ + RD/2 + 0.4, L = FW - 2 - z0, zc = z0 + L/2;
+    g.add(dec(box(2.4, 0.03, L), mat(0x5a1e1a), 0, 0.075, zc), dec(box(2.1, 0.034, L - 0.3), mat(0x9a7038), 0, 0.077, zc), dec(box(1.86, 0.036, L - 0.54), mat(0x6a2420), 0, 0.079, zc)); }
   // candle clusters on squat stone plinths at the rug's front corners
   [-1, 1].forEach(s => { g.add(dec(cyl(0.34, 0.38, 0.16, 7), stoneM, s*(RW/2 + 0.5), 0.08, RZ + 1.7)); [[0, 0.42], [0.14, 0.28], [-0.1, 0.2]].forEach(([dx, h], k) => candle(s*(RW/2 + 0.5) + dx, 0.16, RZ + 1.7 + (k - 1)*0.1, h, 0.06)); });
 
@@ -223,6 +244,8 @@ export default function build(){
   // light falling from the crown of the monolith onto the heart-stone, plus slow motes
   const shaftMat = additive(0xffc46a, 0.07);
   const shaft = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 3.0, WH, 20, 1, true), shaftMat); shaft.position.set(0, WH/2, -6.4); g.add(shaft);
+  g.add(dec(cyl(1.1, 1.1, 0.04, 20), glow(0xffd08a, 1.1), 0, WH - 0.01, -6.4));   // the oculus it falls through, ringed in iron
+  { const r = dec(new THREE.TorusGeometry(1.15, 0.09, 5, 24), iron, 0, WH - 0.05, -6.4); r.rotation.x = Math.PI/2; g.add(r); }
   const MH = HY + 4.25, M = 70, motePos = new Float32Array(M*3), moteSeed = [];
   for(let i=0;i<M;i++){ const s = [(rnd()*2 - 1)*6.5, rnd()*MH, -9.3 + rnd()*5, rnd()*6.3]; moteSeed.push(s); motePos.set([s[0], s[1], s[2]], i*3); }
   const moteGeo = new THREE.BufferGeometry(); moteGeo.setAttribute('position', new THREE.BufferAttribute(motePos, 3));
@@ -235,19 +258,21 @@ export default function build(){
   const gem = mesh(new THREE.OctahedronGeometry(0.5), glow(EMBER, 2.2), 0, HY + 2.75, HZ); gem.castShadow = false; g.add(gem);
 
   const heroB = panel(7.2, 3.1, (ctx, W, H, st) => {
-    card(ctx, W, H, st, {bg:'rgba(12,17,32,.96)', r:20});
-    const x = 36, mw = W - 72; let y = 30;
-    eyebrow(ctx, `${P.title}${company ? ' · ' + company : ''}`, x, y, COL.ember, 15); y += 30;
-    fitFont(ctx, P.name, mw, 58, 400, FD, 30); ctx.fillStyle = COL.ink; ctx.fillText(P.name, x, y); y += 74;
-    ctx.font = `600 20px ${FB}`; ctx.fillStyle = COL.muted; ctx.fillText(P.subtitle, x, y); y += 34;
-    ctx.fillStyle = 'rgba(240,181,74,.45)'; ctx.fillRect(x, y, 56, 2); y += 14;
-    ctx.font = `400 18px ${FB}`; ctx.fillStyle = '#d8d4c8'; para(ctx, P.description, x, y, mw, 26, 4);
+    slate(ctx, W, H, st.focus);
+    const x = 46, mw = W - 92; let y = 36;
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowOffsetY = 1.5;   // every letter is cut: a shadow under its face
+    caps(ctx, `${P.title}${company ? ' · ' + company : ''}`, x, y, 15, '#c9a45a', mw); y += 28;
+    fitFont(ctx, P.name, mw, 58, 400, FD, 30); ctx.fillStyle = giltFill(ctx, y, 60); ctx.fillText(P.name, x, y); y += 72;
+    ctx.font = `italic 400 22px ${FP}`; ctx.fillStyle = '#cbbd9c'; ctx.fillText(clip(ctx, P.subtitle, mw), x, y); y += 36;
+    fleuron(ctx, x + 43, y, 80, '#a8853f'); y += 14;
+    ctx.font = `400 19px ${FP}`; ctx.fillStyle = '#ddd2bb'; para(ctx, P.description, x, y, mw, 24, 4);
+    ctx.restore();
   });
   heroB.position.set(0, HY, HZ); g.add(heroB);
   const heroItem = item({obj:heroB, panels:[heroB], view:view(new V3(0, HY, HZ), 7.5, 3.5), label:`${P.name}. ${P.title}. ${P.description}`});
 
   /* ---- focus-area lecterns: low, tilted back, in a shallow arc in front of the dais ---- */
-  const lecMat = mat(0x474b55), slabMat = mat(0x2a2d36), lecBase = box(2.4, 0.3, 0.8), lecSlab = box(2.62, 2.27, 0.12);
+  const lecMat = mat(0x474b55), slabMat = woodD, lecBase = box(2.4, 0.3, 0.8), lecSlab = box(2.62, 2.27, 0.12);
   const TILT = -0.22;
   const steles = P.focusAreas.map((f, k) => {
     const r = Math.floor(k/cols), c = k - r*cols, inRow = Math.min(cols, nF - r*cols), L = rows - 1 - r;   // row 0 = top/back tier
@@ -256,12 +281,13 @@ export default function build(){
     const grp = new THREE.Group(); grp.position.set(x, base, z); grp.rotation.y = ry; g.add(grp);
     grp.add(mesh(lecBase, lecMat, 0, 0.15, -0.1));
     const face = new THREE.Group(); face.position.y = y - base; face.rotation.x = TILT; grp.add(face);
-    face.add(mesh(lecSlab, slabMat, 0, 0, -0.08));
-    const p = panel(2.5, 2.15, (ctx, W, H, st) => {
-      card(ctx, W, H, st, {bg:'rgba(20,24,40,.96)', r:12});
-      ctx.font = `400 28px ${FB}`; ctx.fillStyle = COL.ember; ctx.fillText(f.glyph, 20, 18);
-      ctx.font = `400 21px ${FD}`; ctx.fillStyle = COL.ink; const y2 = para(ctx, f.title, 58, 21, W - 78, 25, 2);
-      ctx.font = `400 15px ${FB}`; ctx.fillStyle = '#cfd3dc'; para(ctx, f.desc, 20, Math.max(y2, 54) + 10, W - 40, 20.5, 6);
+    face.add(mesh(lecSlab, slabMat, 0, 0, -0.08), dec(box(2.72, 0.1, 0.16), woodL, 0, -1.12, 0.02));   // a reading board with a ledge the leaf rests on
+    const p = panel(2.5, 2.15, (ctx, W, H, st) => {   // a parchment leaf: red mark, title, fleuron, the text in ink; a gilt frame when focused
+      paper(ctx, W, H, k + 11); rules(ctx, W, H, st.focus);
+      ctx.font = `400 30px ${FB}`; ctx.fillStyle = RED; ctx.fillText(f.glyph, 26, 24);
+      ctx.font = `400 20px ${FD}`; ctx.fillStyle = INK; const y2 = Math.max(para(ctx, f.title, 64, 28, W - 90, 23, 2), 58);
+      fleuron(ctx, W/2, y2 + 8, 120, SEP);
+      ctx.font = `400 15px ${FP}`; ctx.fillStyle = INK; para(ctx, f.desc, 26, y2 + 20, W - 52, 18.5, 6);
     });
     face.add(p);
     const n = faceY(ry); n.y = 0.25; n.normalize();
@@ -273,30 +299,34 @@ export default function build(){
   const apGeo = new THREE.PlaneGeometry(PW + 0.14, PH + 0.14), apDim = additive(EMBER, 0.12), apLit = additive(EMBER, 0.5);
   const statItems = stats.map((s, k) => {
     const left = k < nLeft, j = left ? k : k - nLeft, x = left ? -SX : SX, y = SY + ((m - 1)/2 - j)*SG, z = -2.9, ry = left ? 0.26 : -0.26;
-    const name = byId[s.to].name.toUpperCase();
     const grp = new THREE.Group(); grp.position.set(x, y, z); grp.rotation.y = ry; g.add(grp);
     grp.add(mesh(jambGeo, frameMat, -PW/2 - 0.1, 0, -0.06), mesh(jambGeo, frameMat, PW/2 + 0.1, 0, -0.06), mesh(lintelGeo, frameMat, 0, PH/2 + 0.16, -0.04), mesh(lintelGeo, frameMat, 0, -PH/2 - 0.16, -0.04));
     const ap = new THREE.Mesh(apGeo, apDim); ap.position.z = -0.03; grp.add(ap);
-    const p = panel(PW, PH, (ctx, W, H, st) => {
-      card(ctx, W, H, st, {bg:'rgba(30,24,12,.94)', border:'rgba(240,181,74,.45)', r:14});
-      ctx.textAlign = 'center';
-      fitFont(ctx, s.big, W - 30, 46, 400, FD, 20); ctx.fillStyle = COL.ember; ctx.fillText(s.big, W/2, 14);
-      fitFont(ctx, s.label.toUpperCase(), W - 24, 13, 700, FM, 9); ctx.fillStyle = COL.ink; ctx.fillText(s.label.toUpperCase(), W/2, 70);
-      // the "door handle": a full-width button naming the destination
-      const bx = 16, by = H - 54, bw = W - 32, bh = 34, txt = (st.focus ? '⏎ ENTER ' : '') + name + ' →';
-      rr(ctx, bx, by, bw, bh, 9);
-      if(st.focus){ ctx.fillStyle = COL.ember; ctx.fill(); } else { ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(240,181,74,.75)'; ctx.stroke(); }
-      fitFont(ctx, txt, bw - 16, 14, 700, FM, 9); ctx.fillStyle = st.focus ? '#1d1608' : COL.ember; ctx.fillText(txt, W/2, by + 10);
+    const p = panel(PW, PH, (ctx, W, H, st) => {   // the doorway: ember light welling up out of the dark, a brass name-plate saying where it leads
+      const on = st.focus, gr = ctx.createRadialGradient(W/2, H*0.4, 6, W/2, H*0.45, W*0.62);
+      gr.addColorStop(0, on ? 'rgba(255,190,100,.5)' : 'rgba(240,150,60,.26)'); gr.addColorStop(0.55, 'rgba(70,34,12,.72)'); gr.addColorStop(1, 'rgba(16,10,6,.96)');
+      ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H); ctx.textAlign = 'center';
+      ctx.save(); ctx.shadowColor = 'rgba(255,150,40,.9)'; ctx.shadowBlur = on ? 18 : 10;
+      fitFont(ctx, s.big, W - 30, 46, 400, FD, 20); ctx.fillStyle = '#ffe2a6'; ctx.fillText(s.big, W/2, 12); ctx.restore();
+      caps(ctx, s.label, W/2, 66, 12, '#e6cf9f', W - 24);
+      const bx = 20, by = H - 50, bw = W - 40, bh = 30, br = ctx.createLinearGradient(0, by, 0, by + bh);
+      br.addColorStop(0, on ? '#f6d68a' : '#c9a35c'); br.addColorStop(1, on ? '#b9842e' : '#7d5b26');
+      ctx.save(); if(on){ ctx.shadowColor = 'rgba(255,180,60,.9)'; ctx.shadowBlur = 12; } ctx.fillStyle = br; ctx.fillRect(bx, by, bw, bh); ctx.restore();
+      ctx.strokeStyle = 'rgba(40,24,6,.8)'; ctx.lineWidth = 1.5; ctx.strokeRect(bx + 0.75, by + 0.75, bw - 1.5, bh - 1.5);
+      ctx.fillStyle = '#4a3212'; [bx + 7, bx + bw - 7].forEach(rx => { ctx.beginPath(); ctx.arc(rx, by + bh/2, 2.2, 0, 7); ctx.fill(); });   // rivets
+      const txt = (on && !touch ? '⏎ ' : '') + byId[s.to].name;
+      ctx.font = `600 13px ${FP}`; ctx.letterSpacing = '1.5px'; const fs = Math.max(9, Math.min(13, Math.floor(13*(bw - 24)/ctx.measureText(txt.toUpperCase()).width)));
+      caps(ctx, txt, W/2, by + (bh - fs)/2, fs, '#2a1a08');
     });
     p.position.z = 0.02; grp.add(p);
-    const it = item({obj:grp, panels:[p], view:view(new V3(x, y, z), 2.6, 2.1, faceY(ry)), label:`${s.big} ${s.label}. Portal: opens ${byId[s.to].name}.`, activate:() => hooks.goInside(s.to)});
+    const it = item({obj:grp, panels:[p], view:view(new V3(x, y, z), 2.6, 2.1), label:`${s.big} ${s.label}. Portal: opens ${byId[s.to].name}.`, activate:() => hooks.goInside(s.to)});
     const base = grp.position.clone(), out = faceY(ry).multiplyScalar(0.18);
     it.setFocus = on => { setPanel(p, {focus:on}); ap.material = on ? apLit : apDim; grp.position.copy(base); if(on) grp.position.add(out); };
     return it;
   });
   items.push(...statItems.slice(0, nLeft), heroItem, ...steles, ...statItems.slice(nLeft));
 
-  return {group:g, items, start:nLeft, frame:view(new V3(0, (TOP + 0.2)/2 - 0.45, -2.2), 2*SX + 3.3, TOP + 1.1),   // extra bottom margin: front lecterns sit nearer the camera and the hint bar covers the bottom edge
+  return {group:g, items, start:nLeft, maxDist:FW - 2, frame:view(new V3(0, (TOP + 0.2)/2 - 0.45, -2.2), 2*SX + 3.3, TOP + 1.1),   // maxDist: zoom-out stops short of the front wall. Extra bottom margin: front lecterns sit nearer the camera and the hint bar covers the bottom edge
     light:{key:[0, HY + 0.75, 3, 0xffc070, 1.4], fill:[0, 7, -7.5, 0x7fa0ff, 0.9]}, heroSpot:new V3(-SX - 1.1, 0, 0.9),
     update(t){
       if(reduce) return;
