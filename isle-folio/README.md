@@ -6,25 +6,25 @@ No build step: plain ES modules + Three.js r128 from a CDN.
 
 ## Run
 
-`data.json` is loaded with `fetch`, so the folder must be served over HTTP (opening `index.html` as a file won't work):
+Content is loaded with `fetch` from `../shared/data.json`, so serve the **repo root** over HTTP (opening `index.html` as a file, or serving only this folder, won't work):
 
 ```bash
-python3 -m http.server 8123
+python3 -m http.server 8080   # from the repo root
 ```
 
-Then open <http://localhost:8123>.
+Then open <http://localhost:8080/isle-folio/>.
 
 ## Edit content
 
-Everything you'd want to change lives in **`data.json`** (profile, experience, projects, skills, writing, workshops, talks, contact). Rooms read it at startup and lay themselves out from it.
+Everything you'd want to change lives in **`../shared/data.json`**, which the terminal portfolio uses too (profile, experience, projects, skills, writing, workshops, talks, contact). Rooms read it at startup and lay themselves out from it.
 
-The résumé link points to `resume/Ankush_Sonawane_Resume.pdf`, so put the PDF there.
+The résumé link points to `../shared/resume/Ankush_Sonawane_Resume.pdf`.
 
 Every list in `data.json` can grow or shrink — rooms size themselves to the content. Optional links (`linkedin`, `medium`, a project's `link`, …) can be left empty or removed and their buttons simply don't appear.
 
-**Preview a draft** without touching the real file: save it next to `data.json` (e.g. `draft.json`) and open `/?data=draft.json`.
+**Preview a draft** without touching the real file: save it anywhere under the repo (e.g. `shared/draft.json`) and open `/isle-folio/?data=../shared/draft.json`.
 
-**Link straight into a room:** `/?room=projects` (ids: `home`, `journey`, `projects`, `skills`, `writing`, `teaching`, `contact`).
+**Link straight into a room:** `/isle-folio/?room=projects` (ids: `home`, `journey`, `projects`, `skills`, `writing`, `teaching`, `contact`).
 
 ## Adding a new section (a new island)
 
@@ -33,13 +33,12 @@ Items are data; a whole new *kind* of section needs a little code:
 1. Add the content to `data.json` (e.g. `"openSource": [...]`).
 2. Create `js/rooms/<id>.js` exporting a default `build()` that returns a room (copy the smallest existing room as a template; the contract is documented at the top of `rooms/kit.js`).
 3. Register it in `js/rooms/index.js`.
-4. Add an island to `ISLANDS` in `js/world/islands.js` (pick an open `x, z`, size `R`, building footprint `obs`) and connect it with an entry in `BRIDGES`; optionally add its outside building in `js/world/landmarks.js`. Terrain, paths, bridges, walking and auto-travel all pick it up automatically. Keys 1–9 travel to the first nine islands.
+4. Add an island to `ISLANDS` in `js/world/islands.js` (pick an open `x, z`, size `R`, building footprint `obs`) and connect it with an entry in `BRIDGES`; optionally add its outside building in `js/world/landmarks.js`. Terrain, paths, bridges, walking and auto-travel all pick it up automatically. Keys 1–9 travel to the first nine islands; the hint bar shows the range.
 
 ## Layout
 
 ```
-index.html            page shell
-data.json             all portfolio content
+index.html            page shell  (content: ../shared/data.json)
 css/style.css         the few 2D bits: back button, hint bar, fade, fallback
 js/
   main.js             entry: load data → plain-text mirror → fonts → 3D

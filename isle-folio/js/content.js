@@ -15,7 +15,7 @@ export function renderContent(DATA){
   <h2>Teaching</h2>${li(DATA.workshops.map(w => `${lnk(w.link, w.title)}: ${esc(w.description)}`))}
   <h3>Talks and sessions</h3>${li(DATA.talks.map(t => `${esc(t.title)}, ${esc(t.org)}${t.date ? ' (' + esc(t.date) + ')' : ''}`))}
   <h3>Recognition</h3>${li(DATA.achievements.map(a => `${esc(a.title)}, ${esc(a.org)} (${esc(a.date)})`))}
-  <h2>Contact</h2><p>${esc(K.intro)}</p>${li([`Email: <a href="mailto:${esc(K.email)}">${esc(K.email)}</a>`, lnk(K.linkedin, 'LinkedIn'), lnk(K.github, 'GitHub'), lnk(K.medium, 'Medium'), lnk(DATA.resume, 'Résumé (PDF)'), esc(K.location)])}`;
+  <h2>Contact</h2><p>${esc(K.intro)}</p>${li([`Email: <a href="mailto:${esc(K.email)}">${esc(K.email)}</a>`, K.linkedin && lnk(K.linkedin, 'LinkedIn'), K.github && lnk(K.github, 'GitHub'), K.medium && lnk(K.medium, 'Medium'), DATA.resume && lnk(DATA.resume, 'Résumé (PDF)'), esc(K.location)].filter(Boolean))}`;
 }
 
 export function showFail(msg){

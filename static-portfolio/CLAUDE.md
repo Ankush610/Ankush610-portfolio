@@ -17,11 +17,11 @@ accents, pixel-art icons.
 
 ## Directory Structure
 
+Content lives in `../shared/` (`data.json`, `resume/`, `favicon.png`), shared with `isle-folio/`.
+
 ```
 .
 ├── index.html        # Page shell + entry point (loads CSS/JS, sets favicon)
-├── data.json          # Single source of truth for all content
-├── resume/            # PDF resume
 ├── css/
 │   ├── base.css        # CSS variables, reset, typography, theme variable defs
 │   ├── layout.css       # Grid, header, nav, footer structure
@@ -40,22 +40,18 @@ accents, pixel-art icons.
 ## Running Locally
 
 No build step, but it **must** be served over HTTP (not `file://`) because
-`app.js` fetches `data.json` via `fetch()`.
+`app.js` fetches `../shared/data.json` via `fetch()`. Serve the **repo root**:
 
 ```bash
-# Python
-python3 -m http.server 8080
-
-# Node
-npx serve .
+python3 -m http.server 8080   # from the repo root
 ```
-Then open `http://localhost:8080`. A VS Code launch config for this is in
-`.claude/launch.json`.
+Then open `http://localhost:8080/static-portfolio/`. The launch config is in
+the repo root's `.claude/launch.json`.
 
 ## Editing Workflow
 
 1. **Content changes** (bio, skills, projects, blog posts, workshops, contact
-   info, resume link) → edit `data.json` only. Nothing else needs to change;
+   info, resume link) → edit `../shared/data.json` only. Nothing else needs to change;
    `render.js` reads it at boot and re-renders on tab switch.
 2. **Visual/structural changes** to a specific tab → edit the matching
    `render*()` function in `js/render.js` plus the relevant block in
