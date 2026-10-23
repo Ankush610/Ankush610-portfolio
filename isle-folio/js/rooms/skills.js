@@ -6,7 +6,7 @@
    ley line and foot glow light up in its category colour. */
 import { THREE, V3, reduce, mat, mesh, glow, box, cyl, rnd } from '../engine.js';
 import { DATA } from '../data.js';
-import { FD, FB, FM, COL, CAT, panel, fitFont, para } from '../panels.js';
+import { FD, FP, COL, CAT, panel, fitFont, para, caps } from '../panels.js';
 import { view, item } from './kit.js';
 
 const SW = 3.7, SD = 1.0;               // stone width, depth
@@ -354,21 +354,21 @@ function carve(ctx, W, H, on, cat){
   ctx.textAlign = 'center'; ctx.fillStyle = col;
   fitFont(ctx, cat.label, W - 60, 32, 400, FD, 22);
   const o = para(ctx, cat.label, W/2, 30, W - 60, 30, 2) - 60;   // extra height taken by a second title line
-  ctx.font = `700 11px ${FM}`; ctx.fillStyle = COL.muted; ctx.fillText(`${list.length} SKILL${list.length === 1 ? '' : 'S'}`, W/2, 72 + o);
+  caps(ctx, `${list.length} skill${list.length === 1 ? '' : 's'}`, W/2, 70 + o, 14, COL.muted);   // letterspaced Garamond capitals, cut like the Lyceum's
   ctx.fillStyle = col; ctx.fillRect(36, 96 + o, W/2 - 50, 1.5); ctx.fillRect(W/2 + 14, 96 + o, W/2 - 50, 1.5); diamond(ctx, W/2, 96.75 + o, 7);
   const cols = list.length > 6 ? 2 : 1, rows = Math.ceil(list.length/cols), top = 110 + o, avail = H - top - 24;
-  const lh = Math.min(46, avail/rows), y0 = top + (avail - rows*lh)/2, cw = (W - 40)/cols, size = cols > 1 ? 18 : 22;
+  const lh = Math.min(46, avail/rows), y0 = top + (avail - rows*lh)/2, cw = (W - 40)/cols, size = cols > 1 ? 20 : 25;   // EB Garamond runs small: a size up on the old sans
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
   for(let c = 0; c < cols; c++){
     const names = list.filter((_, j) => j % cols === c).map(s => s.name), maxW = cw - 24;
-    ctx.font = `600 ${size}px ${FB}`;
+    ctx.font = `600 ${size}px ${FP}`;
     const bw = Math.min(maxW, Math.max(...names.map(s => ctx.measureText(s).width))) + 20, x0 = 20 + c*cw + (cw - bw)/2;
     names.forEach((s, r) => {
       const y = y0 + (r + 0.5)*lh;
       ctx.fillStyle = col; diamond(ctx, x0 + 5, y, 5);
-      fitFont(ctx, s, maxW, size, 600, FB, 14); ctx.fillStyle = on ? COL.ink : '#c8c4b8';
+      fitFont(ctx, s, maxW, size, 600, FP, size - 3); ctx.fillStyle = on ? COL.ink : '#c8c4b8';
       if(ctx.measureText(s).width <= maxW) ctx.fillText(s, x0 + 20, y + 1);
-      else para(ctx, s, x0 + 20, y - 7, maxW, 16, 2);   // still too long at 14px: two lines
+      else { ctx.font = `600 ${size}px ${FP}`; para(ctx, s, x0 + 20, y - size*0.47, maxW, size*0.95, 2); }   // too long for the column: two lines at the same size as the rest
     });
   }
   ctx.restore();

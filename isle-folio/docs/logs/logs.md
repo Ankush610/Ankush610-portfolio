@@ -5,6 +5,27 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-23 — Rooms: hold and drag to look around
+- `js/app.js`: in a room, press and hold (300 ms) then drag, with the mouse or a finger, and the camera slides sideways and up/down, following the pointer (it moves the camera and what it looks at together, so the view slides rather than turns). Release and it eases back. Moving before the hold time is still a swipe (browse); a tap still opens. The slide is at most 0.3 × the view distance across, 0.2 × up/down, and never more than 1.5 units, so it can't reach the walls. A pinch cancels it.
+- Room hint bar: "hold and drag to look" (touch), "Hold + drag look" (desktop).
+- Why: user asked for a little left/right freedom while zoomed in.
+- Checked with synthetic pointer events in the Lyceum (stubbed renderer): a quick swipe moved to the next exhibit; hold-and-drag slid the camera 0.71 units with the view direction unchanged and the exhibit unchanged; release brought it back.
+
+## 2026-10-23 — data.json: one writing style
+- `shared/data.json` (shared with `static-portfolio/`):
+  - **Official names.** `SLURM` → `Slurm` (vLLM-Bench-App text and tags), `Torch`/`Torchvision` → `PyTorch`/`torchvision`, `CDAC` → `C-DAC` (education, achievements), `Bramhi` → `Brahmi` (the script). Names that are lowercase by their own projects stay so: `vLLM`, `llama.cpp`, `scikit-learn`, `uv`, `torchvision`.
+  - **Title case for every title.** The talks were half sentence case ("Two-day AI/HPC training with hands-on labs"); they now match the projects, posts and awards ("Two-Day AI/HPC Training with Hands-On Labs"). `Hands-on` → `Hands-On` in titles; `SCI event` → `SCI Event`, `Tanzania cohort` → `Tanzania Cohort`.
+  - **British spelling in prose**, as the file already had (programme, tumour): visualisation, recognised, digitising, fertiliser. Technical terms such as quantization are left as the field writes them.
+  - "Data Science & Deep Learning Learning Guide" → "Data Science & Deep Learning Guide"; "in Streamlit UI" → "in a Streamlit UI".
+- `static-portfolio/js/render.js`: the fallback company string `CDAC Pune` → `C-DAC Pune`.
+- Why: user asked for one consistent writing style, with names in their official casing.
+- Checked: the JSON parses; both sites load it; the plain-text mirror shows the new spellings and no `SLURM` or `CDAC` remain.
+
+## 2026-10-23 — Runespire: stone carvings in EB Garamond
+- `js/rooms/skills.js`: the skill names were in Figtree (a UI sans) and the count in JetBrains Mono, which read as an app screen rather than a carved runestone. Names are now EB Garamond semi-bold, a size up (25 / 20 px for one / two columns) because Garamond runs small; the count ("7 SKILLS") is letterspaced Garamond capitals (`caps()`, as in the Lyceum). The Young Serif category title stays. A name too long for its column wraps to two lines at the same size instead of shrinking.
+- Why: user felt the stone text didn't match the room. Garamond is already loaded and used by the Lyceum, Lorehall and Oakreach, so it costs nothing.
+- Checked: rendered all seven stone faces (2D canvas) and looked at them. Every name fits; "Computer Vision", "Open OnDemand" and "LoRA / QLoRA" wrap at full size.
+
 ## 2026-10-23 — Lyceum: exhibits no longer burn out to white
 - `js/rooms/teaching.js`: the previous change made the key light whiter (more green and blue than the old amber) and tripled the ambient. On cream stone, key (1.2) + hemi (0.3) + moon (0.1) summed past 1, so the tablets, pilasters and floor clipped to near-white and lost their shading. The key is now 0.75 and the ambient 0.18/0.05, so a cream face peaks at about 0.85 of its colour. The key strength is one constant, `KEY`, because `update()` flickers the light round it every frame (it used to reset it to a hard-coded 1.2).
 - Why: user screenshot (items washed out after the slate-wall change).
