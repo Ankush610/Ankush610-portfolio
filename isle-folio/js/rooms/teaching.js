@@ -104,11 +104,14 @@ function marble(ctx, W, H, k){
   for(let i = 0; i < 5; i++){ const h = n => Math.abs(Math.sin((i + 1)*(k + 3)*n)*43758.5453 % 1); ctx.beginPath(); ctx.moveTo(h(1.3)*W, 0); ctx.bezierCurveTo(h(2.1)*W, H*0.3, h(3.7)*W, H*0.6, h(4.9)*W, H); ctx.stroke(); }
 }
 // letters cut into stone: a pale lip under a dark cut; gilded when the exhibit has focus
-const cut = (ctx, text, x, y, on, size, dark = '#4a4236') => { ctx.fillStyle = 'rgba(255,250,235,.7)'; ctx.fillText(text, x, y + 1.1); ctx.fillStyle = on ? gilt(ctx, y, y + size) : dark; ctx.fillText(text, x, y); };
+// focused letters are a deep, burnished gilt: bright gold leaf on cream marble can't be read
+const cut = (ctx, text, x, y, on, size, dark = '#4a4236') => { ctx.fillStyle = 'rgba(255,250,235,.7)'; ctx.fillText(text, x, y + 1.1); ctx.fillStyle = on ? deepGilt(ctx, y, y + size) : dark; ctx.fillText(text, x, y); };
+const deepGilt = (ctx, y0, y1) => { const g = ctx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, '#9a6a1c'); g.addColorStop(1, '#5c3a0c'); return g; };
 
 export default function build(){
   const g = new THREE.Group(), items = [];
-  const stoneM = mat(0xd6cdb8), stoneD = mat(0xb5aa92), stoneL = mat(0xe6dfcc), woodM = mat(0x6b4a30), woodD = mat(0x4a3222), iron = mat(0x2a2522);
+  // slate plaster walls behind light stone trim: the cream exhibits and the candlelight need something cool to stand against
+  const wallM = mat(0x56606c), stoneD = mat(0xb5aa92), stoneL = mat(0xe6dfcc), woodM = mat(0x6b4a30), woodD = mat(0x4a3222), iron = mat(0x2a2522);
   const gold = mat(0xd8a640, {metalness:0.6, roughness:0.35, emissive:0x5a3a00, emissiveIntensity:0.5});
   const lampM = new THREE.MeshStandardMaterial({color:0xffb860, emissive:0xff9a38, emissiveIntensity:1.8, flatShading:true});
 
@@ -128,14 +131,14 @@ export default function build(){
   const flags = [], FT = [0xe2dbca, 0xd8d0be, 0xe8e2d3, 0xd0c8b5, 0xdcd5c4];
   for(let z = FZ - 0.6, r = 0; z > ZB; z -= 1.2, r++) for(let x = -HX + 0.6 + (r % 2)*0.3; x < HX - 0.3; x += 1.2) flags.push([x, 0.012, z, 0, 0, 0, 1.17, 0.024, 1.17, FT[((r*3 + Math.round(x*7)) % 5 + 5) % 5]]);
   g.add(inst(box(1, 1, 1), mat(0xffffff, {roughness:0.6}), flags, false));
-  [-1, 1].forEach(s => g.add(mesh(box(0.4, RIDGE + 0.5, NL + 0.4), stoneM, s*(HX + 0.2), (RIDGE + 0.5)/2, NC)));
-  [ZB - 0.2, FZ + 0.2].forEach(z => g.add(mesh(box(2*HX + 0.8, RIDGE + 0.5, 0.4), stoneM, 0, (RIDGE + 0.5)/2, z)));
+  [-1, 1].forEach(s => g.add(mesh(box(0.4, RIDGE + 0.5, NL + 0.4), wallM, s*(HX + 0.2), (RIDGE + 0.5)/2, NC)));
+  [ZB - 0.2, FZ + 0.2].forEach(z => g.add(mesh(box(2*HX + 0.8, RIDGE + 0.5, 0.4), wallM, 0, (RIDGE + 0.5)/2, z)));
   const course = [];
   [-1, 1].forEach(s => {
     g.add(mesh(box(0.1, 1.0, NL), stoneD, s*(HX - 0.05), 0.5, NC), mesh(box(0.18, 0.12, NL), stoneL, s*(HX - 0.08), 1.04, NC));   // dado and its moulding
     for(let y = 1.7; y < WH - 0.6; y += 0.62) course.push([s*(HX - 0.005), y, NC, 0, 0, 0, 0.012, 0.035, NL]);
   });
-  g.add(inst(box(1, 1, 1), mat(0xbfb59e), course, false));
+  g.add(inst(box(1, 1, 1), mat(0x48515c), course, false));
   g.add(inst(box(1, 1, 1), stoneL, [-1, 1].flatMap(s => [[s*(HX - 0.15), WH - 0.15, NC, 0, 0, 0, 0.32, 0.3, NL], [s*(HX - 0.28), WH + 0.05, NC, 0, 0, 0, 0.6, 0.14, NL]])));   // cornice
   // pilasters: at the ends of every section and every few bays along long ones (they sit behind the exhibits)
   const pil = [];
@@ -376,7 +379,7 @@ export default function build(){
     // the overview stops 1.5 short of the entrance wall
     get maxDist(){ const it = items[R.focus]; return performance.now() < introUntil || !it ? (FZ - 1.5 - overview.c.z)/overview.n.z : (Math.abs(it.wide.c.x) + HX - 2)/Math.abs(it.wide.n.x); },
     view(narrow){ const it = items[R.focus]; return performance.now() < introUntil || !it ? overview : narrow ? it.narrow : it.wide; },
-    light:{key:[0, 5, kz + 1, 0xffb45a, 1.2], fill:[0, 4.5, AZ + 3, 0xff9a40, 0.9], ambient:[0.1, 0.04]},   // candlelight: a dim sky, warm lamps
+    light:{key:[0, 5, kz + 1, 0xffd6a4, 1.2], fill:[0, 4.5, AZ + 3, 0xffbc7a, 0.8], ambient:[0.3, 0.1]},   // candlelight, a softer warm white, over a cool moonlit ambient so not everything turns amber
     heroSpot:new V3(1.4, 0, FZ - 2.2),
     onEnter(narrow){ introUntil = reduce || narrow ? 0 : performance.now() + 1600; },   // a look down the hall on every entry
     onFocus(i, snap){ if(!snap) introUntil = 0; },
