@@ -135,7 +135,10 @@ function openRoom(id){
   hero.position.copy(r.group.position).add(r.heroSpot); hero.userData.inRoom = true; hero.scale.setScalar(r.heroScale || HERO_SCALE.room);   // big rooms can scale the wizard up
   desired();
   camTarget.copy(wantTarget);
-  camPos.copy(wantPos).sub(wantTarget).multiplyScalar(reduce ? 1 : 1.35).add(wantTarget);
+  // fly in from a little further out, but never from beyond the room's walls (small screens frame from further back)
+  const cap = r.maxDist ? r.maxDist/Math.max(0.01, wantPos.distanceTo(wantTarget)) : 9;
+  zoom = zoomCur = Math.min(1, cap);
+  camPos.copy(wantPos).sub(wantTarget).multiplyScalar(reduce ? 1 : Math.min(1.35, Math.max(1, cap))).add(wantTarget);
   live.textContent = `Inside ${byId[id].name}, ${byId[id].sub}. ${r.items[r.focus] ? r.items[r.focus].label : ''}`;
 }
 function goInside(id){

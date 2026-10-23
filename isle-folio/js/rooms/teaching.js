@@ -372,7 +372,9 @@ export default function build(){
   const overview = view(new V3(0, 3.0, Math.max(ZB + 6, Z0 - WL*0.45)), 2*HX + 0.6, 7.2, new V3(0, 0.12, 1).normalize());
   let introUntil = 0, kz = items[0] ? items[0].wide.c.z : 0, kx = 0;
   const R = {group:g, items, start:0, follow:true,
-    get maxDist(){ return performance.now() < introUntil ? 40 : 2*HX - 1.4; },   // zoom-out stops short of the far wall (the overview needs more room)
+    // zoom-out stops 2 short of the wall behind the camera (clear of its sconces and boards), measured per exhibit since they stand at different depths;
+    // the overview stops 1.5 short of the entrance wall
+    get maxDist(){ const it = items[R.focus]; return performance.now() < introUntil || !it ? (FZ - 1.5 - overview.c.z)/overview.n.z : (Math.abs(it.wide.c.x) + HX - 2)/Math.abs(it.wide.n.x); },
     view(narrow){ const it = items[R.focus]; return performance.now() < introUntil || !it ? overview : narrow ? it.narrow : it.wide; },
     light:{key:[0, 5, kz + 1, 0xffb45a, 1.2], fill:[0, 4.5, AZ + 3, 0xff9a40, 0.9], ambient:[0.1, 0.04]},   // candlelight: a dim sky, warm lamps
     heroSpot:new V3(1.4, 0, FZ - 2.2),
