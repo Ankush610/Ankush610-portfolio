@@ -5,6 +5,20 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-23 — Everything loads behind the loader: rooms pre-built, shaders pre-compiled
+- `js/main.js`: after the world is built, every room is built too (they were built on first entry) and `renderer.compile()` compiles every shader, all while the loader is still up. Entering a room the first time no longer stutters.
+- Why: user asked for the whole site to load first, then be used.
+- Checked: with a stubbed renderer, boot runs with no errors, all rooms are built and the loader still fades. Not timed on a real GPU.
+
+## 2026-10-23 — Performance: islands merged into a few meshes, no shadow redraws in rooms, adaptive resolution
+- `js/world/build.js`: new `mergeStatic()` runs once after the world is built. Every still, opaque, untextured mesh on an island merges into one vertex-coloured mesh per material look (the building in `lmGroup` and the rest of the island separately, so picking and camera occlusion still see only the building). Meshes an animation moves stay separate (found by running `animated` at a few sample times); a material an animation changes keeps its own merged mesh, so glows and flicker still work.
+  - Outdoors: 2,867 meshes → 449, shadow casters 2,486 → 194. Roughly 5,350 draw calls per frame → about 640 (main pass + shadow pass).
+- `js/app.js`: inside a room, `renderer.shadowMap.autoUpdate` is off. Rooms sit far outside the moon's shadow box, so the islands' shadow map (all outdoor casters) was being redrawn every frame for nothing.
+- `js/app.js`: if 90 frames average over 26 ms, the pixel ratio drops by 0.25 (never below 1). Still slow at 1×: the moon's shadow map halves to 1024 (once). For weak and integrated GPUs. Marked `ponytail:` (one-way). Checked with forced slow frames: 2× → 1× → shadows 1024, then it stops.
+- `js/world/isles/skills.js`: the arcane circle's hexagram animation read `circ.children[2]`/`[3]` by index, which merging shifts. It now keeps references.
+- Why: user asked for the major bottlenecks to be removed. Per-object draw calls were the big one.
+- Checked: with a stubbed renderer, the world builds, no merged mesh is moved by any animation at later times, and every animated material is still on a live mesh. Not checked visually: the browser pane has no WebGL.
+
 ## 2026-10-21 — A full night sky: the islands float in space
 - `js/world/sky.js` (new), built from `build.js` in place of the single 1,800-point star field:
   - **Dome.** A gradient sphere: deep navy overhead, a violet glow at the horizon, and a blue-violet space tone below. The top view looks down into the lower sky, so that half is no longer black.

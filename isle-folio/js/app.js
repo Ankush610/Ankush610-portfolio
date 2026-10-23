@@ -130,6 +130,7 @@ function openRoom(id){
   const r = getRoom(id);
   room = r; mode = 'room'; current = id;
   r.group.visible = true; setLights(r); zoom = zoomCur = 1;
+  renderer.shadowMap.autoUpdate = false;   // rooms sit far outside the moon's shadow box: stop redrawing the islands' shadows every frame
   r.onEnter && r.onEnter(camera.aspect < 1.05);
   hero.position.copy(r.group.position).add(r.heroSpot); hero.userData.inRoom = true; hero.scale.setScalar(r.heroScale || HERO_SCALE.room);   // big rooms can scale the wizard up
   desired();
@@ -153,7 +154,7 @@ function leaveRoom(){
   if(busy || mode !== 'room') return; busy = true;
   fader.classList.add('on');
   setTimeout(() => {
-    const id = room.id; room.group.visible = false; room = null; mode = 'world'; setLights(null); zoom = zoomCur = 1; tour = null;   // top view comes back out to the whole map; touch stays on that island's card
+    const id = room.id; room.group.visible = false; room = null; mode = 'world'; setLights(null); zoom = zoomCur = 1; tour = null; renderer.shadowMap.autoUpdate = true;   // top view comes back out to the whole map; touch stays on that island's card
     hero.userData.inRoom = false; hero.scale.setScalar(HERO_SCALE.world);
     player.place(byId[id].door, byId[id].face);   // step out of the door, camera looking back at the building
     hud(); busy = false; if(touch) show(id, true);
@@ -332,8 +333,20 @@ function frame(){
   }
 
   renderer.render(scene, camera);
+  // struggling GPU: drop the resolution a notch at a time, never below 1×; still slow at 1× → halve the moon's shadow map
+  // ponytail: one-way, never climbs back up; add hysteresis if a brief hitch on a fast machine is ever seen to trigger it
+  if(++slowN === 90){
+    if(slowT/90 > 0.026){
+      const pr = renderer.getPixelRatio();
+      if(pr > 1){ renderer.setPixelRatio(Math.max(1, pr - 0.25)); resize(); }
+      else if(moon.shadow.map && moon.shadow.mapSize.x > 1024){ moon.shadow.mapSize.set(1024, 1024); moon.shadow.map.dispose(); moon.shadow.map = null; }   // rebuilt at the new size next frame
+    }
+    slowN = slowT = 0;
+  }
+  slowT += dt;
   requestAnimationFrame(frame);
 }
+let slowN = 0, slowT = 0;
 
 hooks.goInside = goInside;
 // deep link: ?room=projects opens straight into that room
