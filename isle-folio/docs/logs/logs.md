@@ -5,6 +5,12 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-23 — Lyceum: the camera stays inside the hall on laptops and phones
+- `js/rooms/teaching.js`: `maxDist` capped the camera at 9.4 from the exhibit, which put it against the opposite wall, in among its sconces and header boards. Widescreen desktops frame an exhibit from about 7, so they never got there; 16:10 and 3:2 laptops, iPads and phones frame from 8–9.5, so they sat at the wall by default. The cap is now per exhibit: 2 short of the wall behind the camera. During the entry intro it was 40, so you could zoom out through the entrance wall; now it stops 1.5 short of it.
+- `js/app.js`: entering a room, the fly-in start and the starting zoom respect `maxDist`. On small screens the fly-in used to start outside the walls. Applies to every room.
+- Why: user report (laptop and mobile; not seen on a widescreen PC).
+- Checked: computed the camera's furthest position for every exhibit at 16:9, 16:10, 3:2, 4:3 and phone portrait, fully zoomed out with mouse parallax. The camera stays within 3.65 of the hall's centre line (walls at 5.4, sconces at 4.55); the intro stops at z 6 (entrance wall at 7.5). On phones the default view sits 15% closer, and the exhibit still fits. Not checked visually: the browser pane has no WebGL.
+
 ## 2026-10-23 — Everything loads behind the loader: rooms pre-built, shaders pre-compiled
 - `js/main.js`: after the world is built, every room is built too (they were built on first entry) and `renderer.compile()` compiles every shader, all while the loader is still up. Entering a room the first time no longer stutters.
 - Why: user asked for the whole site to load first, then be used.
