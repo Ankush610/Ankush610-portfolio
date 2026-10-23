@@ -5,6 +5,11 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-23 — Lyceum: exhibits no longer burn out to white
+- `js/rooms/teaching.js`: the previous change made the key light whiter (more green and blue than the old amber) and tripled the ambient. On cream stone, key (1.2) + hemi (0.3) + moon (0.1) summed past 1, so the tablets, pilasters and floor clipped to near-white and lost their shading. The key is now 0.75 and the ambient 0.18/0.05, so a cream face peaks at about 0.85 of its colour. The key strength is one constant, `KEY`, because `update()` flickers the light round it every frame (it used to reset it to a hard-coded 1.2).
+- Why: user screenshot (items washed out after the slate-wall change).
+- Checked: the room builds and the key light flickers around 0.75. Not checked visually: the browser pane has no WebGL.
+
 ## 2026-10-23 — Lyceum: slate walls, softer light, readable focused tablets
 - `js/rooms/teaching.js`: the walls, the stone, the key light and the fill light were all warm amber, so the whole hall (and the exhibits) read as one orange. The walls are now slate plaster (`0x56606c`, coursing a shade darker) behind the light stone trim, pilasters and dado. The key light is a softer warm white (`0xffd6a4`), the fill a paler amber (`0xffbc7a`, 0.8), and the cool sky ambient goes up from 0.1/0.04 to 0.3/0.1, so the shadows are moonlit instead of black-orange.
 - `js/rooms/teaching.js`: focused tablets cut their letters in a deep burnished gilt (`#9a6a1c` → `#5c3a0c`) instead of bright gold leaf, which was hard to read on cream marble.
