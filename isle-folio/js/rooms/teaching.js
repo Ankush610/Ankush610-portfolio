@@ -373,13 +373,14 @@ export default function build(){
 
   /* ---------- camera: a look down the nave on entry, then one exhibit at a time ---------- */
   const overview = view(new V3(0, 3.0, Math.max(ZB + 6, Z0 - WL*0.45)), 2*HX + 0.6, 7.2, new V3(0, 0.12, 1).normalize());
+  const KEY = 0.75;   // the key light's strength (update() flickers round it)
   let introUntil = 0, kz = items[0] ? items[0].wide.c.z : 0, kx = 0;
   const R = {group:g, items, start:0, follow:true,
     // zoom-out stops 2 short of the wall behind the camera (clear of its sconces and boards), measured per exhibit since they stand at different depths;
     // the overview stops 1.5 short of the entrance wall
     get maxDist(){ const it = items[R.focus]; return performance.now() < introUntil || !it ? (FZ - 1.5 - overview.c.z)/overview.n.z : (Math.abs(it.wide.c.x) + HX - 2)/Math.abs(it.wide.n.x); },
     view(narrow){ const it = items[R.focus]; return performance.now() < introUntil || !it ? overview : narrow ? it.narrow : it.wide; },
-    light:{key:[0, 5, kz + 1, 0xffd6a4, 1.2], fill:[0, 4.5, AZ + 3, 0xffbc7a, 0.8], ambient:[0.3, 0.1]},   // candlelight, a softer warm white, over a cool moonlit ambient so not everything turns amber
+    light:{key:[0, 5, kz + 1, 0xffd6a4, KEY], fill:[0, 4.5, AZ + 3, 0xffbc7a, 0.8], ambient:[0.18, 0.05]},   // candlelight, a soft warm white, over a cool moonlit ambient; kept low so cream stone stays cream and doesn't burn out to white
     heroSpot:new V3(1.4, 0, FZ - 2.2),
     onEnter(narrow){ introUntil = reduce || narrow ? 0 : performance.now() + 1600; },   // a look down the hall on every entry
     onFocus(i, snap){ if(!snap) introUntil = 0; },
@@ -390,7 +391,7 @@ export default function build(){
       spin.forEach((s, k) => { s.rotation.y = t*0.5 + k; });
       flame.scale.set(1, 1 + Math.sin(t*9)*0.12 + Math.sin(t*23)*0.05, 1); flameM.emissiveIntensity = 2.0 + Math.sin(t*13)*0.3;
       lampM.emissiveIntensity = 1.7 + Math.sin(t*7.3)*0.14 + Math.sin(t*13.1)*0.09;
-      keyL.intensity = 1.2 + Math.sin(t*6.1)*0.05 + Math.sin(t*11.7)*0.04;   // the flicker reaches the walls
+      keyL.intensity = KEY + Math.sin(t*6.1)*0.05 + Math.sin(t*11.7)*0.04;   // the flicker reaches the walls
     }};
   if(!items.length) R.items = [item({obj:g, label:'The Lyceum hall', view:overview, wide:overview, narrow:overview})];
   return R;
