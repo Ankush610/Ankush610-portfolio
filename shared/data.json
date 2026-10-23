@@ -118,7 +118,7 @@
   "education": [
     {
       "title": "PG Diploma in Artificial Intelligence",
-      "company": "CDAC Innovation Park, Pune",
+      "company": "C-DAC Innovation Park, Pune",
       "period": "2023 – 2024",
       "description": "Advanced coursework in AI, ML, DL, NLP, and distributed computing.",
       "skills": ["AI", "Machine Learning", "Deep Learning", "NLP"]
@@ -160,8 +160,8 @@
       "id": "vllmbenchgui",
       "title": "vLLM-Bench-App — LLM Benchmarking Platform",
       "status": "public",
-      "description": "A lightweight web GUI for vLLM-Bench that automates Hugging Face model downloads, vLLM server deployment, sequential benchmark execution, optional SLURM-based HPC execution, and interactive visualization of LLM inference performance metrics.",
-      "technologies": ["Python", "FastAPI", "SQLite", "vLLM", "vLLM-Bench", "Hugging Face", "Apptainer", "SLURM", "CUDA", "Linux"],
+      "description": "A lightweight web GUI for vLLM-Bench that automates Hugging Face model downloads, vLLM server deployment, sequential benchmark execution, optional Slurm-based HPC execution, and interactive visualisation of LLM inference performance metrics.",
+      "technologies": ["Python", "FastAPI", "SQLite", "vLLM", "vLLM-Bench", "Hugging Face", "Apptainer", "Slurm", "CUDA", "Linux"],
       "link": "https://github.com/Ankush610/vllmBenchGUI.git"
     },
     {
@@ -192,7 +192,7 @@
       "id": "retriever",
       "title": "RetrieverAI",
       "status": "public",
-      "description": "RAG-based document-aware conversational AI with LangChain, vLLM, and ChromaDB, enabling chat with documents in Streamlit UI.",
+      "description": "RAG-based document-aware conversational AI with LangChain, vLLM, and ChromaDB, enabling chat with documents in a Streamlit UI.",
       "technologies": ["LangChain", "ChromaDB", "vLLM", "Hugging Face"],
       "link": "https://github.com/Ankush610/DocumentQueryAI"
     },
@@ -201,14 +201,14 @@
       "title": "Retina-AV-Segmentation",
       "status": "public",
       "description": "Deep learning pipeline for retinal artery-vein segmentation from fundus images using Multi-Class Attention U-Net.",
-      "technologies": ["Torch", "Torchvision", "Slurm", "OpenCV", "Accelerate"],
+      "technologies": ["PyTorch", "torchvision", "Slurm", "OpenCV", "Accelerate"],
       "link": "https://github.com/Ankush610/RetinaArteryVeinSegmentation"
     },
     {
       "id": "brahma",
       "title": "Bramhanetra — Ancient Text OCR",
       "status": "private",
-      "description": "Recognized ancient Bramhi script using InceptionResNetV2, aiding in digitizing and preserving historical Indian inscriptions.",
+      "description": "Recognised ancient Brahmi script using InceptionResNetV2, aiding in digitising and preserving historical Indian inscriptions.",
       "technologies": ["InceptionResNetV2", "Computer Vision", "Deep Learning"],
       "link": ""
     },
@@ -216,7 +216,7 @@
       "id": "agri",
       "title": "Agricultural Consulting System",
       "status": "private",
-      "description": "Web-based advisory system integrating ML models for crop & fertilizer recommendation and plant disease prediction using YOLO.",
+      "description": "Web-based advisory system integrating ML models for crop & fertiliser recommendation and plant disease prediction using YOLO.",
       "technologies": ["ML", "YOLO", "Web Development"],
       "link": ""
     }
@@ -245,7 +245,7 @@
   ],
   "workshops": [
     {
-      "title": "Data Science & Deep Learning Learning Guide",
+      "title": "Data Science & Deep Learning Guide",
       "description": "Beginner-to-advanced notebooks covering data science fundamentals, machine learning algorithms, deep learning basics, and mathematical foundations — with hands-on coding exercises throughout.",
       "topics": ["Data Science", "Machine Learning", "Deep Learning", "Statistics", "Neural Networks"],
       "link": "https://github.com/Ankush610/DataScience"
@@ -258,16 +258,16 @@
     }
   ],
   "talks": [
-    { "title": "One-week Faculty Development Programme", "org": "KL University, Hyderabad", "date": "2026" },
-    { "title": "One-week HPC Workshop with hands-on sessions", "org": "NIT Arunachal Pradesh", "date": "2026" },
-    { "title": "One-week Workshop on Distributed Deep Learning", "org": "NESAC, Shillong", "date": "2026" },
+    { "title": "One-Week Faculty Development Programme", "org": "KL University, Hyderabad", "date": "2026" },
+    { "title": "One-Week HPC Workshop with Hands-On Sessions", "org": "NIT Arunachal Pradesh", "date": "2026" },
+    { "title": "One-Week Workshop on Distributed Deep Learning", "org": "NESAC, Shillong", "date": "2026" },
     { "title": "Workshop on Large Language Models", "org": "CHARUSAT University", "date": "2026" },
-    { "title": "Two-day AI/HPC training with hands-on labs", "org": "Pimpri Chinchwad University", "date": "2026" },
-    { "title": "Live demos of PARAM Shavak & BOSS OS", "org": "Impact AI Summit & C-DAC Conclave", "date": "2026" },
-    { "title": "Technical session on deep learning Apptainer containers", "org": "SCI event", "date": "2026" },
-    { "title": "Session on distributed deep learning training", "org": "IIT (BHU) Varanasi", "date": "" },
-    { "title": "Hands-on ML and AI/ML sessions", "org": "Tanzania cohort & Govt. Polytechnic College", "date": "2025" },
-    { "title": "Lab and exam support, Pune Darshan tour logistics", "org": "AICTE IIT Bombay HPC Workshop", "date": "2024" }
+    { "title": "Two-Day AI/HPC Training with Hands-On Labs", "org": "Pimpri Chinchwad University", "date": "2026" },
+    { "title": "Live Demos of PARAM Shavak & BOSS OS", "org": "Impact AI Summit & C-DAC Conclave", "date": "2026" },
+    { "title": "Technical Session on Deep Learning Apptainer Containers", "org": "SCI Event", "date": "2026" },
+    { "title": "Session on Distributed Deep Learning Training", "org": "IIT (BHU) Varanasi", "date": "" },
+    { "title": "Hands-On ML and AI/ML Sessions", "org": "Tanzania Cohort & Govt. Polytechnic College", "date": "2025" },
+    { "title": "Lab and Exam Support, Pune Darshan Tour Logistics", "org": "AICTE IIT Bombay HPC Workshop", "date": "2024" }
   ],
   "achievements": [
     {
@@ -275,6 +275,6 @@
       "org": "Pimpri Chinchwad Education Trust (PCET)",
       "date": "Sep 2025"
     },
-    { "title": "Letter of Appreciation — HPCore 2.0 Hands-on Workshop on HPC & LLM", "org": "CDAC Pune", "date": "2025" }
+    { "title": "Letter of Appreciation — HPCore 2.0 Hands-On Workshop on HPC & LLM", "org": "C-DAC Pune", "date": "2025" }
   ]
 }

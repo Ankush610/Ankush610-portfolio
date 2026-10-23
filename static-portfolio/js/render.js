@@ -378,7 +378,7 @@ function renderSidebar(DATA) {
     <div class="panel">
       <div class="sb-title">◉ STATUS</div>
       <div class="sb-status-lines">
-        &gt; Working at <span class="hi">${esc(currentJob?.company ?? 'CDAC Pune')}</span><br>
+        &gt; Working at <span class="hi">${esc(currentJob?.company ?? 'C-DAC Pune')}</span><br>
         &gt; Building <span class="hi">AI/ML</span> systems<br>
         &gt; Open to <span class="hi2">collab</span><br>
         &gt; Writing on <span class="hi2">Medium</span>

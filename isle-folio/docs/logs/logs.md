@@ -5,6 +5,16 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-23 — data.json: one writing style
+- `shared/data.json` (shared with `static-portfolio/`):
+  - **Official names.** `SLURM` → `Slurm` (vLLM-Bench-App text and tags), `Torch`/`Torchvision` → `PyTorch`/`torchvision`, `CDAC` → `C-DAC` (education, achievements), `Bramhi` → `Brahmi` (the script). Names that are lowercase by their own projects stay so: `vLLM`, `llama.cpp`, `scikit-learn`, `uv`, `torchvision`.
+  - **Title case for every title.** The talks were half sentence case ("Two-day AI/HPC training with hands-on labs"); they now match the projects, posts and awards ("Two-Day AI/HPC Training with Hands-On Labs"). `Hands-on` → `Hands-On` in titles; `SCI event` → `SCI Event`, `Tanzania cohort` → `Tanzania Cohort`.
+  - **British spelling in prose**, as the file already had (programme, tumour): visualisation, recognised, digitising, fertiliser. Technical terms such as quantization are left as the field writes them.
+  - "Data Science & Deep Learning Learning Guide" → "Data Science & Deep Learning Guide"; "in Streamlit UI" → "in a Streamlit UI".
+- `static-portfolio/js/render.js`: the fallback company string `CDAC Pune` → `C-DAC Pune`.
+- Why: user asked for one consistent writing style, with names in their official casing.
+- Checked: the JSON parses; both sites load it; the plain-text mirror shows the new spellings and no `SLURM` or `CDAC` remain.
+
 ## 2026-10-23 — Runespire: stone carvings in EB Garamond
 - `js/rooms/skills.js`: the skill names were in Figtree (a UI sans) and the count in JetBrains Mono, which read as an app screen rather than a carved runestone. Names are now EB Garamond semi-bold, a size up (25 / 20 px for one / two columns) because Garamond runs small; the count ("7 SKILLS") is letterspaced Garamond capitals (`caps()`, as in the Lyceum). The Young Serif category title stays. A name too long for its column wraps to two lines at the same size instead of shrinking.
 - Why: user felt the stone text didn't match the room. Garamond is already loaded and used by the Lyceum, Lorehall and Oakreach, so it costs nothing.
