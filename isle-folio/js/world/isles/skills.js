@@ -187,7 +187,7 @@ export function decorate(isl, grp, animated){
   lineM.side = THREE.DoubleSide;
   const flat = geo => { const m = new THREE.Mesh(geo, lineM); m.rotation.x = -Math.PI/2; circ.add(m); return m; };
   flat(new THREE.RingGeometry(0.8, 0.86, 32)); flat(new THREE.RingGeometry(0.56, 0.6, 32));
-  flat(new THREE.RingGeometry(0.45, 0.5, 3, 1, Math.PI/2)); flat(new THREE.RingGeometry(0.45, 0.5, 3, 1, -Math.PI/2));
+  const hex = [flat(new THREE.RingGeometry(0.45, 0.5, 3, 1, Math.PI/2)), flat(new THREE.RingGeometry(0.45, 0.5, 3, 1, -Math.PI/2))];
   const orb = mesh(new THREE.OctahedronGeometry(0.16), glow(VIOLET, 1.2), 0, 0.9, 0); orb.scale.y = 1.6; orb.castShadow = false; circ.add(orb);
   for(let tries = 0; tries < 150; tries++){
     const a = rand()*Math.PI*2, r = 4.8 + rand()*2.2, x = Math.cos(a)*r, z = Math.sin(a)*r;
@@ -249,7 +249,7 @@ export function decorate(isl, grp, animated){
     rune.emissiveIntensity = 1.1 + Math.sin(t*1.6)*0.5;
     lineM.emissiveIntensity = 0.8 + Math.sin(t*2.1 + 1)*0.3;
     orb.position.y = 0.9 + Math.sin(t*1.4)*0.12; orb.rotation.y = t*1.2;
-    circ.children[2].rotation.z = circ.children[3].rotation.z = t*0.25;
+    hex[0].rotation.z = hex[1].rotation.z = t*0.25;
     shards.forEach(sh => { sh.position.y = sh.userData.y + Math.sin(t*0.8 + sh.userData.p)*0.25; sh.rotation.y = sh.userData.p + t*0.3; });
   }});
 }

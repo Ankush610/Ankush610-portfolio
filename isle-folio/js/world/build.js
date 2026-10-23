@@ -134,5 +134,52 @@ ISLANDS.forEach(isl => {
   isl.labelP = p;
 });
 
+ISLANDS.forEach(isl => { mergeStatic(isl.lmGroup); mergeStatic(isl.group, isl.lmGroup); });
+
 return {hero, flies, debris, labelSprites, doorRing};
 }
+
+/* Islands are modelled from thousands of small meshes: one draw call each, and again in the shadow pass.
+   Merge every still, opaque, untextured mesh under `root` into one vertex-coloured mesh per material look.
+   Whatever an animation moves stays its own mesh (found by running the animations and seeing what moved);
+   a material an animation changes (glows, flicker) keeps its own merged mesh so it still animates.
+   lmGroup and the rest of the island merge separately, so walk-mode picking and camera occlusion only see the building. */
+const MERGE_T = [0.37, 1.21, 2.3];   // sample times; under 3 so the sky's first shooting star isn't disturbed
+function mergeStatic(root, skip){
+  const list = [], walk = o => o.children.forEach(c => { if(c === skip) return; if(c.isMesh) list.push(c); walk(c); });
+  walk(root);
+  const mats = [...new Set(list.map(m => m.material).filter(m => m && m.isMeshStandardMaterial))];
+  const look = m => [m.color.getHex(), m.emissive.getHex(), m.emissiveIntensity, m.opacity].join();
+  const snap = () => { root.updateMatrixWorld(true); return {mx:list.map(m => m.matrixWorld.elements.join()), mt:mats.map(look)}; };
+  const s0 = snap(), moved = new Set(), changed = new Set();
+  MERGE_T.forEach(t => { animated.forEach(a => a.fn(t)); const s = snap(); list.forEach((m, i) => s.mx[i] !== s0.mx[i] && moved.add(m)); mats.forEach((m, i) => s.mt[i] !== s0.mt[i] && changed.add(m)); });
+  animated.forEach(a => a.fn(0));
+  root.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), rel = new THREE.Matrix4(), c = new THREE.Color(), buckets = new Map();
+  list.forEach(o => {
+    const m = o.material, g = o.geometry;
+    if(moved.has(o) || o.isInstancedMesh || o.children.length || !o.visible || !m || !m.isMeshStandardMaterial || m.map || m.transparent || m.alphaTest
+       || o.raycast !== THREE.Mesh.prototype.raycast || Object.keys(o.userData).length || !g.attributes.normal || g.morphAttributes.position) return;
+    const key = (changed.has(m) ? m.uuid : [m.roughness, m.metalness, m.emissive.getHex(), m.emissiveIntensity, m.side, m.flatShading, m.fog, m.depthWrite, m.polygonOffset].join()) + [o.castShadow, o.receiveShadow, o.renderOrder].join();
+    let b = buckets.get(key); if(!b) buckets.set(key, b = {m, keep:changed.has(m), o, pos:[], nor:[], col:[]});
+    const geo = (g.index ? g.toNonIndexed() : g.clone()).applyMatrix4(rel.multiplyMatrices(inv, o.matrixWorld));
+    const P = geo.attributes.position.array, N = geo.attributes.normal.array, gc = m.vertexColors && geo.attributes.color, n = P.length/3;
+    if(rel.determinant() < 0) for(let i = 0; i < n; i += 3) for(const A of [P, N, gc && gc.array].filter(Boolean)){ const s = A.slice(i*3 + 3, i*3 + 6); A.copyWithin(i*3 + 3, i*3 + 6, i*3 + 9); A.set(s, i*3 + 6); }   // mirrored: keep triangles facing out
+    const C = new Float32Array(n*3);
+    for(let i = 0; i < n; i++){ c.copy(b.keep ? WHITE : m.color); if(gc) c.multiply(c2.fromArray(gc.array, i*3)); C[i*3] = c.r; C[i*3 + 1] = c.g; C[i*3 + 2] = c.b; }
+    b.pos.push(P); b.nor.push(N); b.col.push(C);
+    o.parent.remove(o);
+  });
+  const cat = arrs => { const a = new Float32Array(arrs.reduce((t, x) => t + x.length, 0)); let k = 0; arrs.forEach(x => { a.set(x, k); k += x.length; }); return a; };
+  buckets.forEach(b => {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(cat(b.pos), 3)); geo.setAttribute('normal', new THREE.BufferAttribute(cat(b.nor), 3));
+    if(!b.keep || b.m.vertexColors) geo.setAttribute('color', new THREE.BufferAttribute(cat(b.col), 3));
+    // a still material gets a white, vertex-coloured copy (its colours are in the vertices); an animated one is shared untouched
+    let m = b.m;
+    if(!b.keep){ m = m.clone(); m.color.set(0xffffff); m.vertexColors = true; }
+    const out = new THREE.Mesh(geo, m); Object.assign(out, {castShadow:b.o.castShadow, receiveShadow:b.o.receiveShadow, renderOrder:b.o.renderOrder});
+    root.add(out);
+  });
+}
+const WHITE = new THREE.Color(1, 1, 1), c2 = new THREE.Color();

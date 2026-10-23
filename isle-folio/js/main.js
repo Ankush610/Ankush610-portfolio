@@ -21,10 +21,13 @@ async function boot(){
 
   if(!window.THREE){ showFail('The 3D engine did not load. Here is the portfolio as plain text.'); return; }
   await fontsReady();
-  const [{ initEngine }, { buildWorld }, { startApp }] = await Promise.all([import('./engine.js'), import('./world/build.js'), import('./app.js')]);
-  try { initEngine(document.getElementById('world')); }
+  const [E, { buildWorld }, { startApp }, { getRoom }, { ISLANDS }] = await Promise.all([import('./engine.js'), import('./world/build.js'), import('./app.js'), import('./rooms/index.js'), import('./world/islands.js')]);
+  try { E.initEngine(document.getElementById('world')); }
   catch(e){ showFail('Your browser has WebGL turned off, so the 3D world cannot draw. Here is the portfolio as plain text.'); return; }
   startApp(buildWorld());
+  // behind the loader: build every room and compile every shader now, so no room stutters on its first visit
+  ISLANDS.forEach(i => getRoom(i.id));
+  E.renderer.compile(E.scene, E.camera);
   window.__worldOk = true;
   setTimeout(() => document.getElementById('loader').classList.add('done'), 350);
 }

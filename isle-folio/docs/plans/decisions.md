@@ -54,3 +54,7 @@ Revisit if: tablet users ask to walk. Then gate it on screen width as well.
 **2026-10-20 — Buildings are modelled facing +z and turned at build time (`isl.face`, `isl.rot`).**
 Why: every door faces the centre island, so arriving from the main bridges shows the front. The model files keep one simple convention, and `decorate()` turns its front-relative props with `isl.rot` (it builds into an unturned group).
 Revisit if: an island needs a door facing somewhere else. Then set `face` per island in `ISLANDS`.
+
+**2026-10-23 — Island meshes are merged at build time (`mergeStatic` in `build.js`), not by hand in the model files.**
+Why: the island files stay readable (many small named parts), and the GPU still gets a few dozen draw calls per island. Animated parts are detected by running the animations, so the model files need no flags.
+Revisit if: an animation starts moving something only after a few seconds (it would be merged and freeze), or an animation looks objects up by `children[i]`. Keep references instead.
