@@ -5,6 +5,11 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-23 — Runespire: stone carvings in EB Garamond
+- `js/rooms/skills.js`: the skill names were in Figtree (a UI sans) and the count in JetBrains Mono, which read as an app screen rather than a carved runestone. Names are now EB Garamond semi-bold, a size up (25 / 20 px for one / two columns) because Garamond runs small; the count ("7 SKILLS") is letterspaced Garamond capitals (`caps()`, as in the Lyceum). The Young Serif category title stays. A name too long for its column wraps to two lines at the same size instead of shrinking.
+- Why: user felt the stone text didn't match the room. Garamond is already loaded and used by the Lyceum, Lorehall and Oakreach, so it costs nothing.
+- Checked: rendered all seven stone faces (2D canvas) and looked at them. Every name fits; "Computer Vision", "Open OnDemand" and "LoRA / QLoRA" wrap at full size.
+
 ## 2026-10-23 — Lyceum: exhibits no longer burn out to white
 - `js/rooms/teaching.js`: the previous change made the key light whiter (more green and blue than the old amber) and tripled the ambient. On cream stone, key (1.2) + hemi (0.3) + moon (0.1) summed past 1, so the tablets, pilasters and floor clipped to near-white and lost their shading. The key is now 0.75 and the ambient 0.18/0.05, so a cream face peaks at about 0.85 of its colour. The key strength is one constant, `KEY`, because `update()` flickers the light round it every frame (it used to reset it to a hard-coded 1.2).
 - Why: user screenshot (items washed out after the slate-wall change).
