@@ -5,6 +5,12 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-23 — Rooms: hold and drag to look around
+- `js/app.js`: in a room, press and hold (300 ms) then drag, with the mouse or a finger, and the camera slides sideways and up/down, following the pointer (it moves the camera and what it looks at together, so the view slides rather than turns). Release and it eases back. Moving before the hold time is still a swipe (browse); a tap still opens. The slide is at most 0.3 × the view distance across, 0.2 × up/down, and never more than 1.5 units, so it can't reach the walls. A pinch cancels it.
+- Room hint bar: "hold and drag to look" (touch), "Hold + drag look" (desktop).
+- Why: user asked for a little left/right freedom while zoomed in.
+- Checked with synthetic pointer events in the Lyceum (stubbed renderer): a quick swipe moved to the next exhibit; hold-and-drag slid the camera 0.71 units with the view direction unchanged and the exhibit unchanged; release brought it back.
+
 ## 2026-10-23 — data.json: one writing style
 - `shared/data.json` (shared with `static-portfolio/`):
   - **Official names.** `SLURM` → `Slurm` (vLLM-Bench-App text and tags), `Torch`/`Torchvision` → `PyTorch`/`torchvision`, `CDAC` → `C-DAC` (education, achievements), `Bramhi` → `Brahmi` (the script). Names that are lowercase by their own projects stay so: `vLLM`, `llama.cpp`, `scikit-learn`, `uv`, `torchvision`.

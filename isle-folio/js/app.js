@@ -25,7 +25,7 @@ function hud(){
   backBtn.hidden = mode !== 'room';
   if(mode === 'room'){
     backBtn.textContent = '← Leave ' + byId[room.id].name;
-    hint.innerHTML = touch ? 'Swipe to browse · pinch to zoom · tap to open' : `<b>${byId[room.id].name}</b><span class="k"><kbd>←</kbd><kbd>→</kbd> browse</span><span class="k"><kbd>Scroll</kbd> zoom</span><span class="k"><kbd>Enter</kbd> open</span><span class="k"><kbd>Esc</kbd> back outside</span>`;
+    hint.innerHTML = touch ? 'Swipe to browse · pinch to zoom · hold and drag to look · tap to open' : `<b>${byId[room.id].name}</b><span class="k"><kbd>←</kbd><kbd>→</kbd> browse</span><span class="k"><kbd>Scroll</kbd> zoom</span><span class="k"><kbd>Hold</kbd> + drag look</span><span class="k"><kbd>Enter</kbd> open</span><span class="k"><kbd>Esc</kbd> back outside</span>`;
   } else {
     const isl = byId[current];
     hint.innerHTML = top
@@ -208,18 +208,24 @@ let zoom = 1, zoomCur = 1;
 function zoomBy(f){ const [lo, hi] = mode === 'room' ? [0.45, 1.8] : top ? [0.5, 1] : [0.4, 2.0]; zoom = Math.min(hi, Math.max(lo, zoom*f)); }
 const ptrs = new Map(); let pinchD = 0, pinching = false;
 const ptrDist = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a[0] - b[0], a[1] - b[1]); };
-let downAt = null, lastPt = null, dragging = false;
+let downAt = null, lastPt = null, dragging = false, downT = 0;
+// rooms: press and hold, then drag, to slide the view a little (it springs back on release); a quick swipe still browses
+const HOLD = 300, pan = new THREE.Vector2(), panCur = new THREE.Vector2();
+let panning = false;
+const endPan = () => { panning = false; pan.set(0, 0); };
 canvas.addEventListener('pointerdown', e => {
   ptrs.set(e.pointerId, [e.clientX, e.clientY]);
-  if(ptrs.size === 2){ pinching = true; pinchD = ptrDist(); downAt = null; } else if(ptrs.size === 1){ downAt = [e.clientX, e.clientY]; lastPt = [e.clientX, e.clientY]; dragging = false; }
+  if(ptrs.size === 2){ pinching = true; pinchD = ptrDist(); downAt = null; } else if(ptrs.size === 1){ downAt = [e.clientX, e.clientY]; lastPt = [e.clientX, e.clientY]; dragging = false; downT = performance.now(); }
+  if(ptrs.size === 2) endPan();
 });
-canvas.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); if(!ptrs.size) pinching = false; downAt = null; });
+canvas.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); if(!ptrs.size) pinching = false; downAt = null; endPan(); });
 canvas.addEventListener('pointerup', e => {
   ptrs.delete(e.pointerId);
   if(pinching){ if(!ptrs.size) pinching = false; downAt = null; return; }
   if(!downAt || busy){ downAt = null; return; }
   const dx = e.clientX - downAt[0], dy = e.clientY - downAt[1]; downAt = null;
   if(mode === 'room'){
+    if(panning){ endPan(); return; }   // a peek, not a swipe or a tap
     if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)){ step(dx < 0 ? 1 : -1); return; }
     if(Math.abs(dy) > 50){ step(dy < 0 ? 1 : -1); return; }
     if(Math.hypot(dx, dy) > 8) return;
@@ -247,6 +253,12 @@ canvas.addEventListener('pointermove', e => {
     if(Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) dragging = true;
     if(dragging) player.orbit(e.clientX - lastPt[0], e.clientY - lastPt[1]);
     lastPt = [e.clientX, e.clientY];
+  }
+  // peek (rooms): moving before the hold time is a swipe; after it, the view follows the pointer (fov 38: one screen height ≈ 0.69 × distance)
+  if(mode === 'room' && downAt && ptrs.has(e.pointerId) && !pinching){
+    const mx = e.clientX - downAt[0], my = e.clientY - downAt[1];
+    if(!panning && !dragging && Math.hypot(mx, my) > 8){ if(performance.now() - downT > HOLD) panning = true; else dragging = true; }
+    if(panning) pan.set(Math.max(-0.3, Math.min(0.3, -mx/innerHeight*0.69)), Math.max(-0.2, Math.min(0.2, my/innerHeight*0.69)));
   }
   mouse.set(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5);
   if(e.pointerType === 'mouse' && !busy && performance.now() - hoverT > 80){
@@ -301,7 +313,7 @@ setLabels(); hud(); setLights(null);   // start under the outdoor light
 if(touch){ snapIslands(); show('home', true); }
 desired(); camTarget.copy(wantTarget); camPos.copy(wantPos).add(new V3(0, 30, 30));
 
-const tmp = new V3(), clock = new THREE.Clock();
+const tmp = new V3(), clock = new THREE.Clock(), fwd = new V3(), side = new V3(), lift = new V3(), off = new V3(), look = new V3();
 function frame(){
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   desired();
@@ -311,7 +323,14 @@ function frame(){
   zoomCur += (zoom - zoomCur) * (reduce ? 1 : Math.min(1, dt*8));
   camera.position.copy(camPos).sub(camTarget).multiplyScalar(zoomCur).add(camTarget);
   if(!reduce && mode === 'room'){ camera.position.x += mouse.x*0.5; camera.position.y -= mouse.y*0.28; }
-  camera.lookAt(camTarget);
+  panCur.lerp(pan, reduce ? 1 : Math.min(1, dt*(panning ? 20 : 7)));   // follows the pointer closely, eases back on release
+  if(mode === 'room' && panCur.lengthSq() > 1e-8){
+    fwd.subVectors(camTarget, camera.position); const d = fwd.length(); fwd.divideScalar(d);
+    side.crossVectors(fwd, camera.up).normalize(); lift.crossVectors(side, fwd);
+    off.copy(side).multiplyScalar(panCur.x*d).addScaledVector(lift, panCur.y*d);
+    if(off.length() > 1.5) off.setLength(1.5);   // never more than 1.5 sideways, however far out: rooms are walled
+    camera.position.add(off); camera.lookAt(look.copy(camTarget).add(off));
+  } else camera.lookAt(camTarget);
 
   if(mode === 'world'){
     player.update(dt, t);
