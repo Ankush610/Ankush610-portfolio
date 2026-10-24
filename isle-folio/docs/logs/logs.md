@@ -5,6 +5,29 @@ Every change to the project, newest first. One entry per change set.
 Format:
 
 ```
+## 2026-10-24 — Lyceum: no gaps, no clipping
+- `js/world/isles/teaching.js`, gaps closed:
+  - The gable fill under the main roof stopped 0.12 below the roof's underside, the whole length of the hall, leaving a slit you could see the sky through just under the raking cornice. It now runs from eave to eave right up under the roof.
+  - The wing end gables stopped 0.06–0.12 short of their roofs. They're now cut to the roof's slope. The wing walls topped out 0.01 below the roof, so a solid attic now fills the space between the colonnade ceiling and the roof.
+- Clipping removed:
+  - The laurel and lamp in the pediment (r 0.34) were taller than the pediment and poked through the cornice. They're scaled to fit (r 0.2).
+  - The gilt keystone ran into the plaque, so the plaque moved up 0.08.
+  - The banners ran under the corner pilasters and their capitals, so they're narrower, shorter and moved in between them.
+  - The dentils hung 0.11 in front of the frieze and 0.01 below the cornice. They now sit against both.
+  - The rosettes overlapped the gilt line, so they're slightly smaller.
+  - The lions' plinths overlapped the cheek walls, so they moved out to x 2.12.
+  - The front lantern posts stood on the bottom step, so they moved off it.
+  - Inside the colonnades, the end pilasters on the wings' back walls poked out through the end walls. They're narrower and moved inward.
+  - On the new back, the wing pilasters ran into the windows and the centre block's rustication, so they're gone. The balustrade overhung the podium, so the back podium is now 0.15 deeper.
+- Why: user saw a gap between the roof and wall and asked for every pass-through like it to be fixed.
+- Checked in node with Three r128 raycasts: 71k horizontal rays through the centre block under its roof line went 1,140 straight through before and 0 now; the wings (front-to-back and end-to-end, 121k rays) are solid. Not checked visually (no WebGL in the preview pane).
+
+## 2026-10-24 — Lyceum: a finished back
+- `js/world/isles/teaching.js`: the hall was only dressed at the front; from behind it was a bare cream box. The centre block's face (corner pilasters, gilt line, tympanum with the lamp in its laurel, raking cornices, arch of voussoirs with gilt keystone, plaque, oculus, banners, rusticated base, dentils, rosettes, acroteria) is now built in one loop for both ends. At the back the arch is a tall lit window with iron tracery and a low marble balustrade instead of the open door; the door leaves, steps, lions and cheek walls stay front only.
+- The wings' back walls get two lit arched windows each (the end-wall window, now a shared `arched()` helper), end pilasters, a base course, a cornice with a gilt line, and antefixes along the rear eave. Lantern posts flank the back window and two more cypresses stand behind the wings.
+- Why: user noticed every other building has detail all round except the Lyceum.
+- Checked: built the group in node with Three r128 (no WebGL in the preview pane): 347 meshes (was 234), no errors, everything new stays inside the 3.6 obstacle radius. Not checked visually.
+
 ## 2026-10-23 — Rooms: hold and drag to look around
 - `js/app.js`: in a room, press and hold (300 ms) then drag, with the mouse or a finger, and the camera slides sideways and up/down, following the pointer (it moves the camera and what it looks at together, so the view slides rather than turns). Release and it eases back. Moving before the hold time is still a swipe (browse); a tap still opens. The slide is at most 0.3 × the view distance across, 0.2 × up/down, and never more than 1.5 units, so it can't reach the walls. A pinch cancels it.
 - Room hint bar: "hold and drag to look" (touch), "Hold + drag look" (desktop).

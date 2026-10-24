@@ -40,7 +40,8 @@ function lion(){
    Per-frame animation: push {fn(t)} into `animated` (skipped when reduced motion is on).
    Inside (rooms/teaching.js) is the Hall of the Lyceum: a long stone nave under a timber roof, exhibits down both walls
    under navy and gold banners, a lamp of learning in a gilded laurel at the far end. Outside, that nave is the tall
-   gabled centre block (its door open on the warm hall), with a colonnaded wing either side under blue slate. */
+   gabled centre block (its door open on the warm hall), with a colonnaded wing either side under blue slate.
+   The back is dressed like the front (same pediment, arch, banners), so it reads from every side. */
 export function building(animated){
   const g = new THREE.Group(), stone = mat(STONE), stoneD = mat(STONE_D), stoneL = mat(STONE_L), marble = mat(MARBLE), slate = mat(SLATE), slateD = mat(SLATE_D);
   const gold = mat(GOLD, {metalness:0.6, roughness:0.35, emissive:0x5a3a00, emissiveIntensity:0.45}), wood = mat(WOOD), iron = mat(0x2a2522), unit = box(1, 1, 1);
@@ -49,78 +50,87 @@ export function building(animated){
   const WX = 3.25, WF = 1.0, WB = -1.4, WT = 2.55, P = 0.3;             // wings: outer x, front, back, column top; podium height
 
   // podiums and the steps up to the door
-  g.add(mesh(box(2*CX + 0.3, P + 0.05, CF - CB + 0.2), stoneD, 0, (P + 0.05)/2, (CF + CB)/2));
+  g.add(mesh(box(2*CX + 0.3, P + 0.05, CF - CB + 0.35), stoneD, 0, (P + 0.05)/2, (CF + CB - 0.15)/2));
   [-1, 1].forEach(s => g.add(mesh(box(WX - CX + 0.2, P, WF - WB + 0.3), stoneD, s*(CX + WX)/2, P/2, (WF + WB)/2)));
   for(let k = 0; k < 3; k++) g.add(mesh(box(2.7 + k*0.15, 0.12, 0.3), stoneL, 0, P - 0.06 - k*0.11, CF + 0.17 + k*0.28));
 
-  // the centre block: walls with coursing, corner pilasters, entablature with a gilt line, a pediment, a blue slate roof
+  // the centre block: walls with coursing, entablature, a gable, a blue slate roof
   g.add(mesh(box(2*CX, CW - P, CF - CB), stone, 0, (CW + P)/2, (CF + CB)/2));
   const course = [];
-  for(let y = P + 0.42; y < CW - 0.1; y += 0.42){ course.push([0, y, CF + 0.006, 2*CX, 0.025, 0.012]); [-1, 1].forEach(s => course.push([s*(CX + 0.006), y, (CF + CB)/2, 0.012, 0.025, CF - CB])); }
+  for(let y = P + 0.42; y < CW - 0.1; y += 0.42){ [CF + 0.006, CB - 0.006].forEach(z => course.push([0, y, z, 2*CX, 0.025, 0.012])); [-1, 1].forEach(s => course.push([s*(CX + 0.006), y, (CF + CB)/2, 0.012, 0.025, CF - CB])); }
   g.add(instanced(unit, mat(0xbfb59e), course, false));
-  [-1, 1].forEach(s => {
-    g.add(mesh(box(0.38, CW - P - 0.3, 0.22), stoneL, s*(CX - 0.19), (CW + P)/2, CF + 0.11));
-    g.add(mesh(box(0.52, 0.18, 0.32), stoneL, s*(CX - 0.19), CW - 0.09, CF + 0.12), mesh(box(0.5, 0.16, 0.3), stoneD, s*(CX - 0.19), P + 0.08, CF + 0.12));
-  });
   g.add(mesh(box(2*CX + 0.3, 0.34, CF - CB + 0.3), stoneL, 0, CW + 0.17, (CF + CB)/2));
-  g.add(mesh(box(2*CX + 0.32, 0.05, 0.02), gold, 0, CW + 0.1, CF + 0.16));
   g.add(mesh(box(2*CX + 0.5, 0.1, CF - CB + 0.5), stoneL, 0, CW + 0.39, (CF + CB)/2));
   const E = CW + 0.44, HW = CX + 0.3;                                    // eaves height, half span of the roof
-  g.add(mesh(prism([[-CX, E], [CX, E], [0, RY - 0.12]], CF - CB), stone, 0, 0, (CF + CB)/2));   // gable fill
-  g.add(mesh(prism([[-CX + 0.22, E + 0.06], [CX - 0.22, E + 0.06], [0, RY - 0.3]], 0.04), stoneD, 0, 0, CF + 0.02));   // recessed tympanum
+  g.add(mesh(prism([[-HW, E], [HW, E], [0, RY - 0.01]], CF - CB), stone, 0, 0, (CF + CB)/2));   // gable fill, right up under the roof
   const rake = Math.atan2(RY - E, HW), RL = Math.hypot(HW, RY - E);
-  [-1, 1].forEach(s => { const c = mesh(box(RL + 0.1, 0.12, 0.34), stoneL, s*HW/2, (E + RY)/2 + 0.04, CF + 0.12); c.rotation.z = -s*rake; g.add(c); });
   g.add(mesh(prism([[-HW, E], [0, RY], [HW, E], [HW, E + 0.16], [0, RY + 0.16], [-HW, E + 0.16]], CF - CB + 0.4), slate, 0, 0, (CF + CB)/2));
   g.add(mesh(box(0.2, 0.12, CF - CB + 0.45), slateD, 0, RY + 0.17, (CF + CB)/2));
   [0.35, 0.7, 1.05].forEach(d => [-1, 1].forEach(s => { const l = mesh(box(0.04, 0.03, CF - CB + 0.38), slateD, s*d, RY + 0.17 - d*(RY - E)/HW, (CF + CB)/2); l.rotation.z = -s*rake; g.add(l); }));
-  // the pediment's carving: the lamp of learning in a gilded laurel (as at the far end of the hall)
-  const wreath = laurel(0.34, gold); wreath.position.set(0, E + 0.5, CF + 0.08); g.add(wreath);
-  const lampBody = mesh(new THREE.SphereGeometry(0.13, 10, 6), gold, 0, E + 0.4, CF + 0.1); lampBody.scale.set(1.3, 0.5, 0.7); g.add(lampBody);
-  const flameM = glow(0xffd27a, 2.2).clone(), flame = mesh(new THREE.ConeGeometry(0.05, 0.2, 6), flameM, 0.16, E + 0.52, CF + 0.1); flame.castShadow = false; g.add(flame);
 
-  // the great door: an arch of voussoirs with a gilt keystone, open double doors on the lit hall, a plaque above
-  const DW = 1.1, DS = P + 1.65, AR = DW/2;
-  [mesh(box(DW, DS - P, 0.02), litM, 0, (DS + P)/2, CF + 0.01), mesh(new THREE.CylinderGeometry(AR, AR, 0.02, 14, 1, false, -PI/2, PI).rotateX(-PI/2), litM, 0, DS, CF + 0.01)]
-    .forEach(o => { o.castShadow = false; g.add(o); });   // the lit hall seen through the open door
-  const dress = [];
-  [-1, 1].forEach(s => { for(let j = 0; j < 6; j++){ const w = j % 2 ? 0.16 : 0.24; dress.push([s*(AR + w/2), P + 0.14 + j*0.28, CF + 0.05, w, 0.26, 0.1, 0, j % 2 ? STONE_L : MARBLE]); } });
-  for(let i = 0; i < 11; i++){ const th = (i + 0.5)*PI/11, key = i === 5; dress.push([Math.cos(th)*(AR + 0.13), DS + Math.sin(th)*(AR + 0.13), CF + 0.05, key ? 0.16 : 0.13, key ? 0.3 : 0.24, key ? 0.13 : 0.1, 0, key ? GOLD : STONE_L, 0, th - PI/2]); }
+  // both ends get the same face (n = 1 the front at CF, n = -1 the back at CB): corner pilasters, a gilt line, a pediment
+  // carved with the lamp of learning in a gilded laurel (as at the far end of the hall), an arch of voussoirs with a gilt
+  // keystone, an emblem plaque over it, a round window above, navy and gold banners, a rusticated base, dentils, rosettes
+  // and acroteria. At the front the arch is the great door, open on the lit hall; at the back it's a tall lit window.
+  const flameM = glow(0xffd27a, 2.2).clone(), DW = 1.1, DS = P + 1.65, AR = DW/2, PY = DS + AR + 0.5, OY = CW - 0.5;
+  const dress = [], rust = [], dent = [], banners = [], RS = [0xcfc5ae, 0xc6bca4, 0xd8cfba, 0xbfb59d];
+  let flame;
+  [[CF, 1], [CB, -1]].forEach(([F, n]) => {
+    const z = d => F + n*d;
+    [-1, 1].forEach(s => {
+      g.add(mesh(box(0.38, CW - P - 0.3, 0.22), stoneL, s*(CX - 0.19), (CW + P)/2, z(0.11)));
+      g.add(mesh(box(0.52, 0.18, 0.32), stoneL, s*(CX - 0.19), CW - 0.09, z(0.12)), mesh(box(0.5, 0.16, 0.3), stoneD, s*(CX - 0.19), P + 0.08, z(0.12)));
+      const c = mesh(box(RL + 0.1, 0.12, 0.34), stoneL, s*HW/2, (E + RY)/2 + 0.04, z(0.12)); c.rotation.z = -s*rake; g.add(c);
+    });
+    g.add(mesh(box(2*CX + 0.32, 0.05, 0.02), gold, 0, CW + 0.1, z(0.16)));
+    g.add(mesh(prism([[-CX + 0.22, E + 0.06], [CX - 0.22, E + 0.06], [0, RY - 0.3]], 0.04), stoneD, 0, 0, z(0.02)));   // recessed tympanum
+    const wreath = laurel(0.2, gold); wreath.position.set(0, E + 0.3, z(0.08)); g.add(wreath);
+    const lampBody = mesh(new THREE.SphereGeometry(0.09, 10, 6), gold, 0, E + 0.25, z(0.1)); lampBody.scale.set(1.3, 0.5, 0.7); g.add(lampBody);
+    const fl = mesh(new THREE.ConeGeometry(0.035, 0.14, 6), flameM, n*0.11, E + 0.34, z(0.1)); fl.castShadow = false; g.add(fl); flame = flame || fl;
+
+    [mesh(box(DW, DS - P, 0.02), litM, 0, (DS + P)/2, z(0.01)), mesh(new THREE.CylinderGeometry(AR, AR, 0.02, 14, 1, false, -PI/2, PI).rotateX(-PI/2), litM, 0, DS, z(0.01))]
+      .forEach(o => { o.castShadow = false; g.add(o); });   // the lit hall through the door / window
+    [-1, 1].forEach(s => { for(let j = 0; j < 6; j++){ const w = j % 2 ? 0.16 : 0.24; dress.push([s*(AR + w/2), P + 0.14 + j*0.28, z(0.05), w, 0.26, 0.1, 0, j % 2 ? STONE_L : MARBLE]); } });
+    for(let i = 0; i < 11; i++){ const th = (i + 0.5)*PI/11, key = i === 5; dress.push([Math.cos(th)*(AR + 0.13), DS + Math.sin(th)*(AR + 0.13), z(0.05), key ? 0.16 : 0.13, key ? 0.3 : 0.24, key ? 0.13 : 0.1, 0, key ? GOLD : STONE_L, 0, th - PI/2]); }
+    if(n > 0) [-1, 1].forEach(s => {   // the door leaves, hung at the jambs and swung open outward
+      const h = new THREE.Group(); h.position.set(s*AR, 0, CF + 0.04); h.rotation.y = s*1.15; g.add(h);
+      h.add(mesh(box(DW/2 - 0.02, DS - P - 0.02, 0.06), wood, -s*DW/4, (DS + P)/2, 0));
+      [0.7, 1.35].forEach(y => h.add(mesh(box(DW/2 - 0.08, 0.05, 0.02), iron, -s*DW/4, P + y, 0.04)));
+      h.add(mesh(new THREE.TorusGeometry(0.06, 0.015, 4, 10), gold, -s*(DW/2 - 0.1), P + 1.0, 0.05));
+    });
+    else {   // the window's iron tracery and a low stone balustrade across its foot
+      g.add(mesh(box(0.03, DS + AR - P - 0.05, 0.03), iron, 0, (DS + AR + P)/2, z(0.03)));
+      [P + 0.75, P + 1.2, DS].forEach(y => g.add(mesh(box(DW, 0.03, 0.03), iron, 0, y, z(0.03))));
+      g.add(mesh(box(DW + 0.2, 0.08, 0.16), stoneL, 0, P + 0.5, z(0.1)), mesh(box(DW + 0.24, 0.08, 0.2), stoneL, 0, P + 0.09, z(0.1)));
+      g.add(instanced(cyl(0.035, 0.05, 0.33, 6), marble, [-0.42, -0.21, 0, 0.21, 0.42].map(x => [x, P + 0.295, z(0.1), 1, 1, 1, 0])));
+    }
+
+    g.add(mesh(box(0.86, 0.36, 0.06), mat(NAVY), 0, PY, z(0.04)), mesh(box(0.92, 0.42, 0.04), gold, 0, PY, z(0.02)));
+    const dia = mesh(new THREE.OctahedronGeometry(0.11), gold, 0, PY, z(0.09)); dia.scale.z = 0.3; g.add(dia);
+    const ocu = mesh(cyl(0.24, 0.24, 0.02, 16).rotateX(PI/2), litM, 0, OY, z(0.01)); ocu.castShadow = false; g.add(ocu);
+    g.add(mesh(new THREE.TorusGeometry(0.27, 0.05, 5, 18), stoneL, 0, OY, z(0.04)));
+    [0, 1, 2, 3].forEach(k => { const b = mesh(box(0.46, 0.025, 0.02), iron, 0, OY, z(0.03)); b.rotation.z = k*PI/4; g.add(b); });
+    [-1, 1].forEach(s => {
+      const b = new THREE.Group(); b.position.set(s*0.8, CW - 0.22, z(0.1)); b.rotation.y = n > 0 ? 0 : PI; g.add(b);
+      b.add(mesh(bannerGeo(0.44, 1.5, 0.18), mat(GOLD, {side:THREE.DoubleSide}), 0, 0.02, -0.005), mesh(bannerGeo(0.36, 1.42, 0.16), mat(NAVY, {side:THREE.DoubleSide}), 0, 0, 0));
+      const d = mesh(new THREE.OctahedronGeometry(0.09), gold, 0, -0.62, 0.01); d.scale.set(1, 1.4, 0.2); b.add(d);
+      b.add(mesh(cyl(0.02, 0.02, 0.4, 6).rotateZ(PI/2), gold, 0, 0.02, 0.01));
+      banners.push(b);
+    });
+
+    [0.5, 0.82].forEach((y, r) => { for(let x = -CX + (r % 2)*0.25, j = 0; x < CX - 0.05; j++){ const a0 = Math.max(x, -CX), b0 = Math.min(x + 0.48, CX); x += 0.48; if(Math.abs((a0 + b0)/2) < AR + 0.3) continue; if(b0 - a0 > 0.1) rust.push([(a0 + b0)/2, y, z(0.025), b0 - a0 - 0.05, 0.28, 0.05, 0, RS[(j + r) % 4]]); } });
+    for(let x = -CX - 0.1; x <= CX + 0.1; x += 0.16) dent.push([x, CW + 0.3, z(0.2), 0.07, 0.08, 0.1, 0]);
+    g.add(instanced(cyl(0.06, 0.06, 0.03, 8).rotateX(PI/2), gold, [-1.1, -0.55, 0, 0.55, 1.1].map(x => [x, CW + 0.19, z(0.165), 1, 1, 1, 0]), false));
+    [[0, RY + 0.22], [-HW + 0.08, E + 0.12], [HW - 0.08, E + 0.12]].forEach(([x, y]) => { const a = mesh(new THREE.OctahedronGeometry(0.12), gold, x, y, z(0.12)); a.scale.set(1, 1.6, 0.35); g.add(a); });
+  });
   g.add(instanced(unit, mat(0xffffff), dress));
-  [-1, 1].forEach(s => {   // the leaves, hung at the jambs and swung open outward
-    const h = new THREE.Group(); h.position.set(s*AR, 0, CF + 0.04); h.rotation.y = s*1.15; g.add(h);
-    h.add(mesh(box(DW/2 - 0.02, DS - P - 0.02, 0.06), wood, -s*DW/4, (DS + P)/2, 0));
-    [0.7, 1.35].forEach(y => h.add(mesh(box(DW/2 - 0.08, 0.05, 0.02), iron, -s*DW/4, P + y, 0.04)));
-    h.add(mesh(new THREE.TorusGeometry(0.06, 0.015, 4, 10), gold, -s*(DW/2 - 0.1), P + 1.0, 0.05));
-  });
-  const PY = DS + AR + 0.42, OY = CW - 0.5;                              // the emblem plaque over the arch; a round window above it
-  g.add(mesh(box(0.86, 0.36, 0.06), mat(NAVY), 0, PY, CF + 0.04), mesh(box(0.92, 0.42, 0.04), gold, 0, PY, CF + 0.02));
-  const dia = mesh(new THREE.OctahedronGeometry(0.11), gold, 0, PY, CF + 0.09); dia.scale.z = 0.3; g.add(dia);
-  const ocu = mesh(cyl(0.24, 0.24, 0.02, 16).rotateX(PI/2), litM, 0, OY, CF + 0.01); ocu.castShadow = false; g.add(ocu);
-  g.add(mesh(new THREE.TorusGeometry(0.27, 0.05, 5, 18), stoneL, 0, OY, CF + 0.04));
-  [0, 1, 2, 3].forEach(k => { const b = mesh(box(0.46, 0.025, 0.02), mat(0x2a2522), 0, OY, CF + 0.03); b.rotation.z = k*PI/4; g.add(b); });
-  // navy banners either side of the door, a gold diamond on each
-  const banners = [-1, 1].map(s => {
-    const b = new THREE.Group(); b.position.set(s*0.98, CW - 0.06, CF + 0.08); g.add(b);
-    b.add(mesh(bannerGeo(0.5, 2.1, 0.22), mat(GOLD, {side:THREE.DoubleSide}), 0, 0.02, -0.005), mesh(bannerGeo(0.42, 2.02, 0.2), mat(NAVY, {side:THREE.DoubleSide}), 0, 0, 0));
-    const d = mesh(new THREE.OctahedronGeometry(0.1), gold, 0, -0.85, 0.01); d.scale.set(1, 1.4, 0.2); b.add(d);
-    b.add(mesh(cyl(0.02, 0.02, 0.6, 6).rotateZ(PI/2), gold, 0, 0.02, 0.01));
-    return b;
-  });
 
-  // more of the centre block: a rusticated base course, dentils under the cornices, rosettes in the frieze, gilt acroteria,
-  // a clerestory of lit arched windows above the wings with pilasters between, and an open lantern on the ridge
-  const rust = [], RS = [0xcfc5ae, 0xc6bca4, 0xd8cfba, 0xbfb59d];
-  [0.5, 0.82].forEach((y, r) => {
-    for(let x = -CX + (r % 2)*0.25, j = 0; x < CX - 0.05; j++){ const w = 0.48, a0 = Math.max(x, -CX), b0 = Math.min(x + w, CX); x += w; if(Math.abs((a0 + b0)/2) < AR + 0.3) continue; if(b0 - a0 > 0.1) rust.push([(a0 + b0)/2, y, CF + 0.025, b0 - a0 - 0.05, 0.28, 0.05, 0, RS[(j + r) % 4]]); }
-    [-1, 1].forEach(sd => { for(let z = CB + (r % 2)*0.25, j = 0; z < CF - 0.05; j++){ const a0 = Math.max(z, CB), b0 = Math.min(z + 0.48, CF); z += 0.48; if(b0 - a0 > 0.1) rust.push([sd*(CX + 0.025), y, (a0 + b0)/2, 0.05, 0.28, b0 - a0 - 0.05, 0, RS[(j + r + 1) % 4]]); } });
-  });
+  // more of the centre block: the rusticated base and dentils down the sides, a clerestory of lit arched windows above
+  // the wings with pilasters between, and an open lantern on the ridge
+  [0.5, 0.82].forEach((y, r) => [-1, 1].forEach(sd => { for(let z = CB + (r % 2)*0.25, j = 0; z < CF - 0.05; j++){ const a0 = Math.max(z, CB), b0 = Math.min(z + 0.48, CF); z += 0.48; if(b0 - a0 > 0.1) rust.push([sd*(CX + 0.025), y, (a0 + b0)/2, 0.05, 0.28, b0 - a0 - 0.05, 0, RS[(j + r + 1) % 4]]); } }));
   g.add(instanced(unit, mat(0xffffff), rust));
-  const dent = [];
-  for(let x = -CX - 0.1; x <= CX + 0.1; x += 0.16) dent.push([x, CW + 0.29, CF + 0.29, 0.07, 0.08, 0.06, 0]);
-  [-1, 1].forEach(sd => { for(let z = CB - 0.1; z <= CF + 0.1; z += 0.16) dent.push([sd*(CX + 0.17), CW + 0.29, z, 0.06, 0.08, 0.07, 0]); });
+  [-1, 1].forEach(sd => { for(let z = CB - 0.1; z <= CF + 0.1; z += 0.16) dent.push([sd*(CX + 0.2), CW + 0.3, z, 0.1, 0.08, 0.07, 0]); });
   g.add(instanced(unit, stoneL, dent, false));
-  g.add(instanced(cyl(0.07, 0.07, 0.03, 8).rotateX(PI/2), gold, [-1.1, -0.55, 0, 0.55, 1.1].map(x => [x, CW + 0.2, CF + 0.165, 1, 1, 1, 0]), false));
-  [[0, RY + 0.22], [-HW + 0.08, E + 0.12], [HW - 0.08, E + 0.12]].forEach(([x, y]) => { const a = mesh(new THREE.OctahedronGeometry(0.12), gold, x, y, CF + 0.12); a.scale.set(1, 1.6, 0.35); g.add(a); });
   const clr = [], clrPanes = [];
   [-1, 1].forEach(sd => {
     for(let z = CB + 0.55; z < CF - 0.4; z += 0.75){
@@ -144,6 +154,13 @@ export function building(animated){
     g.add(mesh(cyl(0.12, 0.08, 0.18, 8), stoneD, sd*1.6, 0.51, CF + 0.85), mesh(new THREE.SphereGeometry(0.11, 8, 6), mat(0x4f7a3a), sd*1.6, 0.66, CF + 0.85));
   });
 
+  const arched = (x, z, ry) => {
+    const w = new THREE.Group(); w.position.set(x, 0, z); w.rotation.y = ry; g.add(w);
+    [mesh(box(0.5, 1.1, 0.02), litM, 0, P + 0.95, 0), mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.02, 12, 1, false, -PI/2, PI).rotateX(-PI/2), litM, 0, P + 1.5, 0)].forEach(o => { o.castShadow = false; w.add(o); });
+    [-1, 1].forEach(e => w.add(mesh(box(0.1, 1.2, 0.08), stoneL, e*0.3, P + 0.95, 0.04)));
+    w.add(mesh(new THREE.TorusGeometry(0.3, 0.06, 4, 12, PI), stoneL, 0, P + 1.5, 0.04), mesh(box(0.12, 0.16, 0.1), gold, 0, P + 1.82, 0.05), mesh(box(0.72, 0.07, 0.16), stoneL, 0, P + 0.36, 0.06));
+    w.add(mesh(box(0.02, 1.4, 0.03), iron, 0, P + 1.05, 0.02), mesh(box(0.5, 0.02, 0.03), iron, 0, P + 1.1, 0.02));
+  };
   // the wings: a back wall with lit doors, a colonnade with banners between the columns, hanging lanterns, a slate roof
   const half = (WF - WB)/2 + 0.28, rise = 0.6, ZC = (WF + WB)/2, cols = [], bans = [];
   [-1, 1].forEach(s => {
@@ -161,16 +178,18 @@ export function building(animated){
     g.add(mesh(box(len, 0.08, WF - WB), stoneD, xm, WT + 0.02, ZC));                            // the colonnade's ceiling
     g.add(mesh(prism([[-half, 0], [0, rise], [half, 0], [half, 0.14], [0, rise + 0.14], [-half, 0.14]], len + 0.3).rotateY(PI/2), slate, xm + s*0.15, WT + 0.26, ZC));
     g.add(mesh(box(len + 0.32, 0.1, 0.16), slateD, xm + s*0.15, WT + 0.26 + rise + 0.15, ZC));
-    g.add(mesh(prism([[-half + 0.3, 0], [half - 0.3, 0], [0, rise - 0.06]], 0.24).rotateY(PI/2), stone, s*(WX - 0.12), WT + 0.26, ZC));   // the wing's end gable
+    const W2 = (WF - WB)/2, u = (half - W2)*rise/half - 0.01;
+    g.add(mesh(prism([[-W2, 0], [W2, 0], [W2, u], [0, rise - 0.01], [-W2, u]], 0.24).rotateY(PI/2), stone, s*(WX - 0.12), WT + 0.26, ZC));   // the wing's end gable, up under the roof
+    g.add(mesh(box(len, 0.21, WF - WB), stone, xm, WT + 0.165, ZC));   // the attic between the colonnade's ceiling and the roof
     [-0.42, 0.42].forEach(dz => { const l = mesh(box(len + 0.28, 0.03, 0.04), slateD, xm + s*0.15, WT + 0.4 + rise*(1 - Math.abs(dz)/half) - 0.02, ZC + dz); g.add(l); });
-    [-0.9, 0, 0.9].forEach(dx => g.add(mesh(box(0.2, WT - P, 0.08), stoneL, xm + dx, (WT + P)/2, WB + 0.28)));   // pilasters on the back wall
-    // a tall arched window in the wing's end wall, lit from inside, in a stone frame with a keystone and sill
-    const ew = new THREE.Group(); ew.position.set(s*(WX + 0.005), 0, ZC); ew.rotation.y = s*PI/2; g.add(ew);
-    [mesh(box(0.5, 1.1, 0.02), litM, 0, P + 0.95, 0), mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.02, 12, 1, false, -PI/2, PI).rotateX(-PI/2), litM, 0, P + 1.5, 0)].forEach(o => { o.castShadow = false; ew.add(o); });
-    [-1, 1].forEach(e => ew.add(mesh(box(0.1, 1.2, 0.08), stoneL, e*0.3, P + 0.95, 0.04)));
-    ew.add(mesh(new THREE.TorusGeometry(0.3, 0.06, 4, 12, PI), stoneL, 0, P + 1.5, 0.04), mesh(box(0.12, 0.16, 0.1), gold, 0, P + 1.82, 0.05), mesh(box(0.72, 0.07, 0.16), stoneL, 0, P + 0.36, 0.06));
-    ew.add(mesh(box(0.02, 1.4, 0.03), mat(0x2a2522), 0, P + 1.05, 0.02), mesh(box(0.5, 0.02, 0.03), mat(0x2a2522), 0, P + 1.1, 0.02));
-    for(let k = 0; k < 6; k++) g.add(mesh(new THREE.ConeGeometry(0.06, 0.16, 4), stoneL, s*(CX + 0.18 + k*0.33), WT + 0.4, WF + 0.26));   // antefixes along the eave
+    [-0.8, 0, 0.8].forEach(dx => g.add(mesh(box(0.12, WT - P, 0.08), stoneL, xm + dx, (WT + P)/2, WB + 0.28)));   // pilasters on the back wall (the end ones used to poke out through the end wall)
+    // tall arched windows, lit from inside, in stone frames with a keystone and sill: one in the end wall, two in the back
+    arched(s*(WX + 0.005), ZC, s*PI/2);
+    [-0.45, 0.45].forEach(dx => arched(xm + dx, WB - 0.005, PI));
+    // the back wall outside: a base course, a cornice with a gilt line
+    g.add(mesh(box(len - 0.05, 0.16, 0.05), stoneD, xm + s*0.025, P + 0.08, WB - 0.025));
+    g.add(mesh(box(len + 0.12, 0.2, 0.3), stoneL, xm, WT + 0.15, WB + 0.03), mesh(box(len + 0.14, 0.04, 0.02), gold, xm, WT + 0.06, WB - 0.13));
+    for(let k = 0; k < 6; k++) [WF + 0.26, WB - 0.26].forEach(z => g.add(mesh(new THREE.ConeGeometry(0.06, 0.16, 4), stoneL, s*(CX + 0.18 + k*0.33), WT + 0.4, z)));   // antefixes along both eaves
     const acro = mesh(new THREE.OctahedronGeometry(0.09), gold, s*(WX + 0.02), WT + 0.26 + rise + 0.2, ZC); acro.scale.set(0.35, 1.5, 1); g.add(acro);
     // lanterns hanging in the colonnade
     [-0.45, 0.45].forEach(dx => {
@@ -187,13 +206,15 @@ export function building(animated){
   g.add(instanced(bannerGeo(0.3, 0.8, 0.12), mat(NAVY, {side:THREE.DoubleSide}), bannerRows, false));
   g.add(instanced(new THREE.OctahedronGeometry(0.06), gold, bans.map(([x, z]) => [x, WT - 0.4, z + 0.01, 1, 1.4, 0.25, 0]), false));
 
-  // guardian lions either side of the steps, lanterns on posts, slim cypresses at the corners
-  [-1, 1].forEach(s => { const l = lion(); l.position.set(s*1.9, 0, CF + 0.55); l.rotation.y = s*0.15; g.add(l); });
+  // guardian lions either side of the steps, lanterns on posts front and back, slim cypresses at the corners
+  [-1, 1].forEach(s => { const l = lion(); l.position.set(s*2.12, 0, CF + 0.55); l.rotation.y = s*0.15; g.add(l); });
   [-1, 1].forEach(s => {
-    g.add(mesh(box(0.22, 0.2, 0.22), stoneD, s*1.2, 0.1, CF + 0.95), mesh(cyl(0.035, 0.045, 0.85, 5), iron, s*1.2, 0.62, CF + 0.95));
-    const L = mesh(box(0.17, 0.22, 0.17), lampM, s*1.2, 1.15, CF + 0.95); L.castShadow = false; g.add(L);
-    g.add(mesh(new THREE.ConeGeometry(0.15, 0.12, 4).rotateY(PI/4), iron, s*1.2, 1.33, CF + 0.95));
-    g.add(mesh(cyl(0.07, 0.09, 0.4, 5), mat(0x5a3d28), s*3.0, 0.2, WF + 0.75), mesh(new THREE.ConeGeometry(0.3, 2.1, 7), mat(0x2f5a34), s*3.0, 1.35, WF + 0.75));
+    [CF + 1.0, CB - 0.55].forEach(z => {
+      g.add(mesh(box(0.22, 0.2, 0.22), stoneD, s*1.2, 0.1, z), mesh(cyl(0.035, 0.045, 0.85, 5), iron, s*1.2, 0.62, z));
+      const L = mesh(box(0.17, 0.22, 0.17), lampM, s*1.2, 1.15, z); L.castShadow = false; g.add(L);
+      g.add(mesh(new THREE.ConeGeometry(0.15, 0.12, 4).rotateY(PI/4), iron, s*1.2, 1.33, z));
+    });
+    [[s*3.0, WF + 0.75], [s*2.05, WB - 0.65]].forEach(([x, z]) => g.add(mesh(cyl(0.07, 0.09, 0.4, 5), mat(0x5a3d28), x, 0.2, z), mesh(new THREE.ConeGeometry(0.3, 2.1, 7), mat(0x2f5a34), x, 1.35, z)));
   });
 
   const pl = new THREE.PointLight(0xffb060, 0.9, 9, 2); pl.position.set(0, 1.4, CF + 1.0); g.add(pl);
